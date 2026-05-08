@@ -21,7 +21,7 @@ export default function GroupPage() {
   }
 
   return (
-    <main class="container-list page-level--group">
+    <main class="container container-medium page-level--group">
       <PageTitle segment={group.title} />
       <Breadcrumbs
         items={[

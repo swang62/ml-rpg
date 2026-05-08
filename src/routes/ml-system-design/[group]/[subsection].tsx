@@ -24,7 +24,7 @@ export default function SubsectionPage() {
   }
 
   return (
-    <main class="container-list page-level--section">
+    <main class="container container-narrow page-level--section">
       <PageTitle segment={subsection.title} />
       <Breadcrumbs
         items={[
@@ -34,7 +34,10 @@ export default function SubsectionPage() {
           { label: subsection.title },
         ]}
       />
-      <PageHeader title={subsection.title} />
+      <PageHeader
+        title={subsection.title}
+        subtitle={`${subsection.articles.length} articles`}
+      />
 
       <section class="articles-list">
         {[...subsection.articles]
