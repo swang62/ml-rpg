@@ -5,7 +5,12 @@
     "dev": "vinxi dev",
     "build": "vinxi build",
     "start": "vinxi start",
-    "preview": "vinxi preview"
+    "preview": "vinxi preview",
+    "prepare": "husky || true",
+    "lint": "biome check --write ."
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": "biome check --write --no-errors-on-unmatched"
   },
   "dependencies": {
     "@solidjs/meta": "^0.29.4",
@@ -17,5 +22,9 @@
   "engines": {
     "node": ">=22"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.2"
+  }
 }
