@@ -20,7 +20,7 @@ export interface Group {
 export const siteData: Group[] = [
   {
     slug: "ml-ab-testing",
-    title: "Ab Testing",
+    title: "AB Testing",
     subsections: [
       {
         slug: "experiment-design",
@@ -162,7 +162,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "interleaving-vs-ab-testing-trade-offs",
-            title: "Interleaving Vs Ab Testing Trade Offs",
+            title: "Interleaving Vs AB Testing Trade Offs",
             url: "https://www.systemoverflow.com/learn/ml-ab-testing/interleaving-experiments/interleaving-vs-ab-testing-trade-offs",
             order: 4,
           },
@@ -322,11 +322,11 @@ export const siteData: Group[] = [
   },
   {
     slug: "ml-cv-systems",
-    title: "Cv Systems",
+    title: "CV Systems",
     subsections: [
       {
         slug: "cv-data-augmentation",
-        title: "Cv Data Augmentation",
+        title: "CV Data Augmentation",
         articles: [
           {
             slug: "autoaugment-automated-policy-discovery",
@@ -369,7 +369,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "cv-evaluation",
-        title: "Cv Evaluation",
+        title: "CV Evaluation",
         articles: [
           {
             slug: "choosing-metrics-and-protocols-for-your-task",
@@ -544,7 +544,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "multi-task-learning-cv",
-        title: "Multi Task Learning Cv",
+        title: "Multi Task Learning CV",
         articles: [
           {
             slug: "failure-modes-negative-transfer-and-data-drift",
@@ -1631,7 +1631,7 @@ export const siteData: Group[] = [
   },
   {
     slug: "ml-infrastructure-mlops",
-    title: "Infrastructure Mlops",
+    title: "Infrastructure MLops",
     subsections: [
       {
         slug: "automated-rollback",
@@ -1677,7 +1677,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "ci-cd-ml",
-        title: "Ci Cd Ml",
+        title: "CI/CD for ML",
         articles: [
           {
             slug: "data-drift-detection-and-automated-retraining",
@@ -2030,7 +2030,7 @@ export const siteData: Group[] = [
   },
   {
     slug: "ml-llm-genai",
-    title: "Llm Genai",
+    title: "LLM GenAI",
     subsections: [
       {
         slug: "agent-systems-tool-use",
@@ -2062,7 +2062,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "trade-offs-llm-centric-planning-vs-backend-orchestration",
-            title: "Trade Offs Llm Centric Planning Vs Backend Orchestration",
+            title: "Trade Offs LLM Centric Planning Vs Backend Orchestration",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/agent-systems-tool-use/trade-offs-llm-centric-planning-vs-backend-orchestration",
             order: 4,
           },
@@ -2110,7 +2110,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "what-is-chunking-in-llm-systems",
-            title: "What Is Chunking In Llm Systems",
+            title: "What Is Chunking In LLM Systems",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/chunking-strategies/what-is-chunking-in-llm-systems",
             order: 1,
           },
@@ -2118,7 +2118,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "llm-caching-optimization",
-        title: "Llm Caching Optimization",
+        title: "LLM Caching Optimization",
         articles: [
           {
             slug: "cost-optimization-trade-offs-caching-vs-model-routing",
@@ -2128,7 +2128,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "failure-modes-and-edge-cases-in-llm-caching",
-            title: "Failure Modes And Edge Cases In Llm Caching",
+            title: "Failure Modes And Edge Cases In LLM Caching",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/llm-caching-optimization/failure-modes-and-edge-cases-in-llm-caching",
             order: 5,
           },
@@ -2140,13 +2140,13 @@ export const siteData: Group[] = [
           },
           {
             slug: "three-layers-of-llm-caching",
-            title: "Three Layers Of Llm Caching",
+            title: "Three Layers Of LLM Caching",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/llm-caching-optimization/three-layers-of-llm-caching",
             order: 2,
           },
           {
             slug: "what-is-llm-caching-and-why-does-it-matter",
-            title: "What Is Llm Caching And Why Does It Matter",
+            title: "What Is LLM Caching And Why Does It Matter",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/llm-caching-optimization/what-is-llm-caching-and-why-does-it-matter",
             order: 1,
           },
@@ -2154,7 +2154,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "llm-evaluation-benchmarking",
-        title: "Llm Evaluation Benchmarking",
+        title: "LLM Evaluation Benchmarking",
         articles: [
           {
             slug: "failure-modes-and-edge-cases",
@@ -2188,7 +2188,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "what-is-llm-evaluation-red-teaming",
-            title: "What Is Llm Evaluation Red Teaming",
+            title: "What Is LLM Evaluation Red Teaming",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/llm-evaluation-benchmarking/what-is-llm-evaluation-red-teaming",
             order: 1,
           },
@@ -2196,7 +2196,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "llm-fine-tuning",
-        title: "Llm Fine Tuning",
+        title: "LLM Fine Tuning",
         articles: [
           {
             slug: "failure-modes-and-edge-cases-in-peft-systems",
@@ -2232,7 +2232,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "llm-guardrails-safety",
-        title: "Llm Guardrails Safety",
+        title: "LLM Guardrails Safety",
         articles: [
           {
             slug: "guardrail-design-trade-offs",
@@ -2248,7 +2248,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "how-llm-guardrail-pipelines-work",
-            title: "How Llm Guardrail Pipelines Work",
+            title: "How LLM Guardrail Pipelines Work",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/llm-guardrails-safety/how-llm-guardrail-pipelines-work",
             order: 2,
           },
@@ -2260,7 +2260,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "what-are-llm-guardrails-safety-systems",
-            title: "What Are Llm Guardrails Safety Systems",
+            title: "What Are LLM Guardrails Safety Systems",
             url: "https://www.systemoverflow.com/learn/ml-llm-genai/llm-guardrails-safety/what-are-llm-guardrails-safety-systems",
             order: 1,
           },
@@ -2644,7 +2644,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "three-layers-of-model-caching-kv-embedding-and-result",
-            title: "Three Layers Of Model Caching Kv Embedding And Result",
+            title: "Three Layers Of Model Caching KV Embedding And Result",
             url: "https://www.systemoverflow.com/learn/ml-model-optimization/model-result-caching/three-layers-of-model-caching-kv-embedding-and-result",
             order: 1,
           },
@@ -2814,7 +2814,7 @@ export const siteData: Group[] = [
           {
             slug: "what-is-kv-cache-and-why-does-it-dominate-memory-in-llm-inference",
             title:
-              "What Is Kv Cache And Why Does It Dominate Memory In Llm Inference",
+              "What Is KV Cache And Why Does It Dominate Memory In LLM Inference",
             url: "https://www.systemoverflow.com/learn/ml-model-serving/inference-latency-optimization/what-is-kv-cache-and-why-does-it-dominate-memory-in-llm-inference",
             order: 1,
           },
@@ -2935,7 +2935,7 @@ export const siteData: Group[] = [
           {
             slug: "llm-multi-model-serving-gateway-pattern-and-vram-constraints",
             title:
-              "Llm Multi Model Serving Gateway Pattern And Vram Constraints",
+              "LLM Multi Model Serving Gateway Pattern And Vram Constraints",
             url: "https://www.systemoverflow.com/learn/ml-model-serving/multi-model-serving/llm-multi-model-serving-gateway-pattern-and-vram-constraints",
             order: 4,
           },
@@ -3298,39 +3298,39 @@ export const siteData: Group[] = [
   },
   {
     slug: "ml-nlp-systems",
-    title: "Nlp Systems",
+    title: "NLP Systems",
     subsections: [
       {
         slug: "llm-serving",
-        title: "Llm Serving",
+        title: "LLM Serving",
         articles: [
           {
             slug: "how-do-you-manage-kv-cache-memory-in-production",
-            title: "How Do You Manage Kv Cache Memory In Production",
+            title: "How Do You Manage KV Cache Memory In Production",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/llm-serving/how-do-you-manage-kv-cache-memory-in-production",
             order: 4,
           },
           {
             slug: "how-does-continuous-batching-work-in-llm-serving",
-            title: "How Does Continuous Batching Work In Llm Serving",
+            title: "How Does Continuous Batching Work In LLM Serving",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/llm-serving/how-does-continuous-batching-work-in-llm-serving",
             order: 2,
           },
           {
             slug: "what-are-common-failure-modes-in-production-llm-serving",
-            title: "What Are Common Failure Modes In Production Llm Serving",
+            title: "What Are Common Failure Modes In Production LLM Serving",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/llm-serving/what-are-common-failure-modes-in-production-llm-serving",
             order: 6,
           },
           {
             slug: "what-are-the-key-trade-offs-in-llm-serving-optimizations",
-            title: "What Are The Key Trade Offs In Llm Serving Optimizations",
+            title: "What Are The Key Trade Offs In LLM Serving Optimizations",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/llm-serving/what-are-the-key-trade-offs-in-llm-serving-optimizations",
             order: 5,
           },
           {
             slug: "what-is-kv-cache-in-llm-serving",
-            title: "What Is Kv Cache In Llm Serving",
+            title: "What Is KV Cache In LLM Serving",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/llm-serving/what-is-kv-cache-in-llm-serving",
             order: 1,
           },
@@ -3349,7 +3349,7 @@ export const siteData: Group[] = [
           {
             slug: "core-architecture-of-multilingual-natural-language-processing-nlp-systems",
             title:
-              "Core Architecture Of Multilingual Natural Language Processing Nlp Systems",
+              "Core Architecture Of Multilingual Natural Language Processing NLP Systems",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/multilingual-systems/core-architecture-of-multilingual-natural-language-processing-nlp-systems",
             order: 1,
           },
@@ -3421,7 +3421,7 @@ export const siteData: Group[] = [
       },
       {
         slug: "nlp-scalability",
-        title: "Nlp Scalability",
+        title: "NLP Scalability",
         articles: [
           {
             slug: "data-parallelism-for-training-gradient-sync-and-scaling",
@@ -3497,7 +3497,7 @@ export const siteData: Group[] = [
           },
           {
             slug: "prompt-management-versioning-evaluation-and-ab-testing",
-            title: "Prompt Management Versioning Evaluation And Ab Testing",
+            title: "Prompt Management Versioning Evaluation And AB Testing",
             url: "https://www.systemoverflow.com/learn/ml-nlp-systems/prompt-engineering-management/prompt-management-versioning-evaluation-and-ab-testing",
             order: 4,
           },

@@ -4,14 +4,15 @@ import { siteData } from "~/data/site-data";
 
 export default function GroupPage() {
   const params = useParams();
-  const group = siteData.find((g) => g.slug === params.group);
+  console.log(params);
+  const group = siteData.find((group) => group.slug === params.group);
 
   if (!group) {
     return (
       <main class="container">
         <Title>Not Found</Title>
         <h1>Group not found</h1>
-        <A href="/" class="back-link">
+        <A href="/ml-system-design" class="back-link">
           ← Back to home
         </A>
       </main>
@@ -19,10 +20,10 @@ export default function GroupPage() {
   }
 
   return (
-    <main class="container">
-      <Title>{group.title} — ML System Design</Title>
+    <main class="container-list">
+      <Title>{group.title}</Title>
       <header class="page-header">
-        <A href="/" class="back-link">
+        <A href="/ml-system-design" class="back-link">
           ← All categories
         </A>
         <h1>{group.title}</h1>
@@ -31,7 +32,10 @@ export default function GroupPage() {
 
       <section class="subsections-list">
         {group.subsections.map((sub) => (
-          <A href={`/${group.slug}/${sub.slug}`} class="subsection-card">
+          <A
+            href={`/ml-system-design/${group.slug}/${sub.slug}`}
+            class="subsection-card"
+          >
             <h2>{sub.title}</h2>
             <span class="meta">{sub.articles.length} articles</span>
           </A>

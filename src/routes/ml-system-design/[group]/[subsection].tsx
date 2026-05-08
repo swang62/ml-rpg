@@ -14,7 +14,7 @@ export default function SubsectionPage() {
       <main class="container">
         <Title>Not Found</Title>
         <h1>Section not found</h1>
-        <A href="/" class="back-link">
+        <A href="/ml-system-design" class="back-link">
           ← Back to home
         </A>
       </main>
@@ -22,12 +22,12 @@ export default function SubsectionPage() {
   }
 
   return (
-    <main class="container">
+    <main class="container-list">
       <Title>
         {subsection.title} — {group.title}
       </Title>
       <header class="page-header">
-        <A href={`/${group.slug}`} class="back-link">
+        <A href={`/ml-system-design/${group.slug}`} class="back-link">
           ← {group.title}
         </A>
         <h1>{subsection.title}</h1>
