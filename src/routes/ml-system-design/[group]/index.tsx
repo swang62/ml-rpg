@@ -35,14 +35,13 @@ export default function GroupPage() {
         subtitle={`${group.subsections.length} sections`}
       />
 
-      <section class="subsections-list">
+      <section class="groups-grid">
         {group.subsections.map((sub) => (
           <A
             href={ROUTES.ML_SECTION(group.slug, sub.slug)}
-            class="card card--subsection"
+            class="card card--group"
           >
             <h2>{sub.title}</h2>
-            <span class="meta">{sub.articles.length} articles</span>
           </A>
         ))}
       </section>
