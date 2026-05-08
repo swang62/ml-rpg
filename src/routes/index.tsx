@@ -1,13 +1,10 @@
-import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
+import PageHeader from "~/components/PageHeader";
 
 export default function Home() {
   return (
     <main class="container">
-      <Title>System Overflow</Title>
-      <header class="page-header">
-        <h1>System Overflow Courses</h1>
-      </header>
+      <PageHeader title="System Overflow Courses" pageTitle="System Overflow" />
 
       <section class="groups-grid">
         <A href={`/ml-system-design`} class="group-card">

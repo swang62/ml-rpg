@@ -1,5 +1,6 @@
 import { A, useParams } from "@solidjs/router";
 import NotFound from "~/components/NotFound";
+import PageHeader from "~/components/PageHeader";
 import { siteData } from "~/data/site-data";
 
 export default function GroupPage() {
@@ -18,14 +19,12 @@ export default function GroupPage() {
 
   return (
     <main class="container-list">
-      <Title>{group.title}</Title>
-      <header class="page-header">
-        <A href="/ml-system-design" class="back-link">
-          ← All categories
-        </A>
-        <h1>{group.title}</h1>
-        <p class="subtitle">{group.subsections.length} sections</p>
-      </header>
+      <PageHeader
+        title={group.title}
+        subtitle={`${group.subsections.length} sections`}
+        backHref="/ml-system-design"
+        backLabel="All categories"
+      />
 
       <section class="subsections-list">
         {group.subsections.map((sub) => (

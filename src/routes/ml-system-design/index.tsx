@@ -1,18 +1,16 @@
-import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
+import PageHeader from "~/components/PageHeader";
 import { siteData } from "~/data/site-data";
 
 export default function Home() {
   return (
     <main class="container">
-      <Title>ML System Design</Title>
-      <header class="page-header">
-        <A href="/" class="back-link">
-          ← All courses
-        </A>
-        <h1>ML System Design</h1>
-        <p class="subtitle">{siteData.length} categories</p>
-      </header>
+      <PageHeader
+        title="ML System Design"
+        subtitle={`${siteData.length} categories`}
+        backHref="/"
+        backLabel="All courses"
+      />
 
       <section class="groups-grid">
         {siteData.map((group) => (

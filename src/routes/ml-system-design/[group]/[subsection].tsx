@@ -1,5 +1,6 @@
-import { A, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import NotFound from "~/components/NotFound";
+import PageHeader from "~/components/PageHeader";
 import { buildArticleUrl, siteData } from "~/data/site-data";
 
 export default function SubsectionPage() {
@@ -21,15 +22,12 @@ export default function SubsectionPage() {
 
   return (
     <main class="container-list">
-      <Title>
-        {subsection.title} — {group.title}
-      </Title>
-      <header class="page-header">
-        <A href={`/ml-system-design/${group.slug}`} class="back-link">
-          ← {group.title}
-        </A>
-        <h1>{subsection.title}</h1>
-      </header>
+      <PageHeader
+        title={subsection.title}
+        pageTitle={`${subsection.title} — ${group.title}`}
+        backHref={`/ml-system-design/${group.slug}`}
+        backLabel={group.title}
+      />
 
       <section class="articles-list">
         {[...subsection.articles]
