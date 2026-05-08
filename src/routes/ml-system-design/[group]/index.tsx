@@ -1,4 +1,5 @@
 import { A, useParams } from "@solidjs/router";
+import Breadcrumbs from "~/components/Breadcrumbs";
 import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
@@ -20,13 +21,18 @@ export default function GroupPage() {
   }
 
   return (
-    <main class="container-list">
+    <main class="container-list page-level--group">
       <PageTitle segment={group.title} />
+      <Breadcrumbs
+        items={[
+          { label: "System Overflow", href: ROUTES.HOME },
+          { label: "ML System Design", href: ROUTES.ML_BASE },
+          { label: group.title },
+        ]}
+      />
       <PageHeader
         title={group.title}
         subtitle={`${group.subsections.length} sections`}
-        backHref={ROUTES.ML_BASE}
-        backLabel="All categories"
       />
 
       <section class="subsections-list">

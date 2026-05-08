@@ -5,7 +5,7 @@ import { ROUTES } from "~/constants/paths";
 
 export default function HomePage() {
   return (
-    <main class="container">
+    <main class="container page-level--home">
       <PageTitle />
       <PageHeader title="System Overflow Courses" />
 

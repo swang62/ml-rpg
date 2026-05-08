@@ -3460,7 +3460,7 @@ export const siteData: Group[] = [
   },
   {
     slug: "ml-recommendation-systems",
-    title: "Recommendation Systems",
+    title: "Recommenders",
     subsections: [
       {
         slug: "cold-start-problem",

@@ -1,4 +1,5 @@
 import { useParams } from "@solidjs/router";
+import Breadcrumbs from "~/components/Breadcrumbs";
 import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
@@ -23,13 +24,17 @@ export default function SubsectionPage() {
   }
 
   return (
-    <main class="container-list">
+    <main class="container-list page-level--section">
       <PageTitle segment={subsection.title} />
-      <PageHeader
-        title={subsection.title}
-        backHref={ROUTES.ML_GROUP(group.slug)}
-        backLabel={group.title}
+      <Breadcrumbs
+        items={[
+          { label: "System Overflow", href: ROUTES.HOME },
+          { label: "ML System Design", href: ROUTES.ML_BASE },
+          { label: group.title, href: ROUTES.ML_GROUP(group.slug) },
+          { label: subsection.title },
+        ]}
       />
+      <PageHeader title={subsection.title} />
 
       <section class="articles-list">
         {[...subsection.articles]
