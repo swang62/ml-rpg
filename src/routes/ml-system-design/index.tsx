@@ -15,7 +15,7 @@ export default function Home() {
 
       <section class="groups-grid">
         {siteData.map((group) => (
-          <A href={ROUTES.group(group.slug)} class="group-card">
+          <A href={ROUTES.ML_GROUP(group.slug)} class="card card--group">
             <h2>{group.title}</h2>
             <span class="meta">{group.subsections.length} sections</span>
           </A>

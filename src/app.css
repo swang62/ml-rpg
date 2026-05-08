@@ -86,34 +86,45 @@ a {
   gap: 20px;
 }
 
-.group-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* Base card styles */
+.card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
   transition:
-    transform 0.15s ease,
     background 0.15s ease,
     border-color 0.15s ease;
   box-shadow: var(--shadow);
 }
 
-.group-card:hover {
+.card:hover {
   background: var(--surface-hover);
   border-color: var(--accent);
+}
+
+/* Card modifiers */
+.card--group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.card--group:hover {
   transform: translateY(-2px);
 }
 
-.group-card h2 {
+.card--group h2 {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-heading);
 }
 
-.group-card .meta {
+.card--group .meta {
   font-size: 0.85rem;
   color: var(--text-muted);
 }
@@ -125,32 +136,20 @@ a {
   gap: 12px;
 }
 
-.subsection-card {
+.card--subsection {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
   padding: 18px 24px;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-  box-shadow: var(--shadow);
 }
 
-.subsection-card:hover {
-  background: var(--surface-hover);
-  border-color: var(--accent);
-}
-
-.subsection-card h2 {
+.card--subsection h2 {
   font-size: 1.05rem;
   font-weight: 500;
   color: var(--text-heading);
 }
 
-.subsection-card .meta {
+.card--subsection .meta {
   font-size: 0.85rem;
   color: var(--text-muted);
   white-space: nowrap;
@@ -164,40 +163,28 @@ a {
   gap: 10px;
 }
 
-.article-link {
+.card--article {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
   padding: 16px 24px;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-  box-shadow: var(--shadow);
 }
 
-.article-link:hover {
-  background: var(--surface-hover);
-  border-color: var(--accent);
-}
-
-.article-title {
+.card--article .article-title {
   font-size: 0.95rem;
   color: var(--text-heading);
   line-height: 1.4;
 }
 
-.article-arrow {
+.card--article .article-arrow {
   color: var(--text-muted);
   font-size: 0.9rem;
   flex-shrink: 0;
   transition: color 0.15s ease;
 }
 
-.article-link:hover .article-arrow {
+.card--article:hover .article-arrow {
   color: var(--accent);
 }
 
@@ -215,13 +202,13 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .subsection-card {
+  .card--subsection {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
 
-  .subsection-card .meta {
+  .card--subsection .meta {
     margin-left: 0;
   }
 }

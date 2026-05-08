@@ -8,7 +8,7 @@ export default function Home() {
       <PageHeader title="System Overflow Courses" pageTitle="System Overflow" />
 
       <section class="groups-grid">
-        <A href={ROUTES.ML_SYSTEM_DESIGN} class="group-card">
+        <A href={ROUTES.ML_BASE} class="card card--group">
           <h1>ML System Design</h1>
         </A>
       </section>

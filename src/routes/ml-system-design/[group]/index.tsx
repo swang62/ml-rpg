@@ -12,7 +12,7 @@ export default function GroupPage() {
     return (
       <NotFound
         message="Group not found"
-        backHref={ROUTES.ML_SYSTEM_DESIGN}
+        backHref={ROUTES.ML_BASE}
         backLabel="Back to home"
       />
     );
@@ -23,15 +23,15 @@ export default function GroupPage() {
       <PageHeader
         title={group.title}
         subtitle={`${group.subsections.length} sections`}
-        backHref={ROUTES.ML_SYSTEM_DESIGN}
+        backHref={ROUTES.ML_BASE}
         backLabel="All categories"
       />
 
       <section class="subsections-list">
         {group.subsections.map((sub) => (
           <A
-            href={ROUTES.subsection(group.slug, sub.slug)}
-            class="subsection-card"
+            href={ROUTES.ML_SECTION(group.slug, sub.slug)}
+            class="card card--subsection"
           >
             <h2>{sub.title}</h2>
             <span class="meta">{sub.articles.length} articles</span>

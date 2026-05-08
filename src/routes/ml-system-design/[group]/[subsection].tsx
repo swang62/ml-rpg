@@ -15,7 +15,7 @@ export default function SubsectionPage() {
     return (
       <NotFound
         message="Section not found"
-        backHref={ROUTES.ML_SYSTEM_DESIGN}
+        backHref={ROUTES.ML_BASE}
         backLabel="Back to home"
       />
     );
@@ -26,7 +26,7 @@ export default function SubsectionPage() {
       <PageHeader
         title={subsection.title}
         pageTitle={`${subsection.title} — ${group.title}`}
-        backHref={ROUTES.group(group.slug)}
+        backHref={ROUTES.ML_GROUP(group.slug)}
         backLabel={group.title}
       />
 
@@ -38,7 +38,7 @@ export default function SubsectionPage() {
               href={buildArticleUrl(group.slug, subsection.slug, article.slug)}
               target="_blank"
               rel="noopener noreferrer"
-              class="article-link"
+              class="card card--article"
             >
               <span class="article-title">
                 {article.order}. {article.title}
