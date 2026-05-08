@@ -34,7 +34,7 @@ export default function SubsectionPage() {
       </header>
 
       <section class="articles-list">
-        {subsection.articles
+        {[...subsection.articles]
           .sort((a, b) => a.order - b.order)
           .map((article) => (
             <a
