@@ -34,17 +34,21 @@ export default function SubsectionPage() {
       </header>
 
       <section class="articles-list">
-        {subsection.articles.map((article) => (
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="article-link"
-          >
-            <span class="article-title">{article.title}</span>
-            <span class="article-arrow">↗</span>
-          </a>
-        ))}
+        {subsection.articles
+          .sort((a, b) => a.order - b.order)
+          .map((article) => (
+            <a
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="article-link"
+            >
+              <span class="article-title">
+                {article.order}. {article.title}
+              </span>
+              <span class="article-arrow">↗</span>
+            </a>
+          ))}
       </section>
     </main>
   );
