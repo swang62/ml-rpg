@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { A, useParams } from "@solidjs/router";
-import { siteData } from "~/data/site-data";
+import { buildArticleUrl, siteData } from "~/data/site-data";
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -38,7 +38,7 @@ export default function SubsectionPage() {
           .sort((a, b) => a.order - b.order)
           .map((article) => (
             <a
-              href={article.url}
+              href={buildArticleUrl(group.slug, subsection.slug, article.slug)}
               target="_blank"
               rel="noopener noreferrer"
               class="article-link"
