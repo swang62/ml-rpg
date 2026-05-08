@@ -4,7 +4,6 @@ import { siteData } from "~/data/site-data";
 
 export default function GroupPage() {
   const params = useParams();
-  console.log(params);
   const group = siteData.find((group) => group.slug === params.group);
 
   if (!group) {
