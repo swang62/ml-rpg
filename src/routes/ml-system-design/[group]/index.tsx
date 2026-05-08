@@ -1,6 +1,7 @@
 import { A, useParams } from "@solidjs/router";
 import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
+import PageTitle from "~/components/PageTitle";
 import { ROUTES } from "~/constants/paths";
 import { siteData } from "~/data/site-data";
 
@@ -20,6 +21,7 @@ export default function GroupPage() {
 
   return (
     <main class="container-list">
+      <PageTitle segment={group.title} />
       <PageHeader
         title={group.title}
         subtitle={`${group.subsections.length} sections`}

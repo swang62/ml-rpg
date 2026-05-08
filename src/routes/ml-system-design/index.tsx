@@ -1,11 +1,13 @@
 import { A } from "@solidjs/router";
 import PageHeader from "~/components/PageHeader";
+import PageTitle from "~/components/PageTitle";
 import { ROUTES } from "~/constants/paths";
 import { siteData } from "~/data/site-data";
 
-export default function Home() {
+export default function CourseIndexPage() {
   return (
     <main class="container">
+      <PageTitle segment="ML System Design" />
       <PageHeader
         title="ML System Design"
         subtitle={`${siteData.length} categories`}

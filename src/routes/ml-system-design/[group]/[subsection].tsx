@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
+import PageTitle from "~/components/PageTitle";
 import { ROUTES } from "~/constants/paths";
 import { buildArticleUrl, siteData } from "~/data/site-data";
 
@@ -23,9 +24,9 @@ export default function SubsectionPage() {
 
   return (
     <main class="container-list">
+      <PageTitle segment={subsection.title} />
       <PageHeader
         title={subsection.title}
-        pageTitle={`${subsection.title} — ${group.title}`}
         backHref={ROUTES.ML_GROUP(group.slug)}
         backLabel={group.title}
       />
