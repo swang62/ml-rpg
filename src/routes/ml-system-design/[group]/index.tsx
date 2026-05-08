@@ -1,6 +1,7 @@
 import { A, useParams } from "@solidjs/router";
 import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
+import { ROUTES } from "~/constants/paths";
 import { siteData } from "~/data/site-data";
 
 export default function GroupPage() {
@@ -11,7 +12,7 @@ export default function GroupPage() {
     return (
       <NotFound
         message="Group not found"
-        backHref="/ml-system-design"
+        backHref={ROUTES.ML_SYSTEM_DESIGN}
         backLabel="Back to home"
       />
     );
@@ -22,14 +23,14 @@ export default function GroupPage() {
       <PageHeader
         title={group.title}
         subtitle={`${group.subsections.length} sections`}
-        backHref="/ml-system-design"
+        backHref={ROUTES.ML_SYSTEM_DESIGN}
         backLabel="All categories"
       />
 
       <section class="subsections-list">
         {group.subsections.map((sub) => (
           <A
-            href={`/ml-system-design/${group.slug}/${sub.slug}`}
+            href={ROUTES.subsection(group.slug, sub.slug)}
             class="subsection-card"
           >
             <h2>{sub.title}</h2>

@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
+import { ROUTES } from "~/constants/paths";
 import { buildArticleUrl, siteData } from "~/data/site-data";
 
 export default function SubsectionPage() {
@@ -14,7 +15,7 @@ export default function SubsectionPage() {
     return (
       <NotFound
         message="Section not found"
-        backHref="/ml-system-design"
+        backHref={ROUTES.ML_SYSTEM_DESIGN}
         backLabel="Back to home"
       />
     );
@@ -25,7 +26,7 @@ export default function SubsectionPage() {
       <PageHeader
         title={subsection.title}
         pageTitle={`${subsection.title} — ${group.title}`}
-        backHref={`/ml-system-design/${group.slug}`}
+        backHref={ROUTES.group(group.slug)}
         backLabel={group.title}
       />
 
