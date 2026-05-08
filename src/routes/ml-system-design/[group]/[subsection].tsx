@@ -1,5 +1,5 @@
-import { Title } from "@solidjs/meta";
 import { A, useParams } from "@solidjs/router";
+import NotFound from "~/components/NotFound";
 import { buildArticleUrl, siteData } from "~/data/site-data";
 
 export default function SubsectionPage() {
@@ -11,13 +11,11 @@ export default function SubsectionPage() {
 
   if (!group || !subsection) {
     return (
-      <main class="container">
-        <Title>Not Found</Title>
-        <h1>Section not found</h1>
-        <A href="/ml-system-design" class="back-link">
-          ← Back to home
-        </A>
-      </main>
+      <NotFound
+        message="Section not found"
+        backHref="/ml-system-design"
+        backLabel="Back to home"
+      />
     );
   }
 

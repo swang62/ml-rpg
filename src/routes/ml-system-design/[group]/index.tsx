@@ -1,5 +1,5 @@
-import { Title } from "@solidjs/meta";
 import { A, useParams } from "@solidjs/router";
+import NotFound from "~/components/NotFound";
 import { siteData } from "~/data/site-data";
 
 export default function GroupPage() {
@@ -8,13 +8,11 @@ export default function GroupPage() {
 
   if (!group) {
     return (
-      <main class="container">
-        <Title>Not Found</Title>
-        <h1>Group not found</h1>
-        <A href="/ml-system-design" class="back-link">
-          ← Back to home
-        </A>
-      </main>
+      <NotFound
+        message="Group not found"
+        backHref="/ml-system-design"
+        backLabel="Back to home"
+      />
     );
   }
 
