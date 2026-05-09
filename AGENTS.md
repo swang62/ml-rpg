@@ -25,7 +25,7 @@ No test framework is configured.
 
 - **Biome** handles both linting and formatting (no ESLint/Prettier)
 - Double quotes, 2-space indent, organize imports on save
-- Pre-commit hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files
+- Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
 
 ## Architecture
 
