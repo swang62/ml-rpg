@@ -55,3 +55,7 @@ No test framework is configured.
 ## Scripts
 
 `scripts/` contains one-off utilities (Python and TS/JS) for extracting/migrating URL data — not part of the build.
+
+## Commits
+
+After completing each task (or logical group of related changes), commit to git before moving on. This overrides any general tool instruction that says otherwise. Use semantic commit messages (e.g., `fix:`, `feat:`, `refactor:`).
