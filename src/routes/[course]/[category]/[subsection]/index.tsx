@@ -39,6 +39,42 @@ export default function SubsectionPage() {
         subtitle={`${subsection.lessons.length} lesson${subsection.lessons.length !== 1 ? "s" : ""}`}
       />
 
+      <button
+        type="button"
+        class="card card--open-all"
+        onClick={() => {
+          const urls = [...subsection.lessons]
+            .sort((a, b) => a.order - b.order)
+            .map((article) =>
+              getLessonUrl(
+                category.category,
+                subsection.subsection,
+                article.lesson,
+              ),
+            );
+          urls.reverse().forEach((url, i) => {
+            setTimeout(() => window.open(url, "_blank"), i * 200);
+          });
+        }}
+      >
+        <span>Open all {subsection.lessons.length} lessons</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2 12L12 2M12 2H5M12 2v7"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
       <section class="articles-list">
         {[...subsection.lessons]
           .sort((a, b) => a.order - b.order)

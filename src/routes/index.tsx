@@ -42,7 +42,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section class="flex flex-col items-center gap-4">
+        <section class="flex flex-wrap justify-center">
           <For each={courseSlugs}>
             {(slug) => (
               <A href={COURSES[slug].base} class="card hero-course-card">
