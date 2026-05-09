@@ -1,29 +1,24 @@
 import { A } from "@solidjs/router";
+import { For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { COURSES, SITE_NAME } from "~/data/site-data";
 
 export default function HomePage() {
-  const courses = Object.keys(COURSES);
+  const courseSlugs = Object.keys(COURSES);
 
   let totalCategories = 0;
   let totalSubsections = 0;
   let totalLessons = 0;
-  courses.forEach((course) => {
-    const categories = COURSES[course].categories;
-    const sectionCount = categories.reduce(
-      (sum, c) => sum + c.subsections.length,
-      0,
-    );
-    const lessonCount = categories.reduce(
-      (sum, c) =>
-        sum + c.subsections.reduce((s, sub) => s + sub.lessons.length, 0),
-      0,
-    );
-
-    totalCategories = +categories.length;
-    totalSubsections = +sectionCount;
-    totalLessons = +lessonCount;
-  });
+  for (const slug of courseSlugs) {
+    const course = COURSES[slug];
+    totalCategories += course.categories.length;
+    for (const cat of course.categories) {
+      totalSubsections += cat.subsections.length;
+      for (const sub of cat.subsections) {
+        totalLessons += sub.lessons.length;
+      }
+    }
+  }
 
   return (
     <main class="page-level--course">
@@ -47,32 +42,33 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section class="flex items-center justify-center">
-          <A
-            href={COURSES["ml-system-design"].base}
-            class="card hero-course-card"
-          >
-            <div class="hero-course-card__info">
-              <h2>{COURSES["ml-system-design"].title}</h2>
-            </div>
-            <div class="hero-course-card__arrow">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M6 4l4 4-4 4"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </div>
-          </A>
+        <section class="flex flex-col items-center gap-4">
+          <For each={courseSlugs}>
+            {(slug) => (
+              <A href={COURSES[slug].base} class="card hero-course-card">
+                <div class="hero-course-card__info">
+                  <h2>{COURSES[slug].title}</h2>
+                </div>
+                <div class="hero-course-card__arrow">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M6 4l4 4-4 4"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </A>
+            )}
+          </For>
         </section>
       </section>
     </main>
