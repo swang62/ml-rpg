@@ -2,11 +2,12 @@
   "name": "system-overflow",
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev",
     "build": "vinxi build",
+    "build:docker": "docker compose up --build --force-recreate -d",
+    "dev": "vinxi dev",
+    "lint": "biome check --write .",
     "preview": "vinxi serve --dir .output/public",
-    "prepare": "husky || true",
-    "lint": "biome check --write ."
+    "prepare": "husky || true"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": "biome check --write --no-errors-on-unmatched"

@@ -1,0 +1,10 @@
+services:
+  system-overflow:
+    container_name: system-overflow
+    image: swang62/system-overflow
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3333:3000"

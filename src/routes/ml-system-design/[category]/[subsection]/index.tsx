@@ -1,6 +1,5 @@
-import { useParams } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
-import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 import { ROUTES } from "~/constants/paths";
@@ -8,19 +7,14 @@ import { buildArticleUrl, siteData } from "~/data/site-data";
 
 export default function SubsectionPage() {
   const params = useParams();
+  const navigate = useNavigate();
   const category = siteData.find((c) => c.slug === params.category);
   const subsection = category?.subsections.find(
     (s) => s.slug === params.subsection,
   );
 
   if (!category || !subsection) {
-    return (
-      <NotFound
-        message="Section not found"
-        backHref={ROUTES.ML_BASE}
-        backLabel="Back to home"
-      />
-    );
+    return navigate("/404");
   }
 
   return (

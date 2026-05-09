@@ -1,6 +1,5 @@
-import { A, useParams } from "@solidjs/router";
+import { A, useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
-import NotFound from "~/components/NotFound";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 import { ROUTES } from "~/constants/paths";
@@ -8,16 +7,11 @@ import { siteData } from "~/data/site-data";
 
 export default function CategoryPage() {
   const params = useParams();
+  const navigate = useNavigate();
   const category = siteData.find((c) => c.slug === params.category);
 
   if (!category) {
-    return (
-      <NotFound
-        message="Category not found"
-        backHref={ROUTES.ML_BASE}
-        backLabel="Back to home"
-      />
-    );
+    return navigate("/404");
   }
 
   return (

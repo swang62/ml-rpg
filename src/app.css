@@ -296,17 +296,17 @@ a {
 }
 
 main {
-  animation: fade-in 0.2s ease-out both;
+  animation: fade-in 0.15s ease-out both;
 }
 
 .page-header {
-  animation: fade-in 0.2s ease-out both;
+  animation: fade-in 0.15s ease-out both;
 }
 
 .categories-grid .card,
 .subsections-list .card,
 .articles-list .card {
-  animation: fade-in 0.2s ease-out both;
+  animation: fade-in 0.15s ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
