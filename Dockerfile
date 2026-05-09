@@ -12,7 +12,9 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 
-FROM busybox:1.37-uclibc
+FROM node:26-alpine
+
+RUN npm install --global serve
 
 EXPOSE 3000
 
@@ -21,4 +23,5 @@ USER www
 
 COPY --from=build /app/.output/public /www
 
-CMD ["httpd", "-f", "-p", "3000", "-h", "/www"]
+WORKDIR /www
+CMD ["serve", "-s", ".", "-l", "3000"]

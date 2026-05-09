@@ -26,16 +26,20 @@ export default function CategoryPage() {
       />
       <PageHeader
         title={category.title}
-        subtitle={`${category.subsections.length} sections`}
+        subtitle={`${category.subsections.length} section${category.subsections.length !== 1 ? "s" : ""}`}
       />
 
-      <section class="categories-grid">
+      <section class="subsections-list">
         {category.subsections.map((sub) => (
           <A
             href={ROUTES.ML_SECTION(category.slug, sub.slug)}
-            class="card card--category"
+            class="card card--subsection"
           >
             <h2>{sub.title}</h2>
+            <span class="card__count">
+              {sub.articles.length} article
+              {sub.articles.length !== 1 ? "s" : ""}
+            </span>
           </A>
         ))}
       </section>

@@ -11,11 +11,13 @@
 ## Commands
 
 ```bash
-pnpm dev       # dev server
+pnpm dev       # dev server (HMR enabled — use for inspection)
 pnpm build     # production build → .output/public
 pnpm preview   # serve built static files from .output/public
 pnpm lint      # biome check --write .  (lints AND auto-fixes)
 ```
+
+> `pnpm dev` has HMR (hot module replacement). When inspecting UI changes, prefer running the dev server (`pnpm dev`) and waiting for HMR to pick up edits, rather than doing a full build + preview cycle.
 
 No test framework is configured.
 

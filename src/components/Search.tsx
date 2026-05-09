@@ -1,4 +1,4 @@
-import { createSignal, type JSX } from "solid-js";
+import { createSignal, type JSX, onMount } from "solid-js";
 import { siteData } from "~/data/site-data";
 import { searchSiteData } from "~/utils/search";
 
@@ -6,6 +6,18 @@ export default function Search() {
   const [query, setQuery] = createSignal("");
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal(-1);
+  let inputRef: HTMLInputElement | undefined;
+
+  onMount(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        inputRef?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
+    return () => document.removeEventListener("keydown", handleKeydown);
+  });
 
   const results = () => {
     const q = query().trim();
@@ -23,6 +35,7 @@ export default function Search() {
     if (e.key === "Escape") {
       setIsOpen(false);
       setQuery("");
+      inputRef?.blur();
       return;
     }
     if (e.key === "ArrowDown") {
@@ -37,6 +50,8 @@ export default function Search() {
     }
     if (e.key === "Enter" && activeIndex() >= 0 && r[activeIndex()]) {
       window.open(r[activeIndex()].url, "_blank", "noopener,noreferrer");
+      setIsOpen(false);
+      setQuery("");
     }
   };
 
@@ -51,21 +66,24 @@ export default function Search() {
       <div class="search__input-wrapper">
         <svg
           class="search__icon"
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
           fill="none"
           aria-hidden="true"
         >
           <path
-            d="M7 12.5a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11ZM14 14l-3.5-3.5"
+            d="M6.5 11.5a5 5 0 1 0 0-10 5 5 0 0 0 0 10ZM13 13l-3-3"
             stroke="currentColor"
             stroke-width="1.5"
             stroke-linecap="round"
           />
         </svg>
         <input
+          ref={inputRef}
           type="search"
+          id="search-input"
+          name="search"
           class="search__input"
           placeholder="Search articles..."
           value={query()}
@@ -75,6 +93,10 @@ export default function Search() {
           onBlur={handleBlur}
           aria-label="Search articles"
         />
+        <span class="search__shortcut" aria-hidden="true">
+          <kbd>{navigator.platform.includes("Mac") ? "\u2318" : "Ctrl"}</kbd>
+          <kbd>K</kbd>
+        </span>
       </div>
       {isOpen() && query().trim() && (
         <div class="search__dropdown" role="listbox">
@@ -96,7 +118,8 @@ export default function Search() {
               >
                 <span class="search__result-title">{result.articleTitle}</span>
                 <span class="search__result-meta">
-                  {result.categoryTitle} / {result.subsectionTitle}
+                  <span>{result.categoryTitle}</span>
+                  <span>{result.subsectionTitle}</span>
                 </span>
               </a>
             ))
