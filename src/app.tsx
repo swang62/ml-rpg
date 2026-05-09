@@ -1,6 +1,6 @@
 import "./app.css";
 
-import { MetaProvider, Title } from "@solidjs/meta";
+import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { A, Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
@@ -14,6 +14,8 @@ export default function App() {
       root={(props) => (
         <MetaProvider>
           <Title>System Overflow</Title>
+          <Link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <Link rel="alternate icon" href="/favicon.ico" sizes="any" />
           <div class="app-layout">
             <header class="app-header">
               <div class="app-header__inner">

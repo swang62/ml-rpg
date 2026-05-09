@@ -23,7 +23,7 @@ export default function CourseIndexPage() {
       />
       <PageHeader
         title="ML System Design"
-        subtitle={`${siteData.length} categories \u00B7 ${totalArticles} articles`}
+        subtitle={`${siteData.length} categories \u00B7 ${totalArticles} lessons`}
       />
 
       <section class="categories-grid">
@@ -39,12 +39,31 @@ export default function CourseIndexPage() {
             >
               <h2>{category.title}</h2>
               <span class="card__count">
-                {articleCount} article{articleCount !== 1 ? "s" : ""}
+                {articleCount} lesson{articleCount !== 1 ? "s" : ""}
               </span>
             </A>
           );
         })}
       </section>
+
+      <A href={ROUTES.HOME} class="back-link">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M9 11L5 7l4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Back to System Overflow
+      </A>
     </main>
   );
 }

@@ -85,13 +85,13 @@ export default function Search() {
           id="search-input"
           name="search"
           class="search__input"
-          placeholder="Search articles..."
+          placeholder="Search lessons..."
           value={query()}
           onInput={handleInput}
           onkeydown={handleKeydown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          aria-label="Search articles"
+          aria-label="Search lessons"
         />
         <span class="search__shortcut" aria-hidden="true">
           <kbd>{navigator.platform.includes("Mac") ? "\u2318" : "Ctrl"}</kbd>

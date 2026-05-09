@@ -37,12 +37,31 @@ export default function CategoryPage() {
           >
             <h2>{sub.title}</h2>
             <span class="card__count">
-              {sub.articles.length} article
+              {sub.articles.length} lesson
               {sub.articles.length !== 1 ? "s" : ""}
             </span>
           </A>
         ))}
       </section>
+
+      <A href={ROUTES.ML_BASE} class="back-link">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M9 11L5 7l4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Back to ML System Design
+      </A>
     </main>
   );
 }

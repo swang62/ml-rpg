@@ -38,7 +38,7 @@ export default function HomePage() {
         </div>
         <div class="stat">
           <div class="stat__value">{totalArticles}</div>
-          <div class="stat__label">Articles</div>
+          <div class="stat__label">Lessons</div>
         </div>
       </section>
 

@@ -30,7 +30,7 @@ export default function SubsectionPage() {
       />
       <PageHeader
         title={subsection.title}
-        subtitle={`${subsection.articles.length} article${subsection.articles.length !== 1 ? "s" : ""}`}
+        subtitle={`${subsection.articles.length} lesson${subsection.articles.length !== 1 ? "s" : ""}`}
       />
 
       <section class="articles-list">
