@@ -8,12 +8,12 @@ import { buildArticleUrl, siteData } from "~/data/site-data";
 
 export default function SubsectionPage() {
   const params = useParams();
-  const group = siteData.find((g) => g.slug === params.group);
-  const subsection = group?.subsections.find(
+  const category = siteData.find((c) => c.slug === params.category);
+  const subsection = category?.subsections.find(
     (s) => s.slug === params.subsection,
   );
 
-  if (!group || !subsection) {
+  if (!category || !subsection) {
     return (
       <NotFound
         message="Section not found"
@@ -30,7 +30,7 @@ export default function SubsectionPage() {
         items={[
           { label: "System Overflow", href: ROUTES.HOME },
           { label: "ML System Design", href: ROUTES.ML_BASE },
-          { label: group.title, href: ROUTES.ML_GROUP(group.slug) },
+          { label: category.title, href: ROUTES.ML_CATEGORY(category.slug) },
           { label: subsection.title },
         ]}
       />
@@ -44,7 +44,11 @@ export default function SubsectionPage() {
           .sort((a, b) => a.order - b.order)
           .map((article) => (
             <a
-              href={buildArticleUrl(group.slug, subsection.slug, article.slug)}
+              href={buildArticleUrl(
+                category.slug,
+                subsection.slug,
+                article.slug,
+              )}
               target="_blank"
               rel="noopener noreferrer"
               class="card card--article"

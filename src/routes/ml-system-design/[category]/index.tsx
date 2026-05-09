@@ -6,14 +6,14 @@ import PageTitle from "~/components/PageTitle";
 import { ROUTES } from "~/constants/paths";
 import { siteData } from "~/data/site-data";
 
-export default function GroupPage() {
+export default function CategoryPage() {
   const params = useParams();
-  const group = siteData.find((group) => group.slug === params.group);
+  const category = siteData.find((c) => c.slug === params.category);
 
-  if (!group) {
+  if (!category) {
     return (
       <NotFound
-        message="Group not found"
+        message="Category not found"
         backHref={ROUTES.ML_BASE}
         backLabel="Back to home"
       />
@@ -21,25 +21,25 @@ export default function GroupPage() {
   }
 
   return (
-    <main class="container container-medium page-level--group">
-      <PageTitle segment={group.title} />
+    <main class="container container-medium page-level--category">
+      <PageTitle segment={category.title} />
       <Breadcrumbs
         items={[
           { label: "System Overflow", href: ROUTES.HOME },
           { label: "ML System Design", href: ROUTES.ML_BASE },
-          { label: group.title },
+          { label: category.title },
         ]}
       />
       <PageHeader
-        title={group.title}
-        subtitle={`${group.subsections.length} sections`}
+        title={category.title}
+        subtitle={`${category.subsections.length} sections`}
       />
 
-      <section class="groups-grid">
-        {group.subsections.map((sub) => (
+      <section class="categories-grid">
+        {category.subsections.map((sub) => (
           <A
-            href={ROUTES.ML_SECTION(group.slug, sub.slug)}
-            class="card card--group"
+            href={ROUTES.ML_SECTION(category.slug, sub.slug)}
+            class="card card--category"
           >
             <h2>{sub.title}</h2>
           </A>

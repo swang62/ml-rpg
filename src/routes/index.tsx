@@ -9,8 +9,8 @@ export default function HomePage() {
       <PageTitle />
       <PageHeader title="System Overflow Courses" />
 
-      <section class="groups-grid">
-        <A href={ROUTES.ML_BASE} class="card card--group">
+      <section class="categories-grid">
+        <A href={ROUTES.ML_BASE} class="card card--category">
           <h2>ML System Design</h2>
         </A>
       </section>

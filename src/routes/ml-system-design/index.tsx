@@ -20,10 +20,13 @@ export default function CourseIndexPage() {
         subtitle={`${siteData.length} categories`}
       />
 
-      <section class="groups-grid">
-        {siteData.map((group) => (
-          <A href={ROUTES.ML_GROUP(group.slug)} class="card card--group">
-            <h2>{group.title}</h2>
+      <section class="categories-grid">
+        {siteData.map((category) => (
+          <A
+            href={ROUTES.ML_CATEGORY(category.slug)}
+            class="card card--category"
+          >
+            <h2>{category.title}</h2>
           </A>
         ))}
       </section>

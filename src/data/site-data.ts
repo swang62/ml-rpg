@@ -10,7 +10,7 @@ export interface Subsection {
   articles: Article[];
 }
 
-export interface Group {
+export interface Category {
   slug: string;
   title: string;
   subsections: Subsection[];
@@ -19,14 +19,14 @@ export interface Group {
 export const BASE_URL = "https://www.systemoverflow.com/learn";
 
 export function buildArticleUrl(
-  groupSlug: string,
+  categorySlug: string,
   subsectionSlug: string,
   articleSlug: string,
 ): string {
-  return `${BASE_URL}/${groupSlug}/${subsectionSlug}/${articleSlug}`;
+  return `${BASE_URL}/${categorySlug}/${subsectionSlug}/${articleSlug}`;
 }
 
-export const siteData: Group[] = [
+export const siteData: Category[] = [
   {
     slug: "ml-ab-testing",
     title: "AB Testing",
