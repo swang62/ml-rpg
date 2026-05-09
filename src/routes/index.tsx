@@ -1,15 +1,15 @@
 import { A } from "@solidjs/router";
 import PageTitle from "~/components/PageTitle";
-import { ROUTES, SITE_NAME } from "~/data/site-data";
+import { COURSES, SITE_NAME } from "~/data/site-data";
 
 export default function HomePage() {
-  const courses = Object.keys(ROUTES);
+  const courses = Object.keys(COURSES);
 
   let totalCategories = 0;
   let totalSubsections = 0;
   let totalLessons = 0;
   courses.forEach((course) => {
-    const categories = ROUTES[course].categories;
+    const categories = COURSES[course].categories;
     const sectionCount = categories.reduce(
       (sum, c) => sum + c.subsections.length,
       0,
@@ -49,11 +49,11 @@ export default function HomePage() {
 
         <section class="flex items-center justify-center">
           <A
-            href={ROUTES["ml-system-design"].base}
+            href={COURSES["ml-system-design"].base}
             class="card hero-course-card"
           >
             <div class="hero-course-card__info">
-              <h2>{ROUTES["ml-system-design"].title}</h2>
+              <h2>{COURSES["ml-system-design"].title}</h2>
             </div>
             <div class="hero-course-card__arrow">
               <svg

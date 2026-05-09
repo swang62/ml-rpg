@@ -2,12 +2,12 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
-import { ROUTES, SITE_NAME } from "~/data/site-data";
+import { COURSES, SITE_NAME } from "~/data/site-data";
 
 export default function CourseIndexPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const course = ROUTES[params.course ?? ""];
+  const course = COURSES[params.course ?? ""];
 
   if (!course) {
     return navigate("/404");

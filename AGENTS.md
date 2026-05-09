@@ -33,20 +33,9 @@ No test framework is configured.
 - No CMS or database — editing content means editing that file
 - Articles are external links to `systemoverflow.com/learn/…`; this site only renders the navigation hierarchy
 
-### Route structure
-
-| Route | File |
-|---|---|
-| `/` | `src/routes/index.tsx` |
-| `/ml-system-design` | `src/routes/ml-system-design/index.tsx` |
-| `/ml-system-design/[category]` | `src/routes/ml-system-design/[category]/index.tsx` |
-| `/ml-system-design/[category]/[subsection]` | `src/routes/ml-system-design/[category]/[subsection]/index.tsx` |
-
 ### Data hierarchy
 
-`Course → Category → Subsection → Article` (defined in `site-data.ts`, rendered via routes above)
-
-- Routes defined in `src/constants/paths.ts`
+`Course → Category → Subsection → Lesson` (defined in `site-data.ts`, rendered via dynamic routes)
 
 ## Path Alias
 

@@ -2,13 +2,13 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
-import { ROUTES, SITE_NAME } from "~/data/site-data";
+import { COURSES, SITE_NAME } from "~/data/site-data";
 import { getLessonUrl } from "~/utils/url";
 
 export default function SubsectionPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const course = ROUTES[params.course ?? ""];
+  const course = COURSES[params.course ?? ""];
   const category = course?.categories.find(
     (c) => c.category === params.category,
   );

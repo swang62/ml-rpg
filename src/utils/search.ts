@@ -1,5 +1,5 @@
 import levenshtein from "fast-levenshtein";
-import { ROUTES } from "~/data/site-data";
+import { COURSES } from "~/data/site-data";
 import { getLessonUrl } from "./url";
 
 export interface SearchResult {
@@ -22,9 +22,9 @@ export function searchSiteData(query: string): SearchResult[] {
 
   const results: SearchResult[] = [];
 
-  const courses = Object.keys(ROUTES);
+  const courses = Object.keys(COURSES);
   for (const course of courses) {
-    const categories = ROUTES[course].categories;
+    const categories = COURSES[course].categories;
 
     for (const category of categories) {
       for (const subsection of category.subsections) {

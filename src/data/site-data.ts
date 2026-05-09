@@ -27,7 +27,7 @@ export interface Course {
   categories: Category[];
 }
 
-export const ROUTES: Record<string, Course> = {
+export const COURSES: Record<string, Course> = {
   "ml-system-design": {
     base: "/ml-system-design",
     title: "ML System Design",
