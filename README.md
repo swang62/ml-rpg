@@ -20,39 +20,25 @@ The site is read-only: it renders data from a static TypeScript file and provide
 - **Biome** — linting and formatting
 - **pnpm** — package manager
 
-## Project Structure
+## Folder Structure
 
 ```
 src/
-├── app.tsx              # Root App component
-├── app.css              # Global styles
-├── entry-client.tsx     # Client-side hydration entry point
-├── entry-server.tsx     # Server-side render entry point
-├── global.d.ts          
-│
-├── components/          # Reusable UI components
-│   ├── Breadcrumbs.tsx  
-│   ├── NotFound.tsx     
-│   ├── PageHeader.tsx   
-│   └── PageTitle.tsx    
-│
-├── constants/
-│   └── paths.ts         # Centralized route definitions
-│
-├── data/
-│   └── site-data.ts     # Static content (url slugs)
-│
-└── routes/              # File-system routing
-    ├── [...404].tsx     # Catch-all
-    ├── index.tsx        # Home page
-    └── ml-system-design/
-        ├── index.tsx    # Course page
-        └── [category]/
-            ├── index.tsx          # Category: lists all subsections
-            └── [subsection].tsx   # Subsection: lists all articles
+├── app.tsx                 # Root app component
+├── app.css                 # Global styles
+├── entry-client.tsx        # Client-side hydration entry point
+├── entry-server.tsx        # Server-side render entry point
+├── global.d.ts             # Global type declarations
+├── components/             # Reusable UI components
+├── constants/              # Global constants
+├── data/                   # Static content and data
+├── utils/                  # Utility functions
+└── routes/                 # File-system routing
+    ├── index.tsx           # Home page (main entrypoint)
+    └── ml-system-design/   # ML System Design course routes
 ```
 
-## Domain Glossary
+## Domain Glossary/Terms
 
 | Term | Definition | Example |
 |------|------------|---------|
@@ -60,19 +46,3 @@ src/
 | **Category** | A major topic category inside a course | "AB Testing", "Feature Stores" |
 | **Subsection** | A specific subject inside a category | "Experiment Design", "Guardrail Metrics" |
 | **Article** | An individual learning piece; links externally | "What Is Power Analysis And Why Does Sample Size Matter" |
-| **Card** | Visual UI element representing a navigable item | Hoverable box with title and metadata |
-| **Breadcrumb** | Navigation trail showing current position in hierarchy | "System Overflow / ML System Design / AB Testing" |
-
-## Available Scripts
-
-```bash
-pnpm dev      # Start development server
-pnpm build    # Build for static deployment
-pnpm preview  # Preview the static build
-pnpm lint     # Run Biome linter and formatter
-```
-
-## Configuration
-
-- **Static site generation** — `app.config.ts` sets `ssr: false` and `preset: "static"` with link crawling
-- **Path aliases** — `~/*` maps to `./src/*` (configured in `tsconfig.json`)
