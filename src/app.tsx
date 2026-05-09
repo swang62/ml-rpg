@@ -4,7 +4,6 @@ import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { A, Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
-import Footer from "~/components/Footer";
 import Search from "~/components/Search";
 import { SITE_NAME } from "./data/site-data";
 
@@ -51,7 +50,6 @@ export default function App() {
             <div class="app-content">
               <Suspense>{props.children}</Suspense>
             </div>
-            <Footer />
           </div>
         </MetaProvider>
       )}
