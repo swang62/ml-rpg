@@ -148,6 +148,15 @@ a {
   background: var(--accent);
 }
 
+.page-header.text-center {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.page-header.text-center::before {
+  display: none;
+}
+
 .page-level--course .page-header::before {
   background: #b8a0f0;
 }

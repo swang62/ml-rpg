@@ -5,11 +5,11 @@ import { ROUTES } from "~/constants/paths";
 
 export default function HomePage() {
   return (
-    <main class="container page-level--home">
+    <main class="container page-level--course">
       <PageTitle />
-      <PageHeader title="System Overflow Courses" />
+      <PageHeader title="System Overflow Courses" class="text-center" />
 
-      <section class="categories-grid">
+      <section class="flex items-center justify-center">
         <A href={ROUTES.ML_BASE} class="card card--category">
           <h2>ML System Design</h2>
         </A>
