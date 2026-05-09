@@ -1,4 +1,5 @@
 import { Title } from "@solidjs/meta";
+import { SITE_NAME } from "~/data/site-data";
 
 interface PageTitleProps {
   segment?: string;
@@ -6,7 +7,7 @@ interface PageTitleProps {
 
 export default function PageTitle(props: PageTitleProps) {
   const title = () =>
-    props.segment ? `${props.segment} | System Overflow` : "System Overflow";
+    props.segment ? `${props.segment} | ${SITE_NAME}` : SITE_NAME;
 
   return <Title>{title()}</Title>;
 }

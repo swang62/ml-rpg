@@ -1,5 +1,4 @@
 import { createSignal, type JSX, onMount } from "solid-js";
-import { siteData } from "~/data/site-data";
 import { searchSiteData } from "~/utils/search";
 
 export default function Search() {
@@ -22,7 +21,7 @@ export default function Search() {
   const results = () => {
     const q = query().trim();
     if (!q) return [];
-    return searchSiteData(siteData, q);
+    return searchSiteData(q);
   };
 
   const handleInput: JSX.EventHandler<HTMLInputElement, InputEvent> = (e) => {

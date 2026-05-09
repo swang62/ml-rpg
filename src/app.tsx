@@ -6,20 +6,20 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import Footer from "~/components/Footer";
 import Search from "~/components/Search";
-import { ROUTES } from "~/constants/paths";
+import { SITE_NAME } from "./data/site-data";
 
 export default function App() {
   return (
     <Router
       root={(props) => (
         <MetaProvider>
-          <Title>System Overflow</Title>
+          <Title>{SITE_NAME}</Title>
           <Link rel="icon" type="image/svg+xml" href="/favicon.svg" />
           <Link rel="alternate icon" href="/favicon.ico" sizes="any" />
           <div class="app-layout">
             <header class="app-header">
               <div class="app-header__inner">
-                <A href={ROUTES.HOME} class="app-header__logo">
+                <A href="/" class="app-header__logo">
                   <svg
                     width="20"
                     height="20"

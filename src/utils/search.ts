@@ -1,13 +1,10 @@
 import levenshtein from "fast-levenshtein";
-import type { Category } from "~/data/site-data";
-import { buildArticleUrl } from "~/data/site-data";
+import { ROUTES } from "~/data/site-data";
+import { getLessonUrl } from "./url";
 
 export interface SearchResult {
-  articleSlug: string;
   articleTitle: string;
-  categorySlug: string;
   categoryTitle: string;
-  subsectionSlug: string;
   subsectionTitle: string;
   url: string;
 }
@@ -19,35 +16,35 @@ function fuzzyMatch(text: string, term: string): boolean {
   );
 }
 
-export function searchSiteData(
-  data: Category[],
-  query: string,
-): SearchResult[] {
+export function searchSiteData(query: string): SearchResult[] {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [];
 
   const results: SearchResult[] = [];
 
-  for (const category of data) {
-    for (const subsection of category.subsections) {
-      for (const article of subsection.articles) {
-        // const searchable = [category.title, subsection.title, article.title]
-        //   .join(" ")
-        //   .toLowerCase();
-        const searchable = article.title.toLowerCase();
-        const matchesAllTerms = terms.every((term) =>
-          fuzzyMatch(searchable, term),
-        );
-        if (matchesAllTerms) {
-          results.push({
-            articleSlug: article.slug,
-            articleTitle: article.title,
-            categorySlug: category.slug,
-            categoryTitle: category.title,
-            subsectionSlug: subsection.slug,
-            subsectionTitle: subsection.title,
-            url: buildArticleUrl(category.slug, subsection.slug, article.slug),
-          });
+  const courses = Object.keys(ROUTES);
+  for (const course of courses) {
+    const categories = ROUTES[course].categories;
+
+    for (const category of categories) {
+      for (const subsection of category.subsections) {
+        for (const article of subsection.lessons) {
+          const searchable = article.title.toLowerCase();
+          const matchesAllTerms = terms.every((term) =>
+            fuzzyMatch(searchable, term),
+          );
+          if (matchesAllTerms) {
+            results.push({
+              articleTitle: article.title,
+              categoryTitle: category.title,
+              subsectionTitle: subsection.title,
+              url: getLessonUrl(
+                category.category,
+                subsection.subsection,
+                article.lesson,
+              ),
+            });
+          }
         }
       }
     }

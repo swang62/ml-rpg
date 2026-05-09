@@ -2,15 +2,17 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
-import { ROUTES } from "~/constants/paths";
-import { siteData } from "~/data/site-data";
+import { ROUTES, SITE_NAME } from "~/data/site-data";
 
 export default function CategoryPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const category = siteData.find((c) => c.slug === params.category);
+  const course = ROUTES[params.course ?? ""];
+  const category = course?.categories.find(
+    (c) => c.category === params.category,
+  );
 
-  if (!category) {
+  if (!course || !category) {
     return navigate("/404");
   }
 
@@ -19,8 +21,8 @@ export default function CategoryPage() {
       <PageTitle segment={category.title} />
       <Breadcrumbs
         items={[
-          { label: "System Overflow", href: ROUTES.HOME },
-          { label: "ML System Design", href: ROUTES.ML_BASE },
+          { label: SITE_NAME, href: "/" },
+          { label: course.title, href: course.base },
           { label: category.title },
         ]}
       />
@@ -30,21 +32,21 @@ export default function CategoryPage() {
       />
 
       <section class="subsections-list">
-        {category.subsections.map((sub) => (
+        {category.subsections.map((section) => (
           <A
-            href={ROUTES.ML_SECTION(category.slug, sub.slug)}
+            href={course.getSectionPath(category.category, section.subsection)}
             class="card card--subsection"
           >
-            <h2>{sub.title}</h2>
+            <h2>{section.title}</h2>
             <span class="card__count">
-              {sub.articles.length} lesson
-              {sub.articles.length !== 1 ? "s" : ""}
+              {section.lessons.length} lesson
+              {section.lessons.length !== 1 ? "s" : ""}
             </span>
           </A>
         ))}
       </section>
 
-      <A href={ROUTES.ML_BASE} class="back-link">
+      <A href={course.base} class="back-link">
         <svg
           width="14"
           height="14"
@@ -60,7 +62,7 @@ export default function CategoryPage() {
             stroke-linejoin="round"
           />
         </svg>
-        Back to ML System Design
+        Back to {course.title}
       </A>
     </main>
   );

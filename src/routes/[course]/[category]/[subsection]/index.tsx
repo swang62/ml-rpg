@@ -2,18 +2,21 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
-import { ROUTES } from "~/constants/paths";
-import { buildArticleUrl, siteData } from "~/data/site-data";
+import { ROUTES, SITE_NAME } from "~/data/site-data";
+import { getLessonUrl } from "~/utils/url";
 
 export default function SubsectionPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const category = siteData.find((c) => c.slug === params.category);
+  const course = ROUTES[params.course ?? ""];
+  const category = course?.categories.find(
+    (c) => c.category === params.category,
+  );
   const subsection = category?.subsections.find(
-    (s) => s.slug === params.subsection,
+    (s) => s.subsection === params.subsection,
   );
 
-  if (!category || !subsection) {
+  if (!course || !category || !subsection) {
     return navigate("/404");
   }
 
@@ -22,26 +25,29 @@ export default function SubsectionPage() {
       <PageTitle segment={subsection.title} />
       <Breadcrumbs
         items={[
-          { label: "System Overflow", href: ROUTES.HOME },
-          { label: "ML System Design", href: ROUTES.ML_BASE },
-          { label: category.title, href: ROUTES.ML_CATEGORY(category.slug) },
+          { label: SITE_NAME, href: "/" },
+          { label: course.title, href: course.base },
+          {
+            label: category.title,
+            href: course.getCategoryPath(category.category),
+          },
           { label: subsection.title },
         ]}
       />
       <PageHeader
         title={subsection.title}
-        subtitle={`${subsection.articles.length} lesson${subsection.articles.length !== 1 ? "s" : ""}`}
+        subtitle={`${subsection.lessons.length} lesson${subsection.lessons.length !== 1 ? "s" : ""}`}
       />
 
       <section class="articles-list">
-        {[...subsection.articles]
+        {[...subsection.lessons]
           .sort((a, b) => a.order - b.order)
           .map((article) => (
             <a
-              href={buildArticleUrl(
-                category.slug,
-                subsection.slug,
-                article.slug,
+              href={getLessonUrl(
+                category.category,
+                subsection.subsection,
+                article.lesson,
               )}
               target="_blank"
               rel="noopener noreferrer"
@@ -70,7 +76,7 @@ export default function SubsectionPage() {
           ))}
       </section>
 
-      <A href={ROUTES.ML_CATEGORY(category.slug)} class="back-link">
+      <A href={course.getCategoryPath(category.category)} class="back-link">
         <svg
           width="14"
           height="14"

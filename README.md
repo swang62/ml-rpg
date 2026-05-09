@@ -35,7 +35,7 @@ src/
 ├── utils/                  # Utility functions
 └── routes/                 # File-system routing
     ├── index.tsx           # Home page (main entrypoint)
-    └── ml-system-design/   # ML System Design course routes
+    └── [course]/           # Course dynamic routes
 ```
 
 ## Domain Glossary/Terms

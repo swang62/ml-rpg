@@ -1,5 +1,4 @@
 import { A } from "@solidjs/router";
-import { ROUTES } from "~/constants/paths";
 
 export default function NotFoundPage() {
   return (
@@ -8,7 +7,7 @@ export default function NotFoundPage() {
         4<span>0</span>4
       </div>
       <h1 class="not-found__title">Page not found</h1>
-      <A href={ROUTES.HOME} class="back-link">
+      <A href="/" class="back-link">
         <svg
           width="14"
           height="14"
