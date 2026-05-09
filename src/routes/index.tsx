@@ -28,7 +28,7 @@ export default function HomePage() {
   return (
     <main class="page-level--course">
       <PageTitle />
-      <section class="hero min-h-[80dvh]">
+      <section class="hero">
         <div class="hero__tag">Course Catalog</div>
         <h1>{SITE_NAME}</h1>
         <p class="subtitle">A curated navigation hub for system-overflow.com</p>

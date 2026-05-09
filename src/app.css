@@ -463,16 +463,18 @@ a {
 
 /* ===== Hero (homepage) ===== */
 
-.hero {
-  text-align: center;
-  padding: 64px 24px 48px;
+.page-level--course {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   position: relative;
-  overflow: hidden;
+  z-index: 0;
 }
 
-.hero::before {
+/* Full-viewport background gradient behind homepage content */
+.page-level--course::before {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   background:
     radial-gradient(
@@ -486,6 +488,18 @@ a {
       transparent 70%
     );
   pointer-events: none;
+  z-index: -1;
+}
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 24px 48px;
+  overflow: hidden;
 }
 
 .hero__tag {
