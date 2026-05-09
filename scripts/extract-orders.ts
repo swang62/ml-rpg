@@ -2,13 +2,38 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const CONCURRENCY = 20;
 
-// Extract URLs from site-data.ts
-const siteDataContent = readFileSync("src/data/site-data.ts", "utf8");
+// Read the curriculum JSON
+const curriculum: {
+  category: string;
+  title: string;
+  subsections: {
+    subsection: string;
+    title: string;
+    lessons: { lesson: string; title: string; order: number; url: string }[];
+  }[];
+}[] = JSON.parse(readFileSync("scripts/data-curriculum.json", "utf8"));
 
-const urlRegex = /url: "(https:\/\/www\.systemoverflow\.com[^"]+)"/g;
-const urls = [...siteDataContent.matchAll(urlRegex)].map((m) => m[1]);
+// Build list of all lesson URLs
+const allLessons: {
+  category: string;
+  subsection: string;
+  lesson: string;
+  url: string;
+}[] = [];
+for (const cat of curriculum) {
+  for (const sub of cat.subsections) {
+    for (const lesson of sub.lessons) {
+      allLessons.push({
+        category: cat.category,
+        subsection: sub.subsection,
+        lesson: lesson.lesson,
+        url: lesson.url,
+      });
+    }
+  }
+}
 
-console.log(`Found ${urls.length} URLs to fetch`);
+console.log(`Found ${allLessons.length} lessons to fetch`);
 
 async function fetchOrder(url: string) {
   try {
@@ -16,7 +41,6 @@ async function fetchOrder(url: string) {
     const html = await res.text();
 
     // Look for pattern like: <span>6</span><span> of </span><span>6</span>
-    // or just text "6 of 6"
     const match = html.match(/>(\d+)<[^>]*>\s*of\s*<[^>]*>(\d+)</i);
     if (match) {
       return {
@@ -43,50 +67,64 @@ async function fetchOrder(url: string) {
   }
 }
 
-async function fetchAll(urls: string[]) {
-  const results = [];
-  for (let i = 0; i < urls.length; i += CONCURRENCY) {
-    const batch = urls.slice(i, i + CONCURRENCY);
-    const batchResults = await Promise.all(batch.map(fetchOrder));
+async function fetchAll() {
+  const results: {
+    url: string;
+    order: number | null;
+    total?: number;
+    error?: string;
+  }[] = [];
+  for (let i = 0; i < allLessons.length; i += CONCURRENCY) {
+    const batch = allLessons.slice(i, i + CONCURRENCY);
+    const batchResults = await Promise.all(batch.map((l) => fetchOrder(l.url)));
     results.push(...batchResults);
     console.log(
-      `Progress: ${Math.min(i + CONCURRENCY, urls.length)} / ${urls.length}`,
+      `Progress: ${Math.min(i + CONCURRENCY, allLessons.length)} / ${allLessons.length}`,
     );
   }
   return results;
 }
 
-const results = await fetchAll(urls);
+const results = await fetchAll();
 
-// Build order map
-const orderMap = new Map();
-const errors = [];
+// Build order map keyed by category/subsection/lesson
+const orderMap = new Map<string, number>();
+const errors: { url: string; error: string }[] = [];
 for (const r of results) {
   if (r.order !== null) {
     orderMap.set(r.url, r.order);
   } else {
-    errors.push(r);
+    errors.push({ url: r.url, error: r.error ?? "Unknown error" });
   }
 }
 
 console.log(`\nSuccessfully extracted orders for ${orderMap.size} URLs`);
 if (errors.length > 0) {
   console.log(`Failed for ${errors.length} URLs:`);
-  for (const e of errors) {
+  for (const e of errors.slice(0, 10)) {
     console.log(`  ${e.url}: ${e.error}`);
+  }
+  if (errors.length > 10) {
+    console.log(`  ... and ${errors.length - 10} more`);
   }
 }
 
-// Update site-data.ts: add order: N after each url line
-let updated = siteDataContent;
-for (const [url, order] of orderMap) {
-  const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(`(url: "${escapedUrl}",)\\n`, "g");
-  updated = updated.replace(
-    regex,
-    `url: "${url}",\n            order: ${order},\n`,
-  );
-}
+// Enrich curriculum with order numbers and save
+const enriched = curriculum.map((cat) => ({
+  ...cat,
+  subsections: cat.subsections.map((sub) => ({
+    ...sub,
+    lessons: sub.lessons.map((lesson) => ({
+      ...lesson,
+      order: orderMap.get(lesson.url) ?? 0,
+    })),
+  })),
+}));
 
-writeFileSync("src/data/site-data.ts", updated);
-console.log("\nUpdated src/data/site-data.ts with order numbers");
+writeFileSync(
+  "scripts/data-curriculum-with-orders.json",
+  JSON.stringify(enriched, null, 2),
+);
+console.log(
+  "\nSaved enriched curriculum to scripts/data-curriculum-with-orders.json",
+);
