@@ -9,9 +9,9 @@ System Overflow is a content-navigation site for ML System Design courses:
 1. **Course** — a high-level curriculum (currently: "ML System Design")
 2. **Category** — a topical category within a course (e.g., "AB Testing", "Embeddings", "Feature Stores")
 3. **Subsection** — a specific subject within a category (e.g., "Experiment Design", "Guardrail Metrics")
-4. **Article** — an individual learning piece that links to the external System Overflow learning platform
+4. **Lesson** — an individual learning piece that links to the external System Overflow learning platform
 
-The site is read-only: it renders data from a static TypeScript file and provides navigable routes for browsing the hierarchy. All article links open externally.
+The site is read-only: it renders data from a static TypeScript file and provides navigable routes for browsing the hierarchy. All lesson links open externally.
 
 ## Tech Stack
 
@@ -24,18 +24,22 @@ The site is read-only: it renders data from a static TypeScript file and provide
 
 ```
 src/
-├── app.tsx                 # Root app component
-├── app.css                 # Global styles
-├── entry-client.tsx        # Client-side hydration entry point
-├── entry-server.tsx        # Server-side render entry point
-├── global.d.ts             # Global type declarations
-├── components/             # Reusable UI components
-├── constants/              # Global constants
-├── data/                   # Static content and data
-├── utils/                  # Utility functions
-└── routes/                 # File-system routing
-    ├── index.tsx           # Home page (main entrypoint)
-    └── [course]/           # Course dynamic routes
+├── app.tsx                     # Root app component
+├── app.css                     # Global styles
+├── entry-client.tsx            # Client-side hydration entry point
+├── entry-server.tsx            # Server-side render entry point
+├── global.d.ts                 # Global type declarations
+├── components/                 # Reusable UI components
+├── data/                       # Static content and data
+├── utils/                      # Utility functions
+└── routes/                     # File-system routing
+    ├── index.tsx               # Home page (main entrypoint)
+    └── [course]/           
+        ├── index.tsx           # Course overview page
+        └── [category]/
+            ├── index.tsx       # Category overview
+            └── [subsection]/
+                └── index.tsx   # Subsection lesson list
 ```
 
 ## Domain Glossary/Terms
@@ -45,4 +49,4 @@ src/
 | **Course** | A top-level curriculum | "ML System Design" |
 | **Category** | A major topic category inside a course | "AB Testing", "Feature Stores" |
 | **Subsection** | A specific subject inside a category | "Experiment Design", "Guardrail Metrics" |
-| **Article** | An individual learning piece; links externally | "What Is Power Analysis And Why Does Sample Size Matter" |
+| **Lesson** | An individual learning piece; links externally | "What Is Power Analysis And Why Does Sample Size Matter" |
