@@ -1,7 +1,9 @@
+import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
 import { searchSiteData } from "~/utils/search";
 
 export default function Search() {
+  const navigate = useNavigate();
   const [query, setQuery] = createSignal("");
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal(-1);
@@ -48,7 +50,7 @@ export default function Search() {
       return;
     }
     if (e.key === "Enter" && activeIndex() >= 0 && r[activeIndex()]) {
-      window.open(r[activeIndex()].url, "_blank", "noopener,noreferrer");
+      navigate(r[activeIndex()].url);
       setIsOpen(false);
       setQuery("");
     }
@@ -105,12 +107,11 @@ export default function Search() {
             results().map((result, i) => (
               <a
                 href={result.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 class={`search__result ${i === activeIndex() ? "search__result--active" : ""}`}
                 role="option"
                 aria-selected={i === activeIndex()}
                 onClick={() => {
+                  navigate(result.url);
                   setIsOpen(false);
                   setQuery("");
                 }}

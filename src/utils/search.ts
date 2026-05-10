@@ -22,9 +22,10 @@ export function searchSiteData(query: string): SearchResult[] {
 
   const results: SearchResult[] = [];
 
-  const courses = Object.keys(COURSES);
-  for (const course of courses) {
-    const categories = COURSES[course].categories;
+  const courseKeys = Object.keys(COURSES);
+  for (const key of courseKeys) {
+    const course = COURSES[key];
+    const categories = course.categories;
 
     for (const category of categories) {
       for (const subsection of category.subsections) {
@@ -39,6 +40,7 @@ export function searchSiteData(query: string): SearchResult[] {
               categoryTitle: category.title,
               subsectionTitle: subsection.title,
               url: getLessonUrl(
+                course.base,
                 category.category,
                 subsection.subsection,
                 article.lesson,
