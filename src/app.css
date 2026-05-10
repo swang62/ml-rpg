@@ -446,54 +446,6 @@ a {
   color: var(--level-section);
 }
 
-.card--article .article-external {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.card--article:hover .article-external {
-  background: rgba(240, 200, 96, 0.1);
-  color: var(--level-section);
-  transform: translate(2px, -2px);
-}
-
-.card--open-all {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 20px;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px dashed var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
-}
-
-.card--open-all:hover {
-  color: var(--text-heading);
-  border-color: var(--accent);
-  background: rgba(184, 160, 240, 0.04);
-}
-
 /* ===== Back link ===== */
 
 .back-link {
@@ -1064,4 +1016,394 @@ main {
   .breadcrumbs__item:not(:last-child)::after {
     margin: 0 6px;
   }
+}
+
+/* ===== Lesson content styles ===== */
+
+/* --- CSS vars (maps systemoverflow.com theme to our dark theme) --- */
+.lesson-content {
+  --text-primary: var(--text-heading);
+  --text-secondary: var(--text-muted);
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
+  --bg-subtle: var(--surface-hover);
+  --bg-elevated: var(--surface-elevated);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-hover);
+  --accent: var(--accent);
+  --primary: var(--accent);
+  --success-bg: #1f3d2f;
+  --success-border: #3ed15f;
+  --success-text: #6ede8a;
+  --warning-bg: #3d3a1f;
+  --warning-border: #d4c200;
+  --highlight: #3d3a1f;
+  --highlight-border: #d4c200;
+  --shadow-neo: 3px 3px 0 rgba(255, 255, 255, 0.08);
+  --shadow-neo-sm: 2px 2px 0 rgba(255, 255, 255, 0.08);
+}
+
+.lesson-content {
+  color: var(--text);
+  margin-bottom: 40px;
+}
+
+/* --- Bootstrap utility classes (only those used in scraped content) --- */
+
+.lesson-content .d-flex {
+  display: flex;
+}
+.lesson-content .flex-wrap {
+  flex-wrap: wrap;
+}
+.lesson-content .flex-column {
+  flex-direction: column;
+}
+.lesson-content .align-items-center {
+  align-items: center;
+}
+.lesson-content .justify-content-center {
+  justify-content: center;
+}
+.lesson-content .flex-grow-1 {
+  flex-grow: 1;
+}
+.lesson-content .gap-2 {
+  gap: 0.5rem;
+}
+.lesson-content .gap-12 {
+  gap: 3rem;
+}
+.lesson-content .mb-3 {
+  margin-bottom: 1rem;
+}
+.lesson-content .mb-4 {
+  margin-bottom: 1.5rem;
+}
+.lesson-content .p-4 {
+  padding: 1.5rem;
+}
+.lesson-content .me-3 {
+  margin-right: 1rem;
+}
+.lesson-content .pb-3 {
+  padding-bottom: 1rem;
+}
+.lesson-content .mt-4 {
+  margin-top: 1.5rem;
+}
+.lesson-content .fw-semibold {
+  font-weight: 600;
+}
+.lesson-content .fw-bold {
+  font-weight: 700;
+}
+.lesson-content .text-dark {
+  color: var(--text-heading);
+}
+.lesson-content .text-decoration-none {
+  text-decoration: none;
+}
+.lesson-content .text-center {
+  text-align: center;
+}
+.lesson-content .badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+}
+
+@media (min-width: 768px) {
+  .lesson-content .flex-md-row {
+    flex-direction: row;
+  }
+}
+
+/* --- CSS module classes (from systemoverflow.com) --- */
+
+.lesson-content .Learn_badgeYellow {
+  background: var(--highlight);
+  border: 2px solid var(--highlight-border);
+  color: var(--text-primary);
+}
+
+.lesson-content .Learn_badgeOrange {
+  background: var(--warning-bg);
+  border: 2px solid var(--warning-border);
+  color: var(--text-primary);
+}
+
+.lesson-content .Learn_cardContent {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: black;
+  font-weight: 400;
+}
+
+.lesson-content .Learn_cardContent code {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New",
+    monospace;
+  font-size: 0.9em;
+  color: #c7254e;
+  font-weight: 600;
+}
+
+.lesson-content .Learn_cardContent strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.lesson-content .Learn_cardContent em {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.lesson-content .Learn_keyTakeaways {
+  background: linear-gradient(
+    135deg,
+    var(--highlight) 0%,
+    rgba(255, 250, 205, 0.6) 100%
+  );
+  border: 2px solid var(--highlight-border);
+  border-left: 4px solid var(--text-primary);
+  border-radius: 0 8px 8px 0;
+  box-shadow: var(--shadow-neo);
+}
+
+.lesson-content .Learn_keyTakeawaysHeader {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--highlight-border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lesson-content .Learn_keyTakeawaysBullet {
+  color: #2d7a2d;
+  font-weight: 700;
+  font-size: 11px;
+  width: 18px;
+  height: 18px;
+  background: var(--success-bg);
+  border: 2px solid var(--success-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lesson-content .Learn_keyTakeawaysItem {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.lesson-content .Learn_keyTakeawaysItem:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--highlight-border);
+}
+
+.lesson-content .Learn_examplesSection {
+  background: linear-gradient(
+    135deg,
+    var(--success-bg) 0%,
+    rgba(212, 244, 221, 0.5) 100%
+  );
+  border: 2px solid var(--success-border);
+  border-left: 4px solid #2d7a2d;
+  border-radius: 0 8px 8px 0;
+  box-shadow: var(--shadow-neo);
+}
+
+.lesson-content .Learn_examplesHeader {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--success-border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lesson-content .Learn_exampleItem {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.lesson-content .Learn_exampleItem:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--success-border);
+}
+
+.lesson-content .Learn_exampleNumber {
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  width: 18px;
+  height: 18px;
+  background: #2d7a2d;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lesson-content .card-content-area {
+  margin-bottom: 24px;
+}
+
+/* ===== Lesson navigation ===== */
+
+.lesson-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.lesson-nav__link {
+  flex: 1 1 200px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  min-width: 0;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.lesson-nav__link:hover {
+  border-color: var(--level-section);
+  background: var(--surface-hover);
+}
+
+.lesson-nav__link--next {
+  text-align: right;
+  justify-content: flex-end;
+}
+
+.lesson-nav__link:only-child {
+  max-width: 280px;
+}
+
+.lesson-nav__order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: black;
+  background: var(--color-level-section);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.lesson-nav__title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.lesson-nav__link--prev .lesson-nav__title {
+  text-align: left;
+}
+
+.lesson-nav__link--next .lesson-nav__title {
+  text-align: right;
+}
+
+/* ===== Lesson source button ===== */
+
+.lesson-source-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  text-decoration: none;
+}
+
+.lesson-source-btn:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+/* ===== Lesson page chrome ===== */
+
+.lesson-card {
+  background: #191c27;
+  border-radius: 14px;
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  padding: 40px 36px;
+}
+
+.lesson-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+@keyframes lesson-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lesson-fade-in {
+  animation: lesson-fade-in 0.3s ease-out;
 }

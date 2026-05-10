@@ -3,7 +3,6 @@ import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 import { COURSES, SITE_NAME } from "~/data/site-data";
-import { getLessonUrl } from "~/utils/url";
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -39,76 +38,17 @@ export default function SubsectionPage() {
         subtitle={`${subsection.lessons.length} lesson${subsection.lessons.length !== 1 ? "s" : ""}`}
       />
 
-      <button
-        type="button"
-        class="card card--open-all"
-        onClick={() => {
-          const urls = [...subsection.lessons]
-            .sort((a, b) => a.order - b.order)
-            .map((article) =>
-              getLessonUrl(
-                category.category,
-                subsection.subsection,
-                article.lesson,
-              ),
-            );
-          urls.reverse().forEach((url, i) => {
-            setTimeout(() => window.open(url, "_blank"), i * 200);
-          });
-        }}
-      >
-        <span>Open all {subsection.lessons.length} lessons</span>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M2 12L12 2M12 2H5M12 2v7"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-
       <section class="articles-list">
         {[...subsection.lessons]
           .sort((a, b) => a.order - b.order)
           .map((article) => (
-            <a
-              href={getLessonUrl(
-                category.category,
-                subsection.subsection,
-                article.lesson,
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
+            <A
+              href={`/${params.course}/${params.category}/${params.subsection}/${article.lesson}`}
               class="card card--article"
             >
               <span class="article-order">{article.order}</span>
               <span class="article-title">{article.title}</span>
-              <span class="article-external" title="Opens in new tab">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M2 10L10 2M10 2H5M10 2v5"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-            </a>
+            </A>
           ))}
       </section>
 

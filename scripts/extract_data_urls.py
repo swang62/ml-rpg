@@ -1,6 +1,5 @@
-import xml.etree.ElementTree as ET
 import json
-import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 SITEMAP = "data/sitemap.xml"
@@ -13,8 +12,10 @@ ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 tree = ET.parse(SITEMAP)
 root = tree.getroot()
 
+
 def slug_to_title(slug: str) -> str:
     return slug.replace("-", " ").title()
+
 
 # Collect all lesson URLs (4 segments) matching data- prefix
 lessons = []
@@ -29,12 +30,14 @@ for url_elem in root.findall("sm:url", ns):
     parts = path.split("/")
     if len(parts) == 3:
         category, subsection, lesson = parts
-        lessons.append({
-            "category": category,
-            "subsection": subsection,
-            "lesson": lesson,
-            "url": url,
-        })
+        lessons.append(
+            {
+                "category": category,
+                "subsection": subsection,
+                "lesson": lesson,
+                "url": url,
+            }
+        )
 
 print(f"Found {len(lessons)} lesson URLs")
 
@@ -57,22 +60,28 @@ for cat_slug in sorted(categories.keys()):
         lesson_list = categories[cat_slug]["subsections"][sub_slug]
         lessons_out = []
         for i, lesson_slug in enumerate(lesson_list):
-            lessons_out.append({
-                "lesson": lesson_slug,
-                "title": slug_to_title(lesson_slug),
-                "order": 0,
-                "url": f"https://www.systemoverflow.com/learn/{cat_slug}/{sub_slug}/{lesson_slug}",
-            })
-        subsections.append({
-            "subsection": sub_slug,
-            "title": slug_to_title(sub_slug),
-            "lessons": lessons_out,
-        })
-    curriculum.append({
-        "category": cat_slug,
-        "title": slug_to_title(cat_slug),
-        "subsections": subsections,
-    })
+            lessons_out.append(
+                {
+                    "lesson": lesson_slug,
+                    "title": slug_to_title(lesson_slug),
+                    "order": 0,
+                    "url": f"https://www.systemoverflow.com/learn/{cat_slug}/{sub_slug}/{lesson_slug}",
+                }
+            )
+        subsections.append(
+            {
+                "subsection": sub_slug,
+                "title": slug_to_title(sub_slug),
+                "lessons": lessons_out,
+            }
+        )
+    curriculum.append(
+        {
+            "category": cat_slug,
+            "title": slug_to_title(cat_slug),
+            "subsections": subsections,
+        }
+    )
 
 # Save JSON
 with open(OUTPUT_JSON, "w") as f:
@@ -84,7 +93,9 @@ ts_lines = []
 ts_lines.append('  "data-engineering": {')
 ts_lines.append('    base: "/data-engineering",')
 ts_lines.append('    title: "Data Engineering",')
-ts_lines.append("    getCategoryPath: (category: string) => `/data-engineering/${category}`,")
+ts_lines.append(
+    "    getCategoryPath: (category: string) => `/data-engineering/${category}`,"
+)
 ts_lines.append("    getSectionPath: (category: string, section: string) =>")
 ts_lines.append("      `/data-engineering/${category}/${section}`,")
 ts_lines.append("    categories: [")
