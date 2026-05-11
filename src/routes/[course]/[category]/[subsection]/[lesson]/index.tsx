@@ -169,6 +169,7 @@ export default function LessonPage() {
       <div class="lesson-card">
         <Show when={params.lesson} keyed>
           {lessonNav()}
+          <div class="lesson-number">Lesson {data().lesson?.order}</div>
           <div class="lesson-fade-in">
             <Show when={lessonComp()} fallback={<div class="lesson-loading" />}>
               {(Comp) => <Dynamic component={Comp() as ValidComponent} />}
