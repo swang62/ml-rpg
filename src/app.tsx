@@ -5,7 +5,7 @@ import { A, Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import Search from "~/components/Search";
-import { SITE_NAME } from "./data/site-data";
+import { SITE_NAME } from "./utils/constants";
 
 export default function App() {
   return (

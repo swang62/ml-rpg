@@ -1,6 +1,5 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
 import {
-  type Component,
   createEffect,
   createMemo,
   createResource,
@@ -10,11 +9,9 @@ import {
 import { Dynamic } from "solid-js/web";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
-import { COURSES, SITE_NAME } from "~/data/site-data";
-import {
-  getLessonContentKey,
-  lessonComponents,
-} from "~/utils/lessonComponents";
+import { COURSES } from "~/data/site-data";
+import { SITE_NAME } from "~/utils/constants";
+import { getLessonContentKey, lessonComponents } from "~/utils/lesson";
 import { getOriginalLessonUrl } from "~/utils/url";
 
 export default function LessonPage() {

@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { SITE_NAME } from "~/data/site-data";
+import { SITE_NAME } from "~/utils/constants";
 
 interface PageTitleProps {
   segment?: string;

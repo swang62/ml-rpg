@@ -1,5 +1,6 @@
 import levenshtein from "fast-levenshtein";
 import { COURSES } from "~/data/site-data";
+import { MAX_RESULTS } from "./constants";
 import { getLessonUrl } from "./url";
 
 export interface SearchResult {
@@ -46,6 +47,10 @@ export function searchSiteData(query: string): SearchResult[] {
                 article.lesson,
               ),
             });
+          }
+
+          if (results.length >= MAX_RESULTS) {
+            return results;
           }
         }
       }

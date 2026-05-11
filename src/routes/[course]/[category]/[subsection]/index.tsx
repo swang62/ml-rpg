@@ -3,11 +3,9 @@ import { onMount } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
-import { COURSES, SITE_NAME } from "~/data/site-data";
-import {
-  getLessonContentKey,
-  lessonComponents,
-} from "~/utils/lessonComponents";
+import { COURSES } from "~/data/site-data";
+import { SITE_NAME } from "~/utils/constants";
+import { getLessonContentKey, lessonComponents } from "~/utils/lesson";
 
 export default function SubsectionPage() {
   const params = useParams();
