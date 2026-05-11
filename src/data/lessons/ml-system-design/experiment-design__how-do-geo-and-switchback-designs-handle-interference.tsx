@@ -17,7 +17,7 @@ const LessonExperimentDesignHowDoGeoAndSwitchbackDesignsHandleInterference: Comp
                 Definition
               </div>
               <div style="font-size: 15px; line-height: 1.5">
-                <strong>Geo-cluster</strong> and <strong>switchback</strong>;
+                <strong>Geo-cluster</strong> and <strong>switchback</strong>
                 experiments address interference where user-level randomization
                 creates contamination. They randomize at region or time-period
                 level instead.
