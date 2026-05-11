@@ -7,7 +7,30 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import MiniSearch from "minisearch";
-import { COURSES } from "../src/data/site-data";
+import { COURSE_INDEX } from "../src/data/course-index";
+import type { Category } from "../src/data/types";
+
+// Dynamic-load each course data file — must be updated when a new course is added
+async function loadCourseData(slug: string): Promise<Category[]> {
+  const mod = await import(`../src/data/courses/${slug}.ts`);
+  return (mod.default as { title: string; categories: Category[] }).categories;
+}
+
+async function buildCourseLookup(): Promise<
+  Record<string, { title: string; base: string; categories: Category[] }>
+> {
+  const courses: Record<
+    string,
+    { title: string; base: string; categories: Category[] }
+  > = {};
+  for (const slug of Object.keys(COURSE_INDEX)) {
+    courses[slug] = {
+      ...COURSE_INDEX[slug],
+      categories: await loadCourseData(slug),
+    };
+  }
+  return courses;
+}
 
 const STOP_WORDS = new Set([
   "a",
@@ -130,11 +153,15 @@ function extractText(content: string): string {
 }
 
 function lookupLessonMeta(
+  courses: Record<
+    string,
+    { title: string; base: string; categories: Category[] }
+  >,
   courseKey: string,
   subsectionKey: string,
   lessonKey: string,
 ) {
-  const course = COURSES[courseKey];
+  const course = courses[courseKey];
   if (!course) return null;
 
   for (const category of course.categories) {
@@ -155,7 +182,8 @@ function lookupLessonMeta(
   return null;
 }
 
-function main() {
+async function main() {
+  const courses = await buildCourseLookup();
   const lessonsDir = join(import.meta.dirname, "..", "src", "data", "lessons");
   const allFiles = globSync("**/*.tsx", { cwd: lessonsDir });
 
@@ -191,7 +219,7 @@ function main() {
     const subsectionKey = rest.slice(0, delimIdx);
     const lessonKey = rest.slice(delimIdx + 2);
 
-    const meta = lookupLessonMeta(courseKey, subsectionKey, lessonKey);
+    const meta = lookupLessonMeta(courses, courseKey, subsectionKey, lessonKey);
     if (!meta) {
       missingMeta++;
       continue;
