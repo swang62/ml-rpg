@@ -1048,6 +1048,17 @@ main {
   margin-bottom: 40px;
 }
 
+/* --- Inline callout boxes with border-left (Core Concept, notes, etc.) --- */
+.lesson-content div[style*="border-left:4"] {
+  background: #fef9e7;
+  color: #111;
+}
+
+/* --- Inline uppercase labels (Core Concept label, section headings, etc.) --- */
+.lesson-content [style*="text-transform:upper"] {
+  color: var(--text-muted);
+}
+
 /* --- Bootstrap utility classes (only those used in scraped content) --- */
 
 .lesson-content .d-flex {

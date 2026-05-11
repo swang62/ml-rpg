@@ -27,7 +27,7 @@ const LessonExperimentDesignWhatIsPowerAnalysisAndWhyDoesSampleSizeMatter: Compo
               The Core Relationship
             </p>
             <p style="margin-top: 0">
-              The formula is roughly:&#123;" "&#125;
+              The formula is roughly:
               <code style="padding: 2px 6px; border-radius: 3px; font-family: monospace">
                 N ∝ variance × (z_alpha + z_beta)² / MDE²
               </code>
