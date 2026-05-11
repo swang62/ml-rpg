@@ -12,10 +12,13 @@ import PageTitle from "~/components/PageTitle";
 import { COURSES, SITE_NAME } from "~/data/site-data";
 import { getOriginalLessonUrl } from "~/utils/url";
 
-const lessonComponents = import.meta.glob<Component>("~/data/lessons/*.tsx", {
-  eager: true,
-  import: "default",
-});
+const lessonComponents = import.meta.glob<Component>(
+  "~/data/lessons/**/*.tsx",
+  {
+    eager: true,
+    import: "default",
+  },
+);
 
 export default function LessonPage() {
   const params = useParams();
@@ -32,7 +35,9 @@ export default function LessonPage() {
     const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
 
     const contentKey = Object.keys(lessonComponents).find((k) =>
-      k.endsWith(`/${params.lesson}.tsx`),
+      k.endsWith(
+        `/${params.course}/${params.subsection}__${params.lesson}.tsx`,
+      ),
     );
     const LessonComponent =
       (contentKey ? lessonComponents[contentKey] : undefined) ?? null;
@@ -63,6 +68,7 @@ export default function LessonPage() {
     };
   });
 
+  // Early out if anything is missing from path
   createEffect(() => {
     const d = data();
     if (
