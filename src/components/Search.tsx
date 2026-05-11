@@ -52,8 +52,7 @@ export default function Search() {
     if (e.key === "Enter" && activeIndex() >= 0 && r[activeIndex()]) {
       e.preventDefault();
       navigate(r[activeIndex()].url);
-      setIsOpen(false);
-      setQuery("");
+      inputRef?.blur();
     }
   };
 
