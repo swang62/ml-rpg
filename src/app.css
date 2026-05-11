@@ -251,12 +251,17 @@ a {
 .breadcrumbs__item:not(:last-child)::after {
   content: "";
   display: inline-block;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  margin: 0 4px;
   background: var(--text-muted);
-  margin: 0 10px;
-  opacity: 0.5;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.5 2.5l3.5 3.5-3.5 3.5' stroke='black' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.5 2.5l3.5 3.5-3.5 3.5' stroke='black' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  opacity: 0.4;
 }
 
 .breadcrumbs__link {
@@ -551,6 +556,26 @@ a {
   padding: 28px 32px;
   margin: 0 16px 48px;
   max-width: 600px;
+}
+
+.hero-course-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(184, 160, 240, 0.08);
+  color: var(--level-course);
+  flex-shrink: 0;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hero-course-card:hover .hero-course-card__icon {
+  background: rgba(184, 160, 240, 0.15);
+  transform: scale(1.05);
 }
 
 .hero-course-card:hover {

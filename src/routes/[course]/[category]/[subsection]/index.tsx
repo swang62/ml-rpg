@@ -44,7 +44,7 @@ export default function SubsectionPage() {
     return { c, cat, sub } as const;
   });
 
-  // Preload all lesson components when the page data is available
+  // Preload lesson components so navigation to individual lessons is instant
   createEffect(() => {
     const sub = subsection();
     if (sub) {
