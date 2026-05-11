@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "vinxi build",
-    "build-search": "tsx scripts/build-search-index.ts",
+    "build:search": "tsx scripts/build-search-index.ts",
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
     "lint": "biome check --write .",

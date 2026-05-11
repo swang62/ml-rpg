@@ -34,11 +34,7 @@ export function loadSearchIndex(): Promise<void> {
 export function searchSiteData(query: string): SearchResult[] {
   if (!index || query.trim().length < 3) return [];
 
-  const raw = index.search(query, {
-    boost: { title: 1.5 },
-    fuzzy: 0.2,
-    prefix: true,
-  });
+  const raw = index.search(query);
 
   return raw.slice(0, 6).map((r) => ({
     articleTitle: r.articleTitle as string,
