@@ -1,7 +1,4 @@
-import levenshtein from "fast-levenshtein";
-import { COURSES } from "~/data/site-data";
-import { MAX_RESULTS } from "./constants";
-import { getLessonUrl } from "./url";
+import MiniSearch from "minisearch";
 
 export interface SearchResult {
   articleTitle: string;
@@ -10,52 +7,43 @@ export interface SearchResult {
   url: string;
 }
 
-function fuzzyMatch(text: string, term: string): boolean {
-  const words = text.split(/\s+/);
-  return words.some(
-    (word) => word.includes(term) || levenshtein.get(word, term) <= 1,
-  );
+let index: MiniSearch | null = null;
+let loadPromise: Promise<void> | null = null;
+
+export function loadSearchIndex(): Promise<void> {
+  if (index) return Promise.resolve();
+  if (loadPromise) return loadPromise;
+
+  loadPromise = fetch("/search/index.json")
+    .then((res) => res.json())
+    .then((data) => {
+      index = MiniSearch.loadJSON(JSON.stringify(data), {
+        fields: ["title", "text"],
+        storeFields: [
+          "articleTitle",
+          "categoryTitle",
+          "subsectionTitle",
+          "url",
+        ],
+      });
+    });
+
+  return loadPromise;
 }
 
 export function searchSiteData(query: string): SearchResult[] {
-  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (terms.length === 0) return [];
+  if (!index || query.trim().length < 3) return [];
 
-  const results: SearchResult[] = [];
+  const raw = index.search(query, {
+    boost: { title: 1.5 },
+    fuzzy: 0.2,
+    prefix: true,
+  });
 
-  const courseKeys = Object.keys(COURSES);
-  for (const key of courseKeys) {
-    const course = COURSES[key];
-    const categories = course.categories;
-
-    for (const category of categories) {
-      for (const subsection of category.subsections) {
-        for (const article of subsection.lessons) {
-          const searchable = article.title.toLowerCase();
-          const matchesAllTerms = terms.every((term) =>
-            fuzzyMatch(searchable, term),
-          );
-          if (matchesAllTerms) {
-            results.push({
-              articleTitle: article.title,
-              categoryTitle: category.title,
-              subsectionTitle: subsection.title,
-              url: getLessonUrl(
-                course.base,
-                category.category,
-                subsection.subsection,
-                article.lesson,
-              ),
-            });
-          }
-
-          if (results.length >= MAX_RESULTS) {
-            return results;
-          }
-        }
-      }
-    }
-  }
-
-  return results;
+  return raw.slice(0, 6).map((r) => ({
+    articleTitle: r.articleTitle as string,
+    categoryTitle: r.categoryTitle as string,
+    subsectionTitle: r.subsectionTitle as string,
+    url: r.url as string,
+  }));
 }
