@@ -2,7 +2,8 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
-import { COURSES, SITE_NAME } from "~/data/site-data";
+import { COURSES } from "~/data/site-data";
+import { SITE_NAME } from "~/utils/constants";
 
 export default function CourseIndexPage() {
   const params = useParams();

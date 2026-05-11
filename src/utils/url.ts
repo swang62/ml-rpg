@@ -1,4 +1,4 @@
-import { BASE_URL } from "~/data/site-data";
+import { BASE_URL } from "./constants";
 
 export function getLessonUrl(
   course: string,

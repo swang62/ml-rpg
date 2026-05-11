@@ -1,7 +1,8 @@
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
-import { COURSES, SITE_NAME } from "~/data/site-data";
+import { COURSES } from "~/data/site-data";
+import { SITE_NAME } from "~/utils/constants";
 
 export default function HomePage() {
   const courseSlugs = Object.keys(COURSES);
