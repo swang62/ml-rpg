@@ -1,25 +1,32 @@
 import { A } from "@solidjs/router";
-import { For } from "solid-js";
+import { createResource, For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
-import { COURSES } from "~/data/site-data";
+import { COURSE_INDEX } from "~/data/course-index";
 import { SITE_NAME } from "~/utils/constants";
+import { loadCourse } from "~/utils/course-data";
 
 export default function HomePage() {
-  const courseSlugs = Object.keys(COURSES);
-
-  let totalCategories = 0;
-  let totalSubsections = 0;
-  let totalLessons = 0;
-  for (const slug of courseSlugs) {
-    const course = COURSES[slug];
-    totalCategories += course.categories.length;
-    for (const cat of course.categories) {
-      totalSubsections += cat.subsections.length;
-      for (const sub of cat.subsections) {
-        totalLessons += sub.lessons.length;
+  const [totals] = createResource(
+    async () => {
+      const slugs = Object.keys(COURSE_INDEX);
+      const courses = await Promise.all(slugs.map(loadCourse));
+      let categories = 0;
+      let subsections = 0;
+      let lessons = 0;
+      for (const course of courses) {
+        if (!course) continue;
+        categories += course.categories.length;
+        for (const cat of course.categories) {
+          subsections += cat.subsections.length;
+          for (const sub of cat.subsections) {
+            lessons += sub.lessons.length;
+          }
+        }
       }
-    }
-  }
+      return { categories, subsections, lessons };
+    },
+    { initialValue: { categories: 0, subsections: 0, lessons: 0 } },
+  );
 
   return (
     <main class="page-level--course">
@@ -30,25 +37,25 @@ export default function HomePage() {
         <p class="subtitle">A curated navigation hub for system-overflow.com</p>
         <section class="stats-bar">
           <div class="stat">
-            <div class="stat__value">{totalCategories}</div>
+            <div class="stat__value">{totals()?.categories ?? "..."}</div>
             <div class="stat__label">Categories</div>
           </div>
           <div class="stat">
-            <div class="stat__value">{totalSubsections}</div>
+            <div class="stat__value">{totals()?.subsections ?? "..."}</div>
             <div class="stat__label">Sections</div>
           </div>
           <div class="stat">
-            <div class="stat__value">{totalLessons}</div>
+            <div class="stat__value">{totals()?.lessons ?? "..."}</div>
             <div class="stat__label">Lessons</div>
           </div>
         </section>
 
         <section class="flex flex-wrap justify-center">
-          <For each={courseSlugs}>
+          <For each={Object.keys(COURSE_INDEX)}>
             {(slug) => (
-              <A href={COURSES[slug].base} class="card hero-course-card">
+              <A href={COURSE_INDEX[slug].base} class="card hero-course-card">
                 <div class="hero-course-card__info">
-                  <h2>{COURSES[slug].title}</h2>
+                  <h2>{COURSE_INDEX[slug].title}</h2>
                 </div>
                 <div class="hero-course-card__arrow">
                   <svg
