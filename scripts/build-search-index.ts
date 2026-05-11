@@ -118,7 +118,7 @@ function extractBorderDivText(content: string): string[] {
 
 function extractCardContentArea(content: string): string {
   const match = content.match(/class="card-content-area"[^>]*>/i);
-  if (!match) return "";
+  if (!match?.index) return "";
   const inner = extractDivContent(content, match.index + match[0].length);
   return stripTags(inner);
 }
@@ -223,6 +223,7 @@ function main() {
       boost: { title: 1.5 },
       fuzzy: 0.2,
       prefix: true,
+      combineWith: "or",
     },
     processTerm: (term) => {
       const t = term.toLowerCase();
