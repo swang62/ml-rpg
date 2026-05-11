@@ -1,13 +1,22 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
-import { searchSiteData } from "~/utils/search";
+import { loadSearchIndex, searchSiteData } from "~/utils/search";
 
 export default function Search() {
   const navigate = useNavigate();
   const [query, setQuery] = createSignal("");
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal(-1);
+  const [results, setResults] = createSignal<
+    {
+      articleTitle: string;
+      categoryTitle: string;
+      subsectionTitle: string;
+      url: string;
+    }[]
+  >([]);
   let inputRef: HTMLInputElement | undefined;
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   onMount(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -20,15 +29,21 @@ export default function Search() {
     return () => document.removeEventListener("keydown", handleKeydown);
   });
 
-  const results = () => {
-    const q = query().trim();
-    if (!q) return [];
-    return searchSiteData(q);
-  };
-
   const handleInput: JSX.EventHandler<HTMLInputElement, InputEvent> = (e) => {
-    setQuery(e.currentTarget.value);
+    const q = e.currentTarget.value;
+    setQuery(q);
     setActiveIndex(-1);
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      const trimmed = q.trim();
+      if (trimmed.length < 3) {
+        setResults([]);
+        return;
+      }
+      await loadSearchIndex();
+      setResults(searchSiteData(trimmed));
+    }, 200);
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
@@ -36,6 +51,7 @@ export default function Search() {
     if (e.key === "Escape") {
       setIsOpen(false);
       setQuery("");
+      setResults([]);
       inputRef?.blur();
       return;
     }
@@ -99,7 +115,7 @@ export default function Search() {
           <kbd>K</kbd>
         </span>
       </div>
-      {isOpen() && query().trim() && (
+      {isOpen() && query().trim().length >= 3 && (
         <div class="search__dropdown" role="listbox">
           {results().length === 0 ? (
             <div class="search__empty">No results found</div>
@@ -114,6 +130,7 @@ export default function Search() {
                   navigate(result.url);
                   setIsOpen(false);
                   setQuery("");
+                  setResults([]);
                 }}
               >
                 <span class="search__result-title">{result.articleTitle}</span>
