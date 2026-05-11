@@ -1,9 +1,8 @@
 import type { Course } from "~/data/types";
 
-const courseModules = import.meta.glob<{ default: Course }>(
-  "~/data/courses/*.ts",
-  { import: "default" },
-);
+const courseModules = import.meta.glob<Course>("~/data/courses/*.ts", {
+  import: "default",
+});
 
 const COURSE_MODULE_PREFIX = "/src/data/courses/";
 

@@ -9,6 +9,7 @@ import {
 import { Dynamic } from "solid-js/web";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
+import type { Lesson } from "~/data/types";
 import { SITE_NAME } from "~/utils/constants";
 import { loadCourse } from "~/utils/course-data";
 import { getLessonContentKey, lessonComponents } from "~/utils/lesson";
@@ -75,29 +76,21 @@ export default function LessonPage() {
     if (course() && category() && subsection() && !lesson()) navigate("/404");
   });
 
-  const contentKey = createMemo(() =>
-    getLessonContentKey(
-      params.course ?? "",
-      params.subsection ?? "",
-      params.lesson ?? "",
-    ),
+  const [lessonComp] = createResource(
+    () =>
+      getLessonContentKey(
+        params.course ?? "",
+        params.subsection ?? "",
+        params.lesson ?? "",
+      ),
+    async (key) => {
+      if (!key) return null;
+      const loader = lessonComponents[key];
+      return loader ? await loader() : null;
+    },
   );
 
-  const [lessonComp] = createResource(contentKey, async (key) => {
-    if (!key) return null;
-    const loader = lessonComponents[key];
-    return loader ? await loader() : null;
-  });
-
-  createEffect(() => {
-    // Navigate to 404 if lesson component can't be found
-    const key = contentKey();
-    if (key === undefined && lesson()) {
-      navigate("/404");
-    }
-  });
-
-  const lessonNav = (prev, next) => (
+  const lessonNav = (prev: Lesson | null, next: Lesson | null) => (
     <nav class="lesson-nav">
       {prev ? (
         <A
@@ -191,7 +184,7 @@ export default function LessonPage() {
                     when={lessonComp()}
                     fallback={<div class="lesson-loading" />}
                   >
-                    {(Comp) => <Dynamic component={Comp() as ValidComponent} />}
+                    {(Comp) => <Dynamic component={Comp as ValidComponent} />}
                   </Show>
                 </div>
                 {lessonNav(prevLesson(), nextLesson())}
