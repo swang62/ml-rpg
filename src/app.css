@@ -1407,3 +1407,27 @@ main {
 .lesson-fade-in {
   animation: lesson-fade-in 0.3s ease-out;
 }
+
+/* ===== Lesson loading shimmer ===== */
+
+.lesson-loading {
+  min-height: 300px;
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-hover) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: lesson-shimmer 1.5s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+@keyframes lesson-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

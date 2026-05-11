@@ -3,6 +3,7 @@ import {
   type Component,
   createEffect,
   createMemo,
+  createResource,
   Show,
   type ValidComponent,
 } from "solid-js";
@@ -10,15 +11,11 @@ import { Dynamic } from "solid-js/web";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
 import { COURSES, SITE_NAME } from "~/data/site-data";
+import {
+  getLessonContentKey,
+  lessonComponents,
+} from "~/utils/lessonComponents";
 import { getOriginalLessonUrl } from "~/utils/url";
-
-const lessonComponents = import.meta.glob<Component>(
-  "~/data/lessons/**/*.tsx",
-  {
-    eager: true,
-    import: "default",
-  },
-);
 
 export default function LessonPage() {
   const params = useParams();
@@ -33,14 +30,6 @@ export default function LessonPage() {
       (s) => s.subsection === params.subsection,
     );
     const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
-
-    const contentKey = Object.keys(lessonComponents).find((k) =>
-      k.endsWith(
-        `/${params.course}/${params.subsection}__${params.lesson}.tsx`,
-      ),
-    );
-    const LessonComponent =
-      (contentKey ? lessonComponents[contentKey] : undefined) ?? null;
 
     const sortedLessons = subsection
       ? [...subsection.lessons].sort((a, b) => a.order - b.order)
@@ -61,23 +50,37 @@ export default function LessonPage() {
       category,
       subsection,
       lesson,
-      LessonComponent,
       sortedLessons,
       prevLesson,
       nextLesson,
     };
   });
 
-  // Early out if anything is missing from path
+  const contentKey = createMemo(() =>
+    getLessonContentKey(
+      params.course ?? "",
+      params.subsection ?? "",
+      params.lesson ?? "",
+    ),
+  );
+
+  const [lessonComp] = createResource(contentKey, async (key) => {
+    if (!key) return null;
+    const loader = lessonComponents[key];
+    return loader ? await loader() : null;
+  });
+
   createEffect(() => {
     const d = data();
-    if (
-      !d.course ||
-      !d.category ||
-      !d.subsection ||
-      !d.lesson ||
-      !d.LessonComponent
-    ) {
+    if (!d.course || !d.category || !d.subsection || !d.lesson) {
+      navigate("/404");
+    }
+  });
+
+  createEffect(() => {
+    // Navigate to 404 if lesson component can't be found
+    const key = contentKey();
+    if (key === undefined && data().lesson) {
       navigate("/404");
     }
   });
@@ -167,7 +170,9 @@ export default function LessonPage() {
         <Show when={params.lesson} keyed>
           {lessonNav()}
           <div class="lesson-fade-in">
-            <Dynamic component={data().LessonComponent as ValidComponent} />
+            <Show when={lessonComp()} fallback={<div class="lesson-loading" />}>
+              {(Comp) => <Dynamic component={Comp() as ValidComponent} />}
+            </Show>
           </div>
           {lessonNav()}
           <a
