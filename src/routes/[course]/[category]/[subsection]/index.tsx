@@ -1,8 +1,13 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
+import { onMount } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 import { COURSES, SITE_NAME } from "~/data/site-data";
+import {
+  getLessonContentKey,
+  lessonComponents,
+} from "~/utils/lessonComponents";
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -14,6 +19,21 @@ export default function SubsectionPage() {
   const subsection = category?.subsections.find(
     (s) => s.subsection === params.subsection,
   );
+
+  onMount(() => {
+    if (subsection) {
+      for (const lesson of subsection.lessons) {
+        const key = getLessonContentKey(
+          params.course ?? "",
+          params.subsection ?? "",
+          lesson.lesson,
+        );
+        if (key) {
+          lessonComponents[key]();
+        }
+      }
+    }
+  });
 
   if (!course || !category || !subsection) {
     return navigate("/404");
