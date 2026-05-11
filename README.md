@@ -24,10 +24,7 @@ The site is read-only: it renders data from a static TypeScript file and provide
 
 ```
 ├── scripts/                    # Build-time utilities (Python and TS)
-│   ├── build-search-index.ts   # Generates minisearch index from lesson content
-│   └── ...                     # Other one-off migration/extraction scripts
 ├── public/
-│   ├── favicon.svg
 │   └── search/
 │       └── index.json          # Pre-built minisearch index (generated, not in git)
 ├── src/
@@ -37,16 +34,12 @@ The site is read-only: it renders data from a static TypeScript file and provide
 │   ├── entry-server.tsx        # Server-side render entry point
 │   ├── global.d.ts             # Global type declarations
 │   ├── components/             # Reusable UI components
-│   │   ├── Search.tsx          # Cmd+K search with BM25 + debounce
-│   │   └── ...
 │   ├── data/
 │   │   ├── site-data.ts        # Course/category/subsection/lesson hierarchy (static data)
 │   │   └── lessons/            # Lesson TSX components (dynamically imported)
 │   │       ├── ml-system-design/
 │   │       └── data-engineering/
-│   ├── utils/
-│   │   ├── search.ts           # Lazy-loaded minisearch wrapper
-│   │   └── ...
+│   ├── utils/                  # Shared utils and constants
 │   └── routes/                 # File-system routing
 │       ├── index.tsx           # Home page
 │       ├── 404.tsx             # Not found
@@ -57,29 +50,8 @@ The site is read-only: it renders data from a static TypeScript file and provide
 │               └── [subsection]/
 │                   ├── index.tsx   # Subsection lesson list
 │                   └── [lesson]/
-│                       └── index.tsx   # Individual lesson page (dynamically imports lesson component)
+│                       └── index.tsx   # Individual lesson page
 ```
-
-## Search
-
-The site uses **BM25 full-text search** via [minisearch](https://github.com/lucaong/minisearch).
-
-### Rebuilding the index
-
-Search content is pre-indexed from the lesson TSX files (title + border-left callout text). To rebuild:
-
-```bash
-pnpm build-search    # tsx scripts/build-search-index.ts
-```
-
-This generates `public/search/index.json` (~1.2MB, excluded from git). The index is lazy-loaded on the client on first search use.
-
-### Client-side behavior
-
-- Lazy-loads the index JSON on first search
-- 200ms debounce, requires 3+ characters
-- BM25 with `fuzzy: 0.2`, `prefix: true`, `title boost: 1.5`
-- Returns max 6 results with category/subsection breadcrumbs
 
 ## Commands
 
@@ -87,7 +59,7 @@ This generates `public/search/index.json` (~1.2MB, excluded from git). The index
 pnpm dev            # dev server (HMR enabled)
 pnpm build          # production build -> .output/public
 pnpm preview        # serve built static files from .output/public
-pnpm build-search   # rebuild search index from lesson TSX files
+pnpm build:search   # rebuild search index from lesson TSX files
 pnpm lint           # biome check --write .
 ```
 
