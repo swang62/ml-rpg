@@ -1103,6 +1103,11 @@ main {
   color: #111;
 }
 
+.lesson-content p[style*="border-left:4"] {
+  background: #fef9e7;
+  color: #111;
+}
+
 /* --- Inline uppercase labels (Core Concept label, section headings, etc.) --- */
 .lesson-content [style*="text-transform:upper"] {
   color: var(--text-muted);
@@ -1369,7 +1374,7 @@ main {
   text-decoration: none;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: #2d3345;
   box-shadow: var(--shadow-card);
   color: var(--text);
   font-size: 0.9rem;
@@ -1454,7 +1459,7 @@ main {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent);
-  background: var(--surface-elevated);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
