@@ -423,10 +423,20 @@ a {
 }
 
 .card--subsection {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 20px 24px;
+}
+
+.subsection-checkmark {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  color: var(--level-category);
+  display: flex;
 }
 
 .card--subsection:hover {

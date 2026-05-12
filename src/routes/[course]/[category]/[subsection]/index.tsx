@@ -44,6 +44,7 @@ export default function SubsectionPage() {
       <CoursePageShell
         title={subsection()?.title}
         subtitle={`${totalLessons()} lesson${totalLessons() !== 1 ? "s" : ""}`}
+        pageLevel="section"
         subtitleExtra={
           <Show when={totalLessons() > 0}>
             <span class="subtitle-progress">

@@ -15,6 +15,7 @@ interface CoursePageShellProps {
   subtitle: string;
   subtitleExtra?: JSX.Element;
   containerClass: string;
+  pageLevel: "course" | "category" | "section" | "lesson";
   breadcrumbs: BreadcrumbItem[];
   backHref: string;
   backLabel?: string;
@@ -23,7 +24,9 @@ interface CoursePageShellProps {
 
 export default function CoursePageShell(props: CoursePageShellProps) {
   return (
-    <main class={`container ${props.containerClass}`}>
+    <main
+      class={`container ${props.containerClass} page-level--${props.pageLevel}`}
+    >
       <PageTitle segment={props.title} />
       <Breadcrumbs items={props.breadcrumbs} />
       <PageHeader title={props.title} subtitle={props.subtitle}>
