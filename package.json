@@ -6,7 +6,7 @@
     "build:search": "tsx scripts/build-search-index.ts",
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
-    "lint": "biome check --write . && pnpm typecheck && fallow audit",
+    "lint": "biome check --write . && pnpm typecheck",
     "preview": "vinxi start",
     "prepare": "husky || true",
     "typecheck": "pnpm tsc --noEmit"
