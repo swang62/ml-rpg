@@ -37,17 +37,12 @@ export default function CourseIndexPage() {
 
             <section class="categories-grid">
               {categories.map((category) => {
-                const sectionCount = category.subsections.length;
                 return (
                   <A
                     href={`/${params.course}/${category.category}`}
                     class="card card--category"
                   >
                     <h2>{category.title}</h2>
-                    <span class="card__count">
-                      {sectionCount} section
-                      {sectionCount !== 1 ? "s" : ""}
-                    </span>
                   </A>
                 );
               })}
