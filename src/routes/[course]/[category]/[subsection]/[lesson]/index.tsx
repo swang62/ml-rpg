@@ -3,7 +3,7 @@ import { A, useParams } from "@solidjs/router";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createEffect, createMemo, createResource, Show } from "solid-js";
+import { createEffect, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
 import type { Lesson } from "~/data/types";
@@ -49,38 +49,6 @@ function LessonNav(props: {
 
 export default function LessonPage() {
   const params = useParams();
-
-  const [course] = createResource(() => params.course ?? "", loadCourse);
-
-  const data = createMemo(() => {
-    const courseData = course();
-    const category = courseData?.categories.find(
-      (cat) => cat.category === params.category,
-    );
-    const subsection = category?.subsections.find(
-      (s) => s.subsection === params.subsection,
-    );
-    const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
-    return { c: courseData, category, subsection, lesson };
-  });
-
-  const { c, category, subsection, lesson } = destructure(data);
-
-  const navData = createMemo(() => {
-    const sub = subsection();
-    if (!sub) return { prevLesson: null, nextLesson: null };
-    const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
-    const idx = sorted.findIndex((l) => l.lesson === params.lesson);
-    return {
-      prevLesson: idx > 0 ? sorted[idx - 1] : null,
-      nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
-    };
-  });
-
-  const { prevLesson, nextLesson } = destructure(navData);
-
-  useNotFound(() => !c() || !category() || !subsection() || !lesson());
-
   const lessonKey = () => {
     const c = params.course;
     const s = params.subsection;
@@ -89,6 +57,8 @@ export default function LessonPage() {
     return `${c}/${s}/${l}`;
   };
 
+  // Resources
+  const [courseData] = createResource(() => params.course, loadCourse);
   const [lessonHTML] = createResource(lessonKey, async (key) => {
     if (!key) return "";
     const cached = preloaded.get(key);
@@ -99,6 +69,39 @@ export default function LessonPage() {
     const [course, subsection, lesson] = key.split("/");
     return getLessonHTML(course, subsection, lesson);
   });
+
+  // Reactive signals
+  const data = () => {
+    const course = courseData();
+    const category = course?.categories.find(
+      (cat) => cat.category === params.category,
+    );
+    const subsection = category?.subsections.find(
+      (s) => s.subsection === params.subsection,
+    );
+    const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
+    return { course, category, subsection, lesson };
+  };
+
+  const { course, category, subsection, lesson } = destructure(data, {
+    lazy: true,
+  });
+
+  const navData = () => {
+    const sub = subsection();
+    if (!sub) return { prevLesson: null, nextLesson: null };
+    const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
+    const idx = sorted.findIndex((l) => l.lesson === params.lesson);
+    return {
+      prevLesson: idx > 0 ? sorted[idx - 1] : null,
+      nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+    };
+  };
+
+  const { prevLesson, nextLesson } = destructure(navData, {
+    lazy: true,
+  });
+  useNotFound(() => !course() || !category() || !subsection() || !lesson());
 
   // Preload adjacent lessons
   createEffect(() => {
@@ -122,16 +125,16 @@ export default function LessonPage() {
       <Breadcrumbs
         items={[
           { label: SITE_NAME, href: "/" },
-          { label: c()?.title ?? "", href: `/${params.course}` },
+          { label: course()?.title, href: `/${params.course}` },
           {
-            label: category()?.title ?? "",
+            label: category()?.title,
             href: `/${params.course}/${category()?.category}`,
           },
           {
-            label: subsection()?.title ?? "",
+            label: subsection()?.title,
             href: `/${params.course}/${category()?.category}/${subsection()?.subsection}`,
           },
-          { label: lesson()?.title ?? "" },
+          { label: lesson()?.title },
         ]}
       />
 
@@ -156,13 +159,13 @@ export default function LessonPage() {
             subsection={params.subsection}
           />
           <a
-            href={`${BASE_URL}/${category()?.category ?? ""}/${subsection()?.subsection ?? ""}/${lesson()?.lesson ?? ""}`}
+            href={`${BASE_URL}/${category()?.category}/${subsection()?.subsection}/${lesson()?.lesson}`}
             target="_blank"
             rel="noopener noreferrer"
             class="lesson-source-btn"
           >
             <ExternalLink size={14} />
-            View original on System Overflow
+            View on System Overflow
           </a>
           <div class="lesson-footer">
             <A
