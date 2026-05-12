@@ -60,7 +60,7 @@ pnpm dev            # dev server (HMR enabled)
 pnpm build          # production build -> .output/public
 pnpm preview        # serve built static files from .output/public
 pnpm build:search   # rebuild search index from lesson TSX files
-pnpm lint           # biome check --write .
+pnpm lint           # biome check --write . && pnpm typecheck && fallow audit
 ```
 
 ## Domain Glossary/Terms

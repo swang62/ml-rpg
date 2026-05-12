@@ -16,12 +16,11 @@
 pnpm dev        # dev server (HMR enabled — use for inspection)
 pnpm build      # production build → Nitro server
 pnpm preview    # serve built app via node .output/server/index.mjs
-pnpm lint       # biome check --write .  (lints AND auto-fixes)
-pnpm typecheck  # tsc --noEmit  (catches type errors Biome doesn't)
+pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 ```
 
 > `pnpm dev` has HMR (hot module replacement). When inspecting UI changes, prefer running the dev server (`pnpm dev`) and waiting for HMR to pick up edits, rather than doing a full build + preview cycle.
-> Run both `pnpm lint && pnpm typecheck` before committing to catch formatting AND type errors.
+> Run `pnpm lint` before pushing — it handles formatting, linting, type checking, and dead-code/complexity audit in one pass.
 
 No test framework is configured.
 
@@ -30,21 +29,20 @@ No test framework is configured.
 - **Biome** handles both linting and formatting (no ESLint/Prettier)
 - Double quotes, 2-space indent, organize imports on save
 - Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
-- Run `pnpm typecheck` for TypeScript errors (Biome doesn't check types).
+- `pnpm lint` includes Biome checks, TypeScript type checking, and a fallow audit (dead code, complexity, duplication) all in one command.
 
 ## Architecture
 
 - Lesson content is loaded server-side via `"use server"` functions and rendered to HTML via `renderToString`
 - Course data is loaded server-side via `"use server"` (statically imported, no `import.meta.glob`)
 - Lessons use `innerHTML` for content — global CSS in `app.css` styles everything
-- Adjacent lessons are preloaded in the background for fast SPA navigation
 - No CMS or database — editing content means editing lesson TSX files in `src/data/lessons/`
 
 ### ⚠️ Lesson page gotchas (`src/routes/[...lesson]/index.tsx`)
 
-- **Never destructure `data()` into a plain variable.** Always use `data().___` inline in the template (e.g., `data().lesson?.title`, `data().c?.title`). This keeps the idiomatic SolidJS reactive pattern. The `createMemo` return type includes `undefined` fields — access them with optional chaining, never by extracting into a `const`.
+- **Use `@solid-primitives/destructure`** to destructure reactive signals (`data()`, `navData()`) into individual accessors. Never manually extract into plain variables — that breaks reactivity.
 - **Never remove `keyed` from `<Show when={params.lesson} keyed>`.** It must stay exactly as-is.
-- **`data()` never returns `null`** — it returns the full object with potentially undefined fields. `null` returns cause cascade of TS errors.
+- **`data()` never returns `null`** — it always returns an object with potentially undefined fields.
 
 ### Data hierarchy
 
