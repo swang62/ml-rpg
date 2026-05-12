@@ -48,28 +48,30 @@ export default function Search() {
 
   const handleKeydown = (e: KeyboardEvent) => {
     const r = results();
-    if (e.key === "Escape") {
-      setIsOpen(false);
-      setQuery("");
-      setResults([]);
-      inputRef?.blur();
-      return;
-    }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, r.length - 1));
-      return;
-    }
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.max(i - 1, -1));
-      return;
-    }
-    if (e.key === "Enter" && activeIndex() >= 0 && r[activeIndex()]) {
-      e.preventDefault();
-      navigate(r[activeIndex()].url);
-      inputRef?.blur();
-    }
+    const handlers: Record<string, () => void> = {
+      Escape: () => {
+        setIsOpen(false);
+        setQuery("");
+        setResults([]);
+        inputRef?.blur();
+      },
+      ArrowDown: () => {
+        e.preventDefault();
+        setActiveIndex((i) => Math.min(i + 1, r.length - 1));
+      },
+      ArrowUp: () => {
+        e.preventDefault();
+        setActiveIndex((i) => Math.max(i - 1, -1));
+      },
+      Enter: () => {
+        if (activeIndex() >= 0 && r[activeIndex()]) {
+          e.preventDefault();
+          navigate(r[activeIndex()].url);
+          inputRef?.blur();
+        }
+      },
+    };
+    handlers[e.key]?.();
   };
 
   const handleFocus = () => setIsOpen(true);
