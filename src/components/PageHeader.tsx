@@ -1,5 +1,5 @@
 interface PageHeaderProps {
-  title: string;
+  title?: string;
   class?: string;
   subtitle?: string;
 }

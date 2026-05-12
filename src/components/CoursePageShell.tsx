@@ -6,17 +6,17 @@ import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 
 interface BreadcrumbItem {
-  label: string;
+  label?: string;
   href?: string;
 }
 
 interface CoursePageShellProps {
-  title: string;
+  title?: string;
   subtitle: string;
   containerClass: string;
   breadcrumbs: BreadcrumbItem[];
   backHref: string;
-  backLabel: string;
+  backLabel?: string;
   children: JSX.Element;
 }
 

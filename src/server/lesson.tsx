@@ -9,9 +9,9 @@ const lessonComponents = import.meta.glob<Component>(
 );
 
 export async function getLessonHTML(
-  course: string,
-  subsection: string,
-  lesson: string,
+  course?: string,
+  subsection?: string,
+  lesson?: string,
 ): Promise<string> {
   const key = Object.keys(lessonComponents).find((k) =>
     k.endsWith(`/${course}/${subsection}__${lesson}.tsx`),

@@ -1,33 +1,33 @@
 import { destructure } from "@solid-primitives/destructure";
 import { A, useParams } from "@solidjs/router";
+import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createResource, Show } from "solid-js";
+import { createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import LessonNav from "~/components/LessonNav";
+import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
 import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
 import { BASE_URL, SITE_NAME } from "~/utils/constants";
+import { isLessonRead } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
 
 export default function LessonPage() {
   const params = useParams();
-  const lessonKey = () => {
-    const c = params.course;
-    const s = params.subsection;
-    const l = params.lesson;
-    if (!c || !s || !l) return "";
-    return `${c}/${s}/${l}`;
-  };
+  if (!params.category || !params.subsection || !params.lesson) return;
 
   // Resources
   const [courseData] = createResource(() => params.course, loadCourse);
-  const [lessonHTML] = createResource(lessonKey, async (key) => {
-    if (!key) return "";
-    const [course, subsection, lesson] = key.split("/");
-    return getLessonHTML(course, subsection, lesson);
-  });
+  const [lessonHTML] = createResource(
+    () => params.lesson,
+    async () => getLessonHTML(params.course, params.subsection, params.lesson),
+  );
+  const [isRead] = createResource(
+    () => params.lesson,
+    async () => isLessonRead(params.course, params.subsection, params.lesson),
+  );
 
   // Reactive signals
   const data = () => {
@@ -39,6 +39,7 @@ export default function LessonPage() {
       (s) => s.subsection === params.subsection,
     );
     const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
+
     return { course, category, subsection, lesson };
   };
 
@@ -46,7 +47,7 @@ export default function LessonPage() {
     lazy: true,
   });
 
-  const navData = () => {
+  const navData = createMemo(() => {
     const sub = subsection();
     if (!sub) return { prevLesson: null, nextLesson: null };
     const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
@@ -55,11 +56,9 @@ export default function LessonPage() {
       prevLesson: idx > 0 ? sorted[idx - 1] : null,
       nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
     };
-  };
-
-  const { prevLesson, nextLesson } = destructure(navData, {
-    lazy: true,
   });
+
+  // Early out
   useNotFound(() => !course() || !category() || !subsection() || !lesson());
 
   return (
@@ -71,11 +70,11 @@ export default function LessonPage() {
           { label: course()?.title, href: `/${params.course}` },
           {
             label: category()?.title,
-            href: `/${params.course}/${category()?.category}`,
+            href: `/${params.course}/${params.category}`,
           },
           {
             label: subsection()?.title,
-            href: `/${params.course}/${category()?.category}/${subsection()?.subsection}`,
+            href: `/${params.course}/${params.category}/${params.subsection}`,
           },
           { label: lesson()?.title },
         ]}
@@ -84,8 +83,8 @@ export default function LessonPage() {
       <div class="lesson-card">
         <Show when={params.lesson} keyed>
           <LessonNav
-            prevLesson={prevLesson()}
-            nextLesson={nextLesson()}
+            prevLesson={navData().prevLesson}
+            nextLesson={navData().nextLesson}
             course={params.course}
             category={params.category}
             subsection={params.subsection}
@@ -103,22 +102,35 @@ export default function LessonPage() {
           <Show when={lessonHTML()} fallback={<div class="lesson-loading" />}>
             {(html) => <div innerHTML={html()} />}
           </Show>
+          <LessonTracker
+            course={params.course}
+            subsection={params.subsection}
+            lesson={params.lesson}
+          />
           <LessonNav
-            prevLesson={prevLesson()}
-            nextLesson={nextLesson()}
+            prevLesson={navData().prevLesson}
+            nextLesson={navData().nextLesson}
             course={params.course}
             category={params.category}
             subsection={params.subsection}
           />
 
           <div class="lesson-footer">
-            <A
-              href={`/${params.course}/${category()?.category}/${subsection()?.subsection}`}
-              class="back-link"
-            >
-              <ChevronLeft size={14} />
-              Back to {subsection()?.title}
-            </A>
+            <div class="lesson-footer__inner">
+              <A
+                href={`/${params.course}/${category()?.category}/${subsection()?.subsection}`}
+                class="back-link"
+              >
+                <ChevronLeft size={14} />
+                Back to {subsection()?.title}
+              </A>
+              <Show when={isRead()}>
+                <span class="lesson-read-indicator">
+                  <Check size={14} />
+                  Read
+                </span>
+              </Show>
+            </div>
           </div>
         </Show>
       </div>

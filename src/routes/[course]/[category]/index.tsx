@@ -7,55 +7,41 @@ import { useNotFound } from "~/utils/not-found";
 
 export default function CategoryPage() {
   const params = useParams();
+  if (!params.category) return;
 
-  const [course] = createResource(() => params.course ?? "", loadCourse);
+  const [course] = createResource(() => params.course, loadCourse);
 
-  const category = createMemo(() => {
-    const c = course();
-    return c?.categories.find((cat) => cat.category === params.category);
-  });
+  const category = createMemo(() =>
+    course()?.categories.find((cat) => cat.category === params.category),
+  );
 
-  useNotFound(() => {
-    return !course() || !category();
-  });
-
-  const pageData = createMemo(() => {
-    const c = course();
-    const cat = category();
-    if (!c || !cat) return null;
-    return { c, cat } as const;
-  });
+  useNotFound(() => !course() || !category());
 
   return (
-    <Show when={pageData()}>
-      {(data) => {
-        const { c, cat } = data();
-        return (
-          <CoursePageShell
-            title={cat.title}
-            subtitle={`${cat.subsections.length} section${cat.subsections.length !== 1 ? "s" : ""}`}
-            containerClass="container-medium"
-            breadcrumbs={[
-              { label: SITE_NAME, href: "/" },
-              { label: c.title, href: `/${params.course}` },
-              { label: cat.title },
-            ]}
-            backHref={`/${params.course}`}
-            backLabel={c.title}
-          >
-            <section class="subsections-list">
-              {cat.subsections.map((section) => (
-                <A
-                  href={`/${params.course}/${cat.category}/${section.subsection}`}
-                  class="card card--subsection"
-                >
-                  <h2>{section.title}</h2>
-                </A>
-              ))}
-            </section>
-          </CoursePageShell>
-        );
-      }}
+    <Show when={category()}>
+      <CoursePageShell
+        title={category()?.title}
+        subtitle={`${category()?.subsections.length} section${category()?.subsections.length !== 1 ? "s" : ""}`}
+        containerClass="container-medium"
+        breadcrumbs={[
+          { label: SITE_NAME, href: "/" },
+          { label: course()?.title, href: `/${params.course}` },
+          { label: category()?.title },
+        ]}
+        backHref={`/${params.course}`}
+        backLabel={course()?.title}
+      >
+        <section class="subsections-list">
+          {category()?.subsections.map((section) => (
+            <A
+              href={`/${params.course}/${category()?.category}/${section.subsection}`}
+              class="card card--subsection"
+            >
+              <h2>{section.title}</h2>
+            </A>
+          ))}
+        </section>
+      </CoursePageShell>
     </Show>
   );
 }

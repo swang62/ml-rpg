@@ -11,47 +11,41 @@ import { useNotFound } from "~/utils/not-found";
 export default function CourseIndexPage() {
   const params = useParams();
 
-  const slug = () => params.course ?? "";
-  const [course] = createResource(slug, loadCourse);
+  const [course] = createResource(() => params.course, loadCourse);
+
+  // Early out
   useNotFound(() => !course());
 
   return (
     <Show when={course()}>
-      {(data) => {
-        const c = data();
-        const categories = c.categories;
+      <main class="container page-level--course">
+        <PageTitle segment={course()?.title} />
+        <Breadcrumbs
+          items={[{ label: SITE_NAME, href: "/" }, { label: course()?.title }]}
+        />
+        <PageHeader
+          title={course()?.title}
+          subtitle={`${course()?.categories.length} categories`}
+        />
 
-        return (
-          <main class="container page-level--course">
-            <PageTitle segment={c.title} />
-            <Breadcrumbs
-              items={[{ label: SITE_NAME, href: "/" }, { label: c.title }]}
-            />
-            <PageHeader
-              title={c.title}
-              subtitle={`${categories.length} categories`}
-            />
+        <section class="categories-grid">
+          {course()?.categories.map((category) => {
+            return (
+              <A
+                href={`/${params.course}/${category.category}`}
+                class="card card--category"
+              >
+                <h2>{category.title}</h2>
+              </A>
+            );
+          })}
+        </section>
 
-            <section class="categories-grid">
-              {categories.map((category) => {
-                return (
-                  <A
-                    href={`/${params.course}/${category.category}`}
-                    class="card card--category"
-                  >
-                    <h2>{category.title}</h2>
-                  </A>
-                );
-              })}
-            </section>
-
-            <A href="/" class="back-link">
-              <ChevronLeft size={14} />
-              Back to {SITE_NAME}
-            </A>
-          </main>
-        );
-      }}
+        <A href="/" class="back-link">
+          <ChevronLeft size={14} />
+          Back to {SITE_NAME}
+        </A>
+      </main>
     </Show>
   );
 }

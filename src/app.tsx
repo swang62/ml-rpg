@@ -1,4 +1,5 @@
 import "./app.css";
+import "./data/legacy-bootstrap-shim.css";
 
 import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { A, Router } from "@solidjs/router";
