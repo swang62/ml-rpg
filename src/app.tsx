@@ -4,12 +4,24 @@ import "./data/legacy-bootstrap-shim.css";
 import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { A, Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { Suspense } from "solid-js";
+import { createSignal, onCleanup, onMount, Suspense } from "solid-js";
 import LoadingFallback from "~/components/LoadingFallback";
 import Search from "~/components/Search";
 import { SITE_NAME } from "./utils/constants";
 
 export default function App() {
+  let headerRef: HTMLElement | undefined;
+  const [headerHidden, setHeaderHidden] = createSignal(false);
+
+  onMount(() => {
+    const onScroll = () => {
+      if (!headerRef) return;
+      setHeaderHidden(window.scrollY > headerRef.offsetHeight);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onCleanup(() => window.removeEventListener("scroll", onScroll));
+  });
+
   return (
     <Router
       root={(props) => (
@@ -18,7 +30,10 @@ export default function App() {
           <Link rel="icon" type="image/svg+xml" href="/favicon.svg" />
           <Link rel="alternate icon" href="/favicon.ico" sizes="any" />
           <div class="app-layout">
-            <header class="app-header">
+            <header
+              ref={headerRef}
+              class={`app-header${headerHidden() ? " app-header--hidden" : ""}`}
+            >
               <div class="app-header__inner">
                 <A href="/" class="app-header__logo">
                   <svg

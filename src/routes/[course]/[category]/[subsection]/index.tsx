@@ -1,7 +1,7 @@
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createMemo, createResource, Show } from "solid-js";
+import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
@@ -19,6 +19,12 @@ export default function SubsectionPage() {
     () => getReadLessons(params.course, params.subsection),
   );
 
+  // Force a client-side refetch after hydration so IndexedDB data is loaded
+  // (SSR returns empty because IndexedDB isn't available on the server)
+  onMount(() => {
+    refetch();
+  });
+
   // Reactive signals
   const category = createMemo(() =>
     course()?.categories.find((cat) => cat.category === params.category),
@@ -30,11 +36,37 @@ export default function SubsectionPage() {
   // Early out
   useNotFound(() => !course() || !category() || !subsection());
 
+  const totalLessons = () => subsection()?.lessons.length ?? 0;
+  const completedCount = () => readLessons()?.length ?? 0;
+
   return (
     <Show when={params.subsection} keyed>
       <CoursePageShell
         title={subsection()?.title}
-        subtitle={`${subsection()?.lessons.length} lesson${subsection()?.lessons.length !== 1 ? "s" : ""}`}
+        subtitle={`${totalLessons()} lesson${totalLessons() !== 1 ? "s" : ""}`}
+        subtitleExtra={
+          <Show when={totalLessons() > 0}>
+            <span class="subtitle-progress">
+              {completedCount()}/{totalLessons()} completed
+            </span>
+            <Show when={completedCount() > 0}>
+              <button
+                type="button"
+                class="subtitle-reset-btn"
+                onClick={async () => {
+                  await resetSection(
+                    params.course ?? "",
+                    params.subsection ?? "",
+                  );
+                  refetch();
+                }}
+              >
+                <RotateCcw size={12} />
+                Reset
+              </button>
+            </Show>
+          </Show>
+        }
         containerClass="container-narrow"
         breadcrumbs={[
           { label: SITE_NAME, href: "/" },
@@ -66,24 +98,6 @@ export default function SubsectionPage() {
               </A>
             ))}
         </section>
-        <Show when={(readLessons()?.length ?? 0) > 0}>
-          <div class="section-reset">
-            <button
-              type="button"
-              class="section-reset-btn"
-              onClick={async () => {
-                await resetSection(
-                  params.course ?? "",
-                  params.subsection ?? "",
-                );
-                refetch();
-              }}
-            >
-              <RotateCcw size={14} />
-              Reset progress
-            </button>
-          </div>
-        </Show>
       </CoursePageShell>
     </Show>
   );

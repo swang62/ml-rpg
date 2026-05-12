@@ -13,6 +13,7 @@ interface BreadcrumbItem {
 interface CoursePageShellProps {
   title?: string;
   subtitle: string;
+  subtitleExtra?: JSX.Element;
   containerClass: string;
   breadcrumbs: BreadcrumbItem[];
   backHref: string;
@@ -25,7 +26,9 @@ export default function CoursePageShell(props: CoursePageShellProps) {
     <main class={`container ${props.containerClass}`}>
       <PageTitle segment={props.title} />
       <Breadcrumbs items={props.breadcrumbs} />
-      <PageHeader title={props.title} subtitle={props.subtitle} />
+      <PageHeader title={props.title} subtitle={props.subtitle}>
+        {props.subtitleExtra}
+      </PageHeader>
       {props.children}
       <A href={props.backHref} class="back-link">
         <ChevronLeft size={14} />

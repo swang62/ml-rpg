@@ -164,14 +164,14 @@ export default function LessonPage() {
                 <ChevronLeft size={14} />
                 Back to {subsection()?.title}
               </A>
-              <Show when={isRead()}>
-                <span class="lesson-read-indicator">
-                  <Check size={14} />
-                  Read
-                </span>
-              </Show>
             </div>
           </div>
+          <Show when={isRead()}>
+            <div class="lesson-read-badge">
+              <Check size={14} />
+              <span>Read</span>
+            </div>
+          </Show>
         </Show>
       </div>
     </main>
