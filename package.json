@@ -7,7 +7,8 @@
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
     "lint": "biome check --write .",
-    "preview": "vinxi serve --dir .output/public",
+    "typecheck": "pnpm tsc --noEmit",
+    "preview": "vinxi start",
     "prepare": "husky || true"
   },
   "lint-staged": {
@@ -31,6 +32,7 @@
     "@types/node": "^25.6.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.2",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
   }
 }

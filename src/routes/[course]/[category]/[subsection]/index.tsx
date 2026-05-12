@@ -3,9 +3,8 @@ import { createEffect, createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
+import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { loadCourse } from "~/utils/course-data";
-import { getLessonContentKey, lessonComponents } from "~/utils/lesson";
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -42,23 +41,6 @@ export default function SubsectionPage() {
     const sub = subsection();
     if (!c || !cat || !sub) return null;
     return { c, cat, sub } as const;
-  });
-
-  // Preload lesson components so navigation to individual lessons is instant
-  createEffect(() => {
-    const sub = subsection();
-    if (sub) {
-      for (const lesson of sub.lessons) {
-        const key = getLessonContentKey(
-          params.course ?? "",
-          params.subsection ?? "",
-          lesson.lesson,
-        );
-        if (key) {
-          lessonComponents[key]();
-        }
-      }
-    }
   });
 
   return (

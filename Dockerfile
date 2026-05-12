@@ -14,14 +14,13 @@ RUN pnpm build
 
 FROM node:26-alpine
 
-RUN npm install --global serve
-
+ENV NODE_ENV=production
 EXPOSE 3000
 
-RUN adduser -D -H -h /www www
+RUN adduser -D -H -h /app www
 USER www
+WORKDIR /app
 
-COPY --from=build /app/.output/public /www
+COPY --from=build /app/.output .
 
-WORKDIR /www
-CMD ["serve", "-s", ".", "-l", "3000"]
+CMD ["node", "server/index.mjs"]

@@ -3,8 +3,8 @@ import { createEffect, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
+import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { loadCourse } from "~/utils/course-data";
 
 export default function CourseIndexPage() {
   const params = useParams();

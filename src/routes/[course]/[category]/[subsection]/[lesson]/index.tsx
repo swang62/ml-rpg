@@ -1,18 +1,13 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
-import {
-  createEffect,
-  createMemo,
-  createResource,
-  Show,
-  type ValidComponent,
-} from "solid-js";
-import { Dynamic } from "solid-js/web";
+import { createEffect, createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
+import { loadCourse } from "~/server/course";
+import { getLessonHTML } from "~/server/lesson";
 import { SITE_NAME } from "~/utils/constants";
-import { loadCourse } from "~/utils/course-data";
-import { getLessonContentKey, lessonComponents } from "~/utils/lesson";
 import { getOriginalLessonUrl } from "~/utils/url";
+
+const preloaded = new Map<string, string>();
 
 export default function LessonPage() {
   const params = useParams();
@@ -48,24 +43,32 @@ export default function LessonPage() {
       category,
       subsection,
       lesson,
+      course: params.course,
+      categorySlug: params.category,
+      subsectionSlug: params.subsection,
       sortedLessons,
       prevLesson,
       nextLesson,
     };
   });
 
-  const contentKey = createMemo(() =>
-    getLessonContentKey(
-      params.course ?? "",
-      params.subsection ?? "",
-      params.lesson ?? "",
-    ),
-  );
+  const lessonKey = () => {
+    const c = params.course;
+    const s = params.subsection;
+    const l = params.lesson;
+    if (!c || !s || !l) return "";
+    return `${c}/${s}/${l}`;
+  };
 
-  const [lessonComp] = createResource(contentKey, async (key) => {
-    if (!key) return null;
-    const loader = lessonComponents[key];
-    return loader ? await loader() : null;
+  const [lessonHTML] = createResource(lessonKey, async (key) => {
+    if (!key) return "";
+    const cached = preloaded.get(key);
+    if (cached !== undefined) {
+      preloaded.delete(key);
+      return cached;
+    }
+    const [course, subsection, lesson] = key.split("/");
+    return getLessonHTML(course, subsection, lesson);
   });
 
   createEffect(() => {
@@ -75,10 +78,20 @@ export default function LessonPage() {
     }
   });
 
+  // Preload adjacent lessons
   createEffect(() => {
-    const key = contentKey();
-    if (key === undefined && data().lesson) {
-      navigate("/404");
+    const { prevLesson, nextLesson } = data();
+    const current = lessonKey();
+    if (!current) return;
+    const [course, subsection] = current.split("/");
+    for (const lesson of [prevLesson, nextLesson]) {
+      if (!lesson) continue;
+      const k = `${course}/${subsection}/${lesson.lesson}`;
+      if (!preloaded.has(k) && k !== current) {
+        getLessonHTML(course, subsection, lesson.lesson).then((html) =>
+          preloaded.set(k, html),
+        );
+      }
     }
   });
 
@@ -158,11 +171,9 @@ export default function LessonPage() {
         <Show when={params.lesson} keyed>
           {lessonNav()}
           <div class="lesson-number">Lesson {data().lesson?.order}</div>
-          <div class="lesson-fade-in">
-            <Show when={lessonComp()} fallback={<div class="lesson-loading" />}>
-              {(Comp) => <Dynamic component={Comp() as ValidComponent} />}
-            </Show>
-          </div>
+          <Show when={lessonHTML()} fallback={<div class="lesson-loading" />}>
+            {(html) => <div innerHTML={html()} />}
+          </Show>
           {lessonNav()}
           <a
             href={getOriginalLessonUrl(
