@@ -5,12 +5,46 @@ import ExternalLink from "lucide-solid/icons/external-link";
 import { createEffect, createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
+import type { Lesson } from "~/data/types";
 import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
 import { BASE_URL, SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 const preloaded = new Map<string, string>();
+
+function LessonNav(props: {
+  prevLesson: Lesson | null;
+  nextLesson: Lesson | null;
+  course: string | undefined;
+  category: string | undefined;
+  subsection: string | undefined;
+}) {
+  return (
+    <nav class="lesson-nav">
+      {props.prevLesson ? (
+        <A
+          href={`/${props.course}/${props.category}/${props.subsection}/${props.prevLesson.lesson}`}
+          class="lesson-nav__link lesson-nav__link--prev"
+        >
+          <ChevronLeft size={14} />
+          <span class="lesson-nav__order">{props.prevLesson.order}</span>
+          <span class="lesson-nav__title">{props.prevLesson.title}</span>
+        </A>
+      ) : null}
+      {props.nextLesson ? (
+        <A
+          href={`/${props.course}/${props.category}/${props.subsection}/${props.nextLesson.lesson}`}
+          class="lesson-nav__link lesson-nav__link--next"
+        >
+          <span class="lesson-nav__title">{props.nextLesson.title}</span>
+          <span class="lesson-nav__order">{props.nextLesson.order}</span>
+          <ChevronRight size={14} />
+        </A>
+      ) : null}
+    </nav>
+  );
+}
 
 export default function LessonPage() {
   const params = useParams();
@@ -26,28 +60,17 @@ export default function LessonPage() {
       (s) => s.subsection === params.subsection,
     );
     const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
+    return { c, category, subsection, lesson };
+  });
 
-    const sortedLessons = subsection
-      ? [...subsection.lessons].sort((a, b) => a.order - b.order)
-      : [];
-    const currentIndex = sortedLessons.findIndex(
-      (l) => l.lesson === params.lesson,
-    );
-    const prevLesson =
-      currentIndex > 0 ? sortedLessons[currentIndex - 1] : null;
-    const nextLesson =
-      currentIndex < sortedLessons.length - 1
-        ? sortedLessons[currentIndex + 1]
-        : null;
-
+  const navData = createMemo(() => {
+    const sub = data().subsection;
+    if (!sub) return { prevLesson: null, nextLesson: null };
+    const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
+    const idx = sorted.findIndex((l) => l.lesson === params.lesson);
     return {
-      c,
-      category,
-      subsection,
-      lesson,
-      sortedLessons,
-      prevLesson,
-      nextLesson,
+      prevLesson: idx > 0 ? sorted[idx - 1] : null,
+      nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
     };
   });
 
@@ -77,11 +100,12 @@ export default function LessonPage() {
 
   // Preload adjacent lessons
   createEffect(() => {
-    const { prevLesson, nextLesson } = data();
     const current = lessonKey();
     if (!current) return;
     const [course, subsection] = current.split("/");
-    for (const lesson of [prevLesson, nextLesson]) {
+    const prev = navData().prevLesson;
+    const next = navData().nextLesson;
+    for (const lesson of [prev, next]) {
       if (!lesson) continue;
       const k = `${course}/${subsection}/${lesson.lesson}`;
       if (!preloaded.has(k) && k !== current) {
@@ -91,31 +115,6 @@ export default function LessonPage() {
       }
     }
   });
-
-  const lessonNav = () => (
-    <nav class="lesson-nav">
-      {data().prevLesson ? (
-        <A
-          href={`/${params.course}/${params.category}/${params.subsection}/${data().prevLesson?.lesson}`}
-          class="lesson-nav__link lesson-nav__link--prev"
-        >
-          <ChevronLeft size={14} />
-          <span class="lesson-nav__order">{data().prevLesson?.order}</span>
-          <span class="lesson-nav__title">{data().prevLesson?.title}</span>
-        </A>
-      ) : null}
-      {data().nextLesson ? (
-        <A
-          href={`/${params.course}/${params.category}/${params.subsection}/${data().nextLesson?.lesson}`}
-          class="lesson-nav__link lesson-nav__link--next"
-        >
-          <span class="lesson-nav__title">{data().nextLesson?.title}</span>
-          <span class="lesson-nav__order">{data().nextLesson?.order}</span>
-          <ChevronRight size={14} />
-        </A>
-      ) : null}
-    </nav>
-  );
 
   return (
     <main class="container container-narrow page-level--lesson">
@@ -138,12 +137,24 @@ export default function LessonPage() {
 
       <div class="lesson-card">
         <Show when={params.lesson} keyed>
-          {lessonNav()}
+          <LessonNav
+            prevLesson={navData().prevLesson}
+            nextLesson={navData().nextLesson}
+            course={params.course}
+            category={params.category}
+            subsection={params.subsection}
+          />
           <div class="lesson-number">Lesson {data().lesson?.order}</div>
           <Show when={lessonHTML()} fallback={<div class="lesson-loading" />}>
             {(html) => <div innerHTML={html()} />}
           </Show>
-          {lessonNav()}
+          <LessonNav
+            prevLesson={navData().prevLesson}
+            nextLesson={navData().nextLesson}
+            course={params.course}
+            category={params.category}
+            subsection={params.subsection}
+          />
           <a
             href={`${BASE_URL}/${data().category?.category ?? ""}/${data().subsection?.subsection ?? ""}/${data().lesson?.lesson ?? ""}`}
             target="_blank"
