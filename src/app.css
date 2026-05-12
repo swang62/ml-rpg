@@ -69,8 +69,6 @@ html {
     Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 17px;
-  line-height: 1.7;
 }
 
 body {
@@ -1342,6 +1340,15 @@ main {
 
 .lesson-content .card-content-area {
   margin-bottom: 24px;
+}
+
+.lesson-content .card-content-area > strong {
+  display: block;
+  margin-top: 1.2em;
+}
+
+.lesson-content .card-content-area > strong:first-child {
+  margin-top: 0;
 }
 
 /* ===== Lesson number header ===== */
