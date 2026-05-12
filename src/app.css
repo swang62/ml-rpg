@@ -1342,13 +1342,10 @@ main {
   margin-bottom: 24px;
 }
 
-.lesson-content .card-content-area > strong {
+.lesson-content .card-content-area > strong:not(:first-child)::before {
+  content: "";
   display: block;
-  margin-top: 1.2em;
-}
-
-.lesson-content .card-content-area > strong:first-child {
-  margin-top: 0;
+  height: 1.2em;
 }
 
 /* ===== Lesson number header ===== */
