@@ -1,6 +1,8 @@
 import { A } from "@solidjs/router";
 import type { LucideIcon } from "lucide-solid";
-import { BrainCircuit, ChevronRight, Database } from "lucide-solid";
+import BrainCircuit from "lucide-solid/icons/brain-circuit";
+import ChevronRight from "lucide-solid/icons/chevron-right";
+import Database from "lucide-solid/icons/database";
 import { For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { COURSE_INDEX } from "~/data/course-index";

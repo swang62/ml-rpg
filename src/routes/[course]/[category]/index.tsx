@@ -1,5 +1,5 @@
 import { A, useParams } from "@solidjs/router";
-import { ChevronLeft } from "lucide-solid";
+import ChevronLeft from "lucide-solid/icons/chevron-left";
 import { createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";

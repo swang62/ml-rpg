@@ -1,5 +1,7 @@
 import { A, useParams } from "@solidjs/router";
-import { ChevronLeft, ChevronRight } from "lucide-solid";
+import ChevronLeft from "lucide-solid/icons/chevron-left";
+import ChevronRight from "lucide-solid/icons/chevron-right";
+import ExternalLink from "lucide-solid/icons/external-link";
 import { createEffect, createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
@@ -148,21 +150,7 @@ export default function LessonPage() {
             rel="noopener noreferrer"
             class="lesson-source-btn"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 12L12 2M12 2H5M12 2v7"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+            <ExternalLink size={14} />
             View original on System Overflow
           </a>
           <div class="lesson-footer">
