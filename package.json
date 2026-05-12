@@ -5,11 +5,11 @@
     "build": "vinxi build",
     "build:search": "tsx scripts/build-search-index.ts",
     "build:docker": "docker compose up --build --force-recreate -d",
-    "check": "pnpm tsc --noEmit",
     "dev": "vinxi dev",
     "lint": "biome check --write .",
     "preview": "vinxi start",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {
     "@solidjs/meta": "^0.29.4",

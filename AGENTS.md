@@ -45,7 +45,6 @@ No test framework is configured.
 - **Never destructure `data()` into a plain variable.** Always use `data().___` inline in the template (e.g., `data().lesson?.title`, `data().c?.title`). This keeps the idiomatic SolidJS reactive pattern. The `createMemo` return type includes `undefined` fields — access them with optional chaining, never by extracting into a `const`.
 - **Never remove `keyed` from `<Show when={params.lesson} keyed>`.** It must stay exactly as-is.
 - **`data()` never returns `null`** — it returns the full object with potentially undefined fields. `null` returns cause cascade of TS errors.
-- **Params (`params.course`, `params.subsection`, etc.) are typed as `string`** by `@solidjs/router` (not `string | undefined`). Use them directly in template literals and pass them to `getLessonHTML` via the validated `lessonKey()` helper.
 
 ### Data hierarchy
 
