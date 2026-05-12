@@ -1,3 +1,4 @@
+import { destructure } from "@solid-primitives/destructure";
 import { A, useParams } from "@solidjs/router";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ChevronRight from "lucide-solid/icons/chevron-right";
@@ -52,19 +53,21 @@ export default function LessonPage() {
   const [course] = createResource(() => params.course ?? "", loadCourse);
 
   const data = createMemo(() => {
-    const c = course();
-    const category = c?.categories.find(
+    const courseData = course();
+    const category = courseData?.categories.find(
       (cat) => cat.category === params.category,
     );
     const subsection = category?.subsections.find(
       (s) => s.subsection === params.subsection,
     );
     const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
-    return { c, category, subsection, lesson };
+    return { c: courseData, category, subsection, lesson };
   });
 
+  const { c, category, subsection, lesson } = destructure(data);
+
   const navData = createMemo(() => {
-    const sub = data().subsection;
+    const sub = subsection();
     if (!sub) return { prevLesson: null, nextLesson: null };
     const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
     const idx = sorted.findIndex((l) => l.lesson === params.lesson);
@@ -74,10 +77,9 @@ export default function LessonPage() {
     };
   });
 
-  useNotFound(() => {
-    const d = data();
-    return !d.c || !d.category || !d.subsection || !d.lesson;
-  });
+  const { prevLesson, nextLesson } = destructure(navData);
+
+  useNotFound(() => !c() || !category() || !subsection() || !lesson());
 
   const lessonKey = () => {
     const c = params.course;
@@ -102,15 +104,13 @@ export default function LessonPage() {
   createEffect(() => {
     const current = lessonKey();
     if (!current) return;
-    const [course, subsection] = current.split("/");
-    const prev = navData().prevLesson;
-    const next = navData().nextLesson;
-    for (const lesson of [prev, next]) {
-      if (!lesson) continue;
-      const k = `${course}/${subsection}/${lesson.lesson}`;
+    const [courseSlug, subsectionSlug] = current.split("/");
+    for (const lessonEl of [prevLesson(), nextLesson()]) {
+      if (!lessonEl) continue;
+      const k = `${courseSlug}/${subsectionSlug}/${lessonEl.lesson}`;
       if (!preloaded.has(k) && k !== current) {
-        getLessonHTML(course, subsection, lesson.lesson).then((html) =>
-          preloaded.set(k, html),
+        getLessonHTML(courseSlug, subsectionSlug, lessonEl.lesson).then(
+          (html) => preloaded.set(k, html),
         );
       }
     }
@@ -118,45 +118,45 @@ export default function LessonPage() {
 
   return (
     <main class="container container-narrow page-level--lesson">
-      <PageTitle segment={data().lesson?.title} />
+      <PageTitle segment={lesson()?.title} />
       <Breadcrumbs
         items={[
           { label: SITE_NAME, href: "/" },
-          { label: data().c?.title ?? "", href: `/${params.course}` },
+          { label: c()?.title ?? "", href: `/${params.course}` },
           {
-            label: data().category?.title ?? "",
-            href: `/${params.course}/${data().category?.category}`,
+            label: category()?.title ?? "",
+            href: `/${params.course}/${category()?.category}`,
           },
           {
-            label: data().subsection?.title ?? "",
-            href: `/${params.course}/${data().category?.category}/${data().subsection?.subsection}`,
+            label: subsection()?.title ?? "",
+            href: `/${params.course}/${category()?.category}/${subsection()?.subsection}`,
           },
-          { label: data().lesson?.title ?? "" },
+          { label: lesson()?.title ?? "" },
         ]}
       />
 
       <div class="lesson-card">
         <Show when={params.lesson} keyed>
           <LessonNav
-            prevLesson={navData().prevLesson}
-            nextLesson={navData().nextLesson}
+            prevLesson={prevLesson()}
+            nextLesson={nextLesson()}
             course={params.course}
             category={params.category}
             subsection={params.subsection}
           />
-          <div class="lesson-number">Lesson {data().lesson?.order}</div>
+          <div class="lesson-number">Lesson {lesson()?.order}</div>
           <Show when={lessonHTML()} fallback={<div class="lesson-loading" />}>
             {(html) => <div innerHTML={html()} />}
           </Show>
           <LessonNav
-            prevLesson={navData().prevLesson}
-            nextLesson={navData().nextLesson}
+            prevLesson={prevLesson()}
+            nextLesson={nextLesson()}
             course={params.course}
             category={params.category}
             subsection={params.subsection}
           />
           <a
-            href={`${BASE_URL}/${data().category?.category ?? ""}/${data().subsection?.subsection ?? ""}/${data().lesson?.lesson ?? ""}`}
+            href={`${BASE_URL}/${category()?.category ?? ""}/${subsection()?.subsection ?? ""}/${lesson()?.lesson ?? ""}`}
             target="_blank"
             rel="noopener noreferrer"
             class="lesson-source-btn"
@@ -166,11 +166,11 @@ export default function LessonPage() {
           </a>
           <div class="lesson-footer">
             <A
-              href={`/${params.course}/${data().category?.category}/${data().subsection?.subsection}`}
+              href={`/${params.course}/${category()?.category}/${subsection()?.subsection}`}
               class="back-link"
             >
               <ChevronLeft size={14} />
-              Back to {data().subsection?.title}
+              Back to {subsection()?.title}
             </A>
           </div>
         </Show>
