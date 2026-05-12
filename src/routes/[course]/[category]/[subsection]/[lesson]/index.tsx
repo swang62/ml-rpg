@@ -3,7 +3,14 @@ import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createMemo, createResource, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  onCleanup,
+  Show,
+} from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
@@ -24,10 +31,43 @@ export default function LessonPage() {
     () => params.lesson,
     async () => getLessonHTML(params.course, params.subsection, params.lesson),
   );
-  const [isRead] = createResource(
-    () => params.lesson,
-    async () => isLessonRead(params.course, params.subsection, params.lesson),
-  );
+  const [isRead, setIsRead] = createSignal(false);
+
+  // Poll for read status — resets and re-polls on lesson navigation
+  createEffect(() => {
+    const lesson = params.lesson;
+    if (!lesson) return;
+
+    // Reset immediately for the new lesson
+    setIsRead(false);
+
+    let cancelled = false;
+
+    const check = async () => {
+      if (cancelled) return;
+      try {
+        const read = await isLessonRead(
+          params.course,
+          params.subsection,
+          lesson,
+        );
+        if (!cancelled && read) {
+          setIsRead(true);
+          clearInterval(timer);
+        }
+      } catch {
+        // storage not available — skip
+      }
+    };
+
+    check();
+    const timer = setInterval(check, 1000);
+
+    onCleanup(() => {
+      cancelled = true;
+      clearInterval(timer);
+    });
+  });
 
   // Reactive signals
   const data = () => {
