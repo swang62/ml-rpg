@@ -60,10 +60,6 @@ export default function CategoryPage() {
                   class="card card--subsection"
                 >
                   <h2>{section.title}</h2>
-                  <span class="card__count">
-                    {section.lessons.length} lesson
-                    {section.lessons.length !== 1 ? "s" : ""}
-                  </span>
                 </A>
               ))}
             </section>

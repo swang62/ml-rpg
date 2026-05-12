@@ -18,9 +18,12 @@
   --color-level-section: #f0c860;
   --radius-default: 10px;
   --radius-sm: 6px;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 3px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-card-hover:
-    0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-border-hover);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 16px rgba(0, 0, 0, 0.5),
+    0 0 0 1px var(--color-border-hover);
   --shadow-dropdown:
     0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--color-border);
 }
@@ -49,8 +52,12 @@
   --level-section: #f0c860;
   --radius: 10px;
   --radius-sm: 6px;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px #3d4470;
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 3px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 16px rgba(0, 0, 0, 0.5),
+    0 0 0 1px #3d4470;
   --shadow-dropdown: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px #2a2f45;
 }
 
@@ -108,13 +115,13 @@ a {
   inset: 0;
   background:
     radial-gradient(
-      ellipse 80% 50% at 50% 0%,
-      rgba(103, 179, 240, 0.06) 0%,
+      ellipse 120% 70% at 50% 0%,
+      rgba(103, 179, 240, 0.08) 0%,
       transparent 70%
     ),
     radial-gradient(
-      ellipse 60% 40% at 50% 100%,
-      rgba(184, 160, 240, 0.04) 0%,
+      ellipse 80% 60% at 50% 100%,
+      rgba(66, 117, 159, 0.08) 0%,
       transparent 70%
     );
   pointer-events: none;
@@ -131,7 +138,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(13, 15, 20, 0.85);
+  background: rgba(13, 15, 20, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
@@ -280,6 +287,8 @@ a {
 /* ===== Card base ===== */
 
 .card {
+  position: relative;
+  z-index: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -289,6 +298,21 @@ a {
     border-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.2s ease;
+}
+
+/* Subtle inner top highlight for a raised/3D look */
+.card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01) 0%,
+    transparent 40%
+  );
+  pointer-events: none;
 }
 
 .card:hover {
@@ -1417,6 +1441,8 @@ main {
 /* ===== Lesson source button ===== */
 
 .lesson-source-btn {
+  position: relative;
+  z-index: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1435,6 +1461,20 @@ main {
     border-color 0.15s,
     background 0.15s;
   text-decoration: none;
+}
+
+.lesson-source-btn::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 40%
+  );
+  pointer-events: none;
 }
 
 .lesson-source-btn:hover {
