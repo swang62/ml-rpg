@@ -3,7 +3,7 @@ import { A, useParams } from "@solidjs/router";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createEffect, createResource, Show } from "solid-js";
+import { createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
 import type { Lesson } from "~/data/types";
@@ -11,8 +11,6 @@ import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
 import { BASE_URL, SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
-
-const preloaded = new Map<string, string>();
 
 function LessonNav(props: {
   prevLesson: Lesson | null;
@@ -61,11 +59,6 @@ export default function LessonPage() {
   const [courseData] = createResource(() => params.course, loadCourse);
   const [lessonHTML] = createResource(lessonKey, async (key) => {
     if (!key) return "";
-    const cached = preloaded.get(key);
-    if (cached !== undefined) {
-      preloaded.delete(key);
-      return cached;
-    }
     const [course, subsection, lesson] = key.split("/");
     return getLessonHTML(course, subsection, lesson);
   });
@@ -102,22 +95,6 @@ export default function LessonPage() {
     lazy: true,
   });
   useNotFound(() => !course() || !category() || !subsection() || !lesson());
-
-  // Preload adjacent lessons
-  createEffect(() => {
-    const current = lessonKey();
-    if (!current) return;
-    const [courseSlug, subsectionSlug] = current.split("/");
-    for (const lessonEl of [prevLesson(), nextLesson()]) {
-      if (!lessonEl) continue;
-      const k = `${courseSlug}/${subsectionSlug}/${lessonEl.lesson}`;
-      if (!preloaded.has(k) && k !== current) {
-        getLessonHTML(courseSlug, subsectionSlug, lessonEl.lesson).then(
-          (html) => preloaded.set(k, html),
-        );
-      }
-    }
-  });
 
   return (
     <main class="container container-narrow page-level--lesson">
