@@ -1,14 +1,15 @@
-import { A, useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createMemo, createResource, Show } from "solid-js";
+import { A, useParams } from "@solidjs/router";
+import { ChevronLeft } from "lucide-solid";
+import { createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
+import { useNotFound } from "~/utils/not-found";
 
 export default function SubsectionPage() {
   const params = useParams();
-  const navigate = useNavigate();
 
   const [course] = createResource(() => params.course ?? "", loadCourse);
 
@@ -22,17 +23,8 @@ export default function SubsectionPage() {
     return cat?.subsections.find((s) => s.subsection === params.subsection);
   });
 
-  createEffect(() => {
-    const c = course();
-    if (c !== undefined && !c) navigate("/404");
-  });
-
-  createEffect(() => {
-    if (course() && !category()) navigate("/404");
-  });
-
-  createEffect(() => {
-    if (course() && category() && !subsection()) navigate("/404");
+  useNotFound(() => {
+    return !course() || !category() || !subsection();
   });
 
   const pageData = createMemo(() => {
@@ -81,21 +73,7 @@ export default function SubsectionPage() {
             </section>
 
             <A href={`/${params.course}/${cat.category}`} class="back-link">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 11L5 7l4-4"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              <ChevronLeft size={14} />
               Back to {cat.title}
             </A>
           </main>

@@ -1,22 +1,19 @@
-import { A, useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createResource, Show } from "solid-js";
+import { A, useParams } from "@solidjs/router";
+import { ChevronLeft } from "lucide-solid";
+import { createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
 import PageTitle from "~/components/PageTitle";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
+import { useNotFound } from "~/utils/not-found";
 
 export default function CourseIndexPage() {
   const params = useParams();
-  const navigate = useNavigate();
 
   const slug = () => params.course ?? "";
   const [course] = createResource(slug, loadCourse);
-
-  createEffect(() => {
-    const c = course();
-    if (c !== undefined && !c) navigate("/404");
-  });
+  useNotFound(() => !course());
 
   return (
     <Show when={course()}>
@@ -49,21 +46,7 @@ export default function CourseIndexPage() {
             </section>
 
             <A href="/" class="back-link">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 11L5 7l4-4"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              <ChevronLeft size={14} />
               Back to {SITE_NAME}
             </A>
           </main>

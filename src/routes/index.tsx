@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import type { LucideIcon } from "lucide-solid";
-import { BrainCircuit, Database } from "lucide-solid";
+import { BrainCircuit, ChevronRight, Database } from "lucide-solid";
 import { For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { COURSE_INDEX } from "~/data/course-index";
@@ -33,21 +33,7 @@ export default function HomePage() {
                     <h2>{COURSE_INDEX[slug].title}</h2>
                   </div>
                   <div class="hero-course-card__arrow">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M6 4l4 4-4 4"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
+                    <ChevronRight size={16} />
                   </div>
                 </A>
               );

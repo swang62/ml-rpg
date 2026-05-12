@@ -1,17 +1,17 @@
-import { A, useNavigate, useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
+import { ChevronLeft, ChevronRight } from "lucide-solid";
 import { createEffect, createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageTitle from "~/components/PageTitle";
 import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
-import { SITE_NAME } from "~/utils/constants";
-import { getOriginalLessonUrl } from "~/utils/url";
+import { BASE_URL, SITE_NAME } from "~/utils/constants";
+import { useNotFound } from "~/utils/not-found";
 
 const preloaded = new Map<string, string>();
 
 export default function LessonPage() {
   const params = useParams();
-  const navigate = useNavigate();
 
   const [course] = createResource(() => params.course ?? "", loadCourse);
 
@@ -43,13 +43,15 @@ export default function LessonPage() {
       category,
       subsection,
       lesson,
-      course: params.course,
-      categorySlug: params.category,
-      subsectionSlug: params.subsection,
       sortedLessons,
       prevLesson,
       nextLesson,
     };
+  });
+
+  useNotFound(() => {
+    const d = data();
+    return !d.c || !d.category || !d.subsection || !d.lesson;
   });
 
   const lessonKey = () => {
@@ -69,13 +71,6 @@ export default function LessonPage() {
     }
     const [course, subsection, lesson] = key.split("/");
     return getLessonHTML(course, subsection, lesson);
-  });
-
-  createEffect(() => {
-    const d = data();
-    if (!d.c || !d.category || !d.subsection || !d.lesson) {
-      navigate("/404");
-    }
   });
 
   // Preload adjacent lessons
@@ -102,21 +97,7 @@ export default function LessonPage() {
           href={`/${params.course}/${params.category}/${params.subsection}/${data().prevLesson?.lesson}`}
           class="lesson-nav__link lesson-nav__link--prev"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M9 11L5 7l4-4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <ChevronLeft size={14} />
           <span class="lesson-nav__order">{data().prevLesson?.order}</span>
           <span class="lesson-nav__title">{data().prevLesson?.title}</span>
         </A>
@@ -128,21 +109,7 @@ export default function LessonPage() {
         >
           <span class="lesson-nav__title">{data().nextLesson?.title}</span>
           <span class="lesson-nav__order">{data().nextLesson?.order}</span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M5 3l4 4-4 4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <ChevronRight size={14} />
         </A>
       ) : null}
     </nav>
@@ -176,11 +143,7 @@ export default function LessonPage() {
           </Show>
           {lessonNav()}
           <a
-            href={getOriginalLessonUrl(
-              data().category?.category ?? "",
-              data().subsection?.subsection ?? "",
-              data().lesson?.lesson ?? "",
-            )}
+            href={`${BASE_URL}/${data().category?.category ?? ""}/${data().subsection?.subsection ?? ""}/${data().lesson?.lesson ?? ""}`}
             target="_blank"
             rel="noopener noreferrer"
             class="lesson-source-btn"
@@ -207,21 +170,7 @@ export default function LessonPage() {
               href={`/${params.course}/${data().category?.category}/${data().subsection?.subsection}`}
               class="back-link"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 11L5 7l4-4"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              <ChevronLeft size={14} />
               Back to {data().subsection?.title}
             </A>
           </div>
