@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "src/routes/**/index.tsx",
+    "src/app.tsx",
+    "src/entry-client.tsx",
+    "src/entry-server.tsx"
+  ],
+  "health": {
+    "maxCognitive": 35,
+    "maxCrap": 50,
+    "maxCyclomatic": 30
+  },
+  "ignoreExportsUsedInFile": true,
+  "ignorePatterns": ["src/data/**/*", "scripts/**/*", "**/404.tsx"],
+  "rules": {
+    "unused-exports": "warn",
+    "unused-files": "error",
+    "unused-types": "off"
+  }
+}

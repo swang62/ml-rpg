@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 
-export interface Crumb {
+interface Crumb {
   label: string;
   href?: string;
 }
