@@ -90,7 +90,16 @@ export default function LessonPage() {
             category={params.category}
             subsection={params.subsection}
           />
-          <div class="lesson-number">Lesson {lesson()?.order}</div>
+          <div class="lesson-number flex justify-center items-center flex-nowrap gap-2">
+            Lesson {lesson()?.order}
+            <a
+              href={`${BASE_URL}/${category()?.category}/${subsection()?.subsection}/${lesson()?.lesson}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink size={14} color="grey" />
+            </a>
+          </div>
           <Show when={lessonHTML()} fallback={<div class="lesson-loading" />}>
             {(html) => <div innerHTML={html()} />}
           </Show>
@@ -101,15 +110,7 @@ export default function LessonPage() {
             category={params.category}
             subsection={params.subsection}
           />
-          <a
-            href={`${BASE_URL}/${category()?.category}/${subsection()?.subsection}/${lesson()?.lesson}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="lesson-source-btn"
-          >
-            <ExternalLink size={14} />
-            View on System Overflow
-          </a>
+
           <div class="lesson-footer">
             <A
               href={`/${params.course}/${category()?.category}/${subsection()?.subsection}`}

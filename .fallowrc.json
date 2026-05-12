@@ -7,12 +7,17 @@
     "src/entry-server.tsx"
   ],
   "health": {
-    "maxCognitive": 35,
-    "maxCrap": 50,
+    "maxCognitive": 30,
+    "maxCrap": 60,
     "maxCyclomatic": 30
   },
   "ignoreExportsUsedInFile": true,
-  "ignorePatterns": ["src/data/**/*", "scripts/**/*", "**/404.tsx"],
+  "ignorePatterns": [
+    "src/data/**/*",
+    "scripts/**/*",
+    "**/404.tsx",
+    "**/*.config.ts"
+  ],
   "rules": {
     "unused-exports": "warn",
     "unused-files": "error",

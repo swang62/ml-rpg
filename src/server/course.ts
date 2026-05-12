@@ -9,6 +9,6 @@ const courses: Record<string, Course> = {
   "data-engineering": de,
 };
 
-export function loadCourse(slug: string): Course | null {
-  return courses[slug] ?? null;
+export async function loadCourse(slug?: string): Promise<Course | null> {
+  return courses[slug ?? ""] ?? null;
 }
