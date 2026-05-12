@@ -1,9 +1,6 @@
 import { A, useParams } from "@solidjs/router";
-import ChevronLeft from "lucide-solid/icons/chevron-left";
 import { createMemo, createResource, Show } from "solid-js";
-import Breadcrumbs from "~/components/Breadcrumbs";
-import PageHeader from "~/components/PageHeader";
-import PageTitle from "~/components/PageTitle";
+import CoursePageShell from "~/components/CoursePageShell";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
@@ -40,24 +37,22 @@ export default function SubsectionPage() {
       {(data) => {
         const { c, cat, sub } = data();
         return (
-          <main class="container container-narrow page-level--section">
-            <PageTitle segment={sub.title} />
-            <Breadcrumbs
-              items={[
-                { label: SITE_NAME, href: "/" },
-                { label: c.title, href: `/${params.course}` },
-                {
-                  label: cat.title,
-                  href: `/${params.course}/${cat.category}`,
-                },
-                { label: sub.title },
-              ]}
-            />
-            <PageHeader
-              title={sub.title}
-              subtitle={`${sub.lessons.length} lesson${sub.lessons.length !== 1 ? "s" : ""}`}
-            />
-
+          <CoursePageShell
+            title={sub.title}
+            subtitle={`${sub.lessons.length} lesson${sub.lessons.length !== 1 ? "s" : ""}`}
+            containerClass="container-narrow"
+            breadcrumbs={[
+              { label: SITE_NAME, href: "/" },
+              { label: c.title, href: `/${params.course}` },
+              {
+                label: cat.title,
+                href: `/${params.course}/${cat.category}`,
+              },
+              { label: sub.title },
+            ]}
+            backHref={`/${params.course}/${cat.category}`}
+            backLabel={cat.title}
+          >
             <section class="articles-list">
               {[...sub.lessons]
                 .sort((a, b) => a.order - b.order)
@@ -71,12 +66,7 @@ export default function SubsectionPage() {
                   </A>
                 ))}
             </section>
-
-            <A href={`/${params.course}/${cat.category}`} class="back-link">
-              <ChevronLeft size={14} />
-              Back to {cat.title}
-            </A>
-          </main>
+          </CoursePageShell>
         );
       }}
     </Show>
