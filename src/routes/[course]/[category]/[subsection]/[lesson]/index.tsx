@@ -1,4 +1,3 @@
-import { destructure } from "@solid-primitives/destructure";
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
@@ -25,38 +24,55 @@ export default function LessonPage() {
   const params = useParams();
   if (!params.category || !params.subsection || !params.lesson) return;
 
-  // Resources
-  const [courseData] = createResource(() => params.course, loadCourse);
+  // Static course data — category/subsection slugs come from the URL and don't change
+  const course = loadCourse(params.course);
+  const category = course?.categories.find(
+    (cat) => cat.category === params.category,
+  );
+  const subsection = category?.subsections.find(
+    (s) => s.subsection === params.subsection,
+  );
+  const sortedLessons = subsection
+    ? [...subsection.lessons].sort((a, b) => a.order - b.order)
+    : [];
+
+  useNotFound(!course || !category || !subsection);
+
+  // Reactive resources
+  const currentLesson = createMemo(() =>
+    sortedLessons.find((l) => l.lesson === params.lesson),
+  );
+  const navData = createMemo(() => {
+    const idx = sortedLessons.findIndex(
+      (l) => l.lesson === currentLesson()?.lesson,
+    );
+    return {
+      prevLesson: idx > 0 ? sortedLessons[idx - 1] : null,
+      nextLesson:
+        idx < sortedLessons.length - 1 ? sortedLessons[idx + 1] : null,
+    };
+  });
   const [lessonHTML] = createResource(
     () => params.lesson,
     async () => getLessonHTML(params.course, params.subsection, params.lesson),
   );
+
   const [isRead, setIsRead] = createSignal(false);
 
-  // Poll for read status — resets and re-polls on lesson navigation
   createEffect(() => {
-    const lesson = params.lesson;
-    if (!lesson) return;
-
-    // Reset immediately for the new lesson
     setIsRead(false);
-
     let cancelled = false;
 
     const check = async () => {
       if (cancelled) return;
-      try {
-        const read = await isLessonRead(
-          params.course,
-          params.subsection,
-          lesson,
-        );
-        if (!cancelled && read) {
-          setIsRead(true);
-          clearInterval(timer);
-        }
-      } catch {
-        // storage not available — skip
+      const read = await isLessonRead(
+        params.course,
+        params.subsection,
+        params.lesson,
+      );
+      if (!cancelled && read) {
+        setIsRead(true);
+        clearInterval(timer);
       }
     };
 
@@ -69,109 +85,73 @@ export default function LessonPage() {
     });
   });
 
-  // Reactive signals
-  const data = () => {
-    const course = courseData();
-    const category = course?.categories.find(
-      (cat) => cat.category === params.category,
-    );
-    const subsection = category?.subsections.find(
-      (s) => s.subsection === params.subsection,
-    );
-    const lesson = subsection?.lessons.find((l) => l.lesson === params.lesson);
-
-    return { course, category, subsection, lesson };
-  };
-
-  const { course, category, subsection, lesson } = destructure(data, {
-    lazy: true,
-  });
-
-  const navData = createMemo(() => {
-    const sub = subsection();
-    if (!sub) return { prevLesson: null, nextLesson: null };
-    const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
-    const idx = sorted.findIndex((l) => l.lesson === params.lesson);
-    return {
-      prevLesson: idx > 0 ? sorted[idx - 1] : null,
-      nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
-    };
-  });
-
-  // Early out
-  useNotFound(() => !course() || !category() || !subsection() || !lesson());
-
   return (
     <main class="container container-narrow page-level--lesson">
-      <PageTitle segment={lesson()?.title} />
+      <PageTitle segment={currentLesson()?.title} />
       <Breadcrumbs
         items={[
           { label: SITE_NAME, href: "/" },
-          { label: course()?.title, href: `/${params.course}` },
+          { label: course?.title, href: `/${params.course}` },
           {
-            label: category()?.title,
+            label: category?.title,
             href: `/${params.course}/${params.category}`,
           },
           {
-            label: subsection()?.title,
+            label: subsection?.title,
             href: `/${params.course}/${params.category}/${params.subsection}`,
           },
-          { label: lesson()?.title },
+          { label: currentLesson()?.title },
         ]}
       />
 
       <div class="lesson-card">
-        <Show when={params.lesson} keyed>
-          <LessonNav
-            prevLesson={navData().prevLesson}
-            nextLesson={navData().nextLesson}
-            course={params.course}
-            category={params.category}
-            subsection={params.subsection}
-          />
-          <div class="lesson-number flex justify-center items-center flex-nowrap gap-2">
-            Lesson {lesson()?.order}
-            <a
-              href={`${BASE_URL}/${category()?.category}/${subsection()?.subsection}/${lesson()?.lesson}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ExternalLink size={14} color="grey" />
-            </a>
-          </div>
-          <Show when={lessonHTML()} fallback={<div class="lesson-loading" />}>
-            {(html) => <div innerHTML={html()} />}
-          </Show>
-          <LessonTracker
-            course={params.course}
-            subsection={params.subsection}
-            lesson={params.lesson}
-          />
-          <LessonNav
-            prevLesson={navData().prevLesson}
-            nextLesson={navData().nextLesson}
-            course={params.course}
-            category={params.category}
-            subsection={params.subsection}
-          />
+        <LessonNav
+          prevLesson={navData()?.prevLesson}
+          nextLesson={navData()?.nextLesson}
+          course={params.course}
+          category={params.category}
+          subsection={params.subsection}
+        />
+        <div class="lesson-number flex justify-center items-center flex-nowrap gap-2">
+          Lesson {currentLesson()?.order}
+          <a
+            href={`${BASE_URL}/${category?.category}/${subsection?.subsection}/${currentLesson()?.lesson}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink size={14} color="grey" />
+          </a>
+        </div>
+        <div innerHTML={lessonHTML()} />
+        <LessonTracker
+          course={params.course}
+          subsection={params.subsection}
+          lesson={currentLesson()?.lesson}
+        />
+        <LessonNav
+          prevLesson={navData()?.prevLesson}
+          nextLesson={navData()?.nextLesson}
+          course={params.course}
+          category={params.category}
+          subsection={params.subsection}
+        />
 
-          <div class="lesson-footer">
-            <div class="lesson-footer__inner">
-              <A
-                href={`/${params.course}/${category()?.category}/${subsection()?.subsection}`}
-                class="back-link"
-              >
-                <ChevronLeft size={14} />
-                Back to {subsection()?.title}
-              </A>
-            </div>
+        <div class="lesson-footer">
+          <div class="lesson-footer__inner">
+            <A
+              href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
+              class="back-link"
+            >
+              <ChevronLeft size={14} />
+              Back to {subsection?.title}
+            </A>
           </div>
-          <Show when={isRead()}>
-            <div class="lesson-read-badge">
-              <Check size={14} />
-              <span>Read</span>
-            </div>
-          </Show>
+        </div>
+        <Show when={isRead()}>
+          <div class="lesson-read-badge">
+            <Check size={14} />
+            <span>Read</span>
+          </div>
         </Show>
       </div>
     </main>

@@ -1,4 +1,4 @@
-import { onCleanup, onMount } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
 import { markLessonRead } from "~/utils/lesson-progress";
 
 interface Props {
@@ -9,42 +9,33 @@ interface Props {
 
 export default function LessonTracker(props: Props) {
   let sentinelRef: HTMLDivElement | undefined;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let observer: IntersectionObserver | undefined;
-  let scrolled = false;
-  let timedOut = false;
-  let done = false;
 
-  const tryMark = () => {
-    if (done) return;
-    if (
-      scrolled &&
-      timedOut &&
-      props.course &&
-      props.subsection &&
-      props.lesson
-    ) {
-      done = true;
-      markLessonRead(props.course, props.subsection, props.lesson);
-      cleanup();
-    }
-  };
+  createEffect(() => {
+    const course = props.course;
+    const subsection = props.subsection;
+    const lesson = props.lesson;
 
-  const cleanup = () => {
-    if (timer !== undefined) clearTimeout(timer);
-    observer?.disconnect();
-  };
+    if (!course || !subsection || !lesson) return;
 
-  onMount(() => {
-    // Only track if we have valid route params
-    if (!props.course || !props.subsection || !props.lesson) return;
+    let scrolled = false;
+    let timedOut = false;
+    let done = false;
 
-    timer = setTimeout(() => {
+    const tryMark = () => {
+      if (done) return;
+      if (scrolled && timedOut) {
+        done = true;
+        markLessonRead(course, subsection, lesson);
+        cleanup();
+      }
+    };
+
+    const timer = setTimeout(() => {
       timedOut = true;
       tryMark();
     }, 5000);
 
-    observer = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
           scrolled = true;
@@ -55,9 +46,14 @@ export default function LessonTracker(props: Props) {
     );
 
     if (sentinelRef) observer.observe(sentinelRef);
-  });
 
-  onCleanup(cleanup);
+    const cleanup = () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+
+    onCleanup(cleanup);
+  });
 
   return <div ref={sentinelRef} aria-hidden="true" style={{ height: "1px" }} />;
 }

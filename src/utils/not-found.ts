@@ -1,9 +1,6 @@
 import { useNavigate } from "@solidjs/router";
-import { createEffect } from "solid-js";
 
-export function useNotFound(shouldRedirect: () => unknown) {
+export function useNotFound(shouldRedirect: boolean) {
   const navigate = useNavigate();
-  createEffect(() => {
-    if (shouldRedirect()) navigate("/404");
-  });
+  if (shouldRedirect) navigate("/404");
 }

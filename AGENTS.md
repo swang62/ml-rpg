@@ -6,7 +6,6 @@
 - Build via **Vinxi** (not Vite directly): `vinxi dev` / `vinxi build`
 - **SSR mode** (`ssr: true`) via a Nitro node-server
 - Lesson content loaded server-side via `"use server"` functions
-- Course data loaded server-side, no `import.meta.glob` in client
 - Package manager: **pnpm**
 - Node >= 22
 
@@ -19,8 +18,9 @@ pnpm preview    # serve built app via node .output/server/index.mjs
 pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 ```
 
-> `pnpm dev` has HMR (hot module replacement). When inspecting UI changes, prefer running the dev server (`pnpm dev`) and waiting for HMR to pick up edits, rather than doing a full build + preview cycle.
-> Run `pnpm lint` before pushing — it handles formatting, linting, type checking, and dead-code/complexity audit in one pass.
+> `pnpm dev` has HMR (hot module replacement). When inspecting UI changes, prefer directly visiting `localhost:3000` first. If it's not running yet (always check for existing servers, never start up more than 1 dev server), then start a new dev server (`pnpm dev`) and wait for HMR to pick up edits, rather than doing a full build + preview cycle. Do not restart the dev server to check for new changes.
+> Run `pnpm lint` before pushing — it handles formatting, linting, type checking in one pass.
+> Run `fallow` only when checking for dead code / duplication / complexity.
 
 No test framework is configured.
 
@@ -37,12 +37,6 @@ No test framework is configured.
 - Course data is loaded server-side via `"use server"` (statically imported, no `import.meta.glob`)
 - Lessons use `innerHTML` for content — global CSS in `app.css` styles everything
 - No CMS or database — editing content means editing lesson TSX files in `src/data/lessons/`
-
-### ⚠️ Lesson page gotchas (`src/routes/[...lesson]/index.tsx`)
-
-- **Use `@solid-primitives/destructure`** to destructure reactive signals (`data()`, `navData()`) into individual accessors. Never manually extract into plain variables — that breaks reactivity.
-- **Never remove `keyed` from `<Show when={params.lesson} keyed>`.** It must stay exactly as-is.
-- **`data()` never returns `null`** — it always returns an object with potentially undefined fields.
 
 ### Data hierarchy
 
