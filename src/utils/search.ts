@@ -25,6 +25,12 @@ export function loadSearchIndex(): Promise<void> {
           "subsectionTitle",
           "url",
         ],
+        searchOptions: {
+          boost: { title: 1.5 },
+          fuzzy: 0.2,
+          prefix: true,
+          combineWith: "or",
+        },
       });
     });
 

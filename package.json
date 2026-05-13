@@ -3,8 +3,8 @@
   "type": "module",
   "scripts": {
     "build": "vinxi build",
-    "build:search": "tsx scripts/build-search-index.ts",
-    "build:docker": "docker compose up --build --force-recreate -d",
+    "build:index": "tsx scripts/build-search-index.ts",
+    "build:docker": "pnpm run build:index && docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
     "lint": "biome check --write . && pnpm typecheck",
     "preview": "vinxi start",
