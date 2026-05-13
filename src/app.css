@@ -447,13 +447,18 @@ a {
   padding: 20px 24px;
 }
 
-.subsection-checkmark {
-  position: absolute;
-  top: 50%;
-  right: 24px;
-  transform: translateY(-50%);
-  color: var(--level-category);
+.section-dots {
   display: flex;
+  gap: 4px;
+  color: var(--level-section);
+  margin-top: 4px;
+}
+
+.course-dots {
+  display: flex;
+  gap: 4px;
+  color: var(--level-category);
+  margin-top: 4px;
 }
 
 .card--subsection:hover {
