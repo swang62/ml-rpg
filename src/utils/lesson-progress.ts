@@ -1,5 +1,7 @@
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import { createStorage } from "unstorage";
 import indexedDbDriver from "unstorage/drivers/indexedb";
+import { POLL_INTERVAL } from "./constants";
 
 let _storage: ReturnType<typeof createStorage> | null = null;
 
@@ -65,4 +67,45 @@ export async function resetSection(
   if (!storage || !course || !subsection) return;
   const key = sectionKey(course, subsection);
   await storage.removeItem(key);
+}
+
+/**
+ * Reactive hook that polls IndexedDB to detect when a lesson is marked as read.
+ * Returns a signal that flips to `true` once the lesson is read and stays true.
+ * Re-initializes whenever the lesson key changes.
+ */
+export function useLessonReadStatus(
+  course?: string,
+  subsection?: string,
+  getLesson?: () => string | undefined,
+) {
+  const [isRead, setIsRead] = createSignal(false);
+
+  createEffect(() => {
+    if (!course || !subsection) return;
+    const lesson = getLesson?.();
+    if (!lesson) return;
+
+    setIsRead(false);
+    let cancelled = false;
+
+    const check = async () => {
+      if (cancelled) return;
+      const read = await isLessonRead(course, subsection, lesson);
+      if (!cancelled && read) {
+        setIsRead(true);
+        clearInterval(timer);
+      }
+    };
+
+    check();
+    const timer = setInterval(check, POLL_INTERVAL);
+
+    onCleanup(() => {
+      cancelled = true;
+      clearInterval(timer);
+    });
+  });
+
+  return isRead;
 }
