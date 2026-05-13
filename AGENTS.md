@@ -31,6 +31,11 @@ No test framework is configured.
 - Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
 - `pnpm lint` includes Biome checks, TypeScript type checking, and a fallow audit (dead code, complexity, duplication) all in one command.
 
+### Reactive Signals
+
+- Do NOT destructure reactive props or signals. Access them directly via `props.signal`, never `const { signal } = props`. Destructuring breaks reactivity by capturing the value at call time.
+- When extracting sub-components from a reactive parent, pass signals as props using `<Child prop={signal()} />` — the `()` preserves the reactive read. Calling functions directly (`Child({ prop: signal() })`) passes a snapshot; SolidJS can't track the dependency.
+
 ## Architecture
 
 - Lesson content is loaded server-side via `"use server"` functions and rendered to HTML via `renderToString`

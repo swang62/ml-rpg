@@ -23,7 +23,9 @@ export default function LessonNav(props: LessonNavProps) {
           <span class="lesson-nav__order">{props.prevLesson?.order}</span>
           <span class="lesson-nav__title">{props.prevLesson?.title}</span>
         </A>
-      ) : null}
+      ) : (
+        <div />
+      )}
       {props.nextLesson ? (
         <A
           href={`/${props.course}/${props.category}/${props.subsection}/${props.nextLesson?.lesson}`}
@@ -33,7 +35,9 @@ export default function LessonNav(props: LessonNavProps) {
           <span class="lesson-nav__order">{props.nextLesson?.order}</span>
           <ChevronRight size={14} />
         </A>
-      ) : null}
+      ) : (
+        <div />
+      )}
     </nav>
   );
 }

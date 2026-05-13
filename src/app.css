@@ -1111,9 +1111,8 @@ main {
 /* ===== Lesson navigation ===== */
 
 .lesson-nav {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 32px;
 }
@@ -1146,14 +1145,6 @@ main {
 .lesson-nav__link--next {
   text-align: right;
   justify-content: flex-end;
-}
-
-.lesson-nav__link:only-child {
-  max-width: 280px;
-}
-
-.lesson-nav__link:only-child.lesson-nav__link--next {
-  margin-left: auto;
 }
 
 .lesson-nav__order {
