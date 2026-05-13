@@ -17,10 +17,10 @@ export default function CourseIndexPage() {
 
   const [sectionReadStatus, { refetch }] = createResource(
     () => course(),
-    async (c) => {
-      if (!c) return new Map<string, boolean[]>();
+    async (course) => {
+      if (!course) return new Map<string, boolean[]>();
       const results = await Promise.all(
-        c.categories.map(async (cat) => {
+        course.categories.map(async (cat) => {
           const statuses = await Promise.all(
             cat.subsections.map(
               async (sub) =>

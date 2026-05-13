@@ -401,28 +401,6 @@ a {
   color: var(--text-muted);
 }
 
-.card__count {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  padding: 2px 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  align-self: flex-start;
-}
-
-.card--category .card__count {
-  border: none;
-  background: none;
-  padding: 0;
-  border-radius: 0;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
 /* ===== Category grid ===== */
 
 .categories-grid {
@@ -477,10 +455,6 @@ a {
 .card--subsection .meta {
   font-size: 0.8rem;
   color: var(--text-muted);
-}
-
-.card--subsection .card__count {
-  margin-top: 4px;
 }
 
 /* ===== Article list (subsection page) ===== */
