@@ -1,11 +1,10 @@
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
-import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { getReadLessons, resetSection } from "~/utils/lesson-progress";
+import { getReadLessons } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
 
 export default function SubsectionPage() {
@@ -45,29 +44,6 @@ export default function SubsectionPage() {
         title={subsection()?.title}
         subtitle={`${totalLessons()} lesson${totalLessons() !== 1 ? "s" : ""}`}
         pageLevel="section"
-        subtitleExtra={
-          <Show when={totalLessons() > 0}>
-            <span class="subtitle-progress">
-              {completedCount()}/{totalLessons()} completed
-            </span>
-            <Show when={completedCount() > 0}>
-              <button
-                type="button"
-                class="subtitle-reset-btn"
-                onClick={async () => {
-                  await resetSection(
-                    params.course ?? "",
-                    params.subsection ?? "",
-                  );
-                  refetch();
-                }}
-              >
-                <RotateCcw size={12} />
-                Reset
-              </button>
-            </Show>
-          </Show>
-        }
         containerClass="container-narrow"
         breadcrumbs={[
           { label: SITE_NAME, href: "/" },

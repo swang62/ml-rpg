@@ -29,9 +29,11 @@ export default function CoursePageShell(props: CoursePageShellProps) {
     >
       <PageTitle segment={props.title} />
       <Breadcrumbs items={props.breadcrumbs} />
-      <PageHeader title={props.title} subtitle={props.subtitle}>
-        {props.subtitleExtra}
-      </PageHeader>
+      <PageHeader
+        title={props.title}
+        subtitle={props.subtitle}
+        extra={props.subtitleExtra}
+      />
       {props.children}
       <A href={props.backHref} class="back-link">
         <ChevronLeft size={14} />

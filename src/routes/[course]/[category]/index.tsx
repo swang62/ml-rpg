@@ -1,11 +1,10 @@
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
-import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { getReadLessons, resetSection } from "~/utils/lesson-progress";
+import { getReadLessons } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
 
 export default function CategoryPage() {
@@ -61,31 +60,6 @@ export default function CategoryPage() {
       <CoursePageShell
         title={category()?.title}
         subtitle={`${totalSubs()} section${totalSubs() !== 1 ? "s" : ""}`}
-        subtitleExtra={
-          <Show when={totalSubs() > 0}>
-            <span class="subtitle-progress">
-              {completedSubs()}/{totalSubs()} completed
-            </span>
-            <Show when={completedSubs() > 0}>
-              <button
-                type="button"
-                class="subtitle-reset-btn"
-                onClick={async () => {
-                  const subs = category()?.subsections ?? [];
-                  await Promise.all(
-                    subs.map((s) =>
-                      resetSection(params.course ?? "", s.subsection),
-                    ),
-                  );
-                  refetch();
-                }}
-              >
-                <RotateCcw size={12} />
-                Reset
-              </button>
-            </Show>
-          </Show>
-        }
         containerClass="container-medium"
         pageLevel="category"
         breadcrumbs={[
