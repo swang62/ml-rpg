@@ -1,4 +1,9 @@
 import MiniSearch from "minisearch";
+import {
+  SEARCH_INDEX_PATH,
+  SEARCH_MAX_RESULTS,
+  SEARCH_MIN_QUERY_LENGTH,
+} from "~/utils/constants";
 
 export interface SearchResult {
   articleTitle: string;
@@ -14,7 +19,7 @@ export function loadSearchIndex(): Promise<void> {
   if (index) return Promise.resolve();
   if (loadPromise) return loadPromise;
 
-  loadPromise = fetch("/search/index.json")
+  loadPromise = fetch(SEARCH_INDEX_PATH)
     .then((res) => res.json())
     .then((data) => {
       index = MiniSearch.loadJSON(JSON.stringify(data), {
@@ -38,11 +43,11 @@ export function loadSearchIndex(): Promise<void> {
 }
 
 export function searchSiteData(query: string): SearchResult[] {
-  if (!index || query.trim().length < 3) return [];
+  if (!index || query.trim().length < SEARCH_MIN_QUERY_LENGTH) return [];
 
   const raw = index.search(query);
 
-  return raw.slice(0, 6).map((r) => ({
+  return raw.slice(0, SEARCH_MAX_RESULTS).map((r) => ({
     articleTitle: r.articleTitle as string,
     categoryTitle: r.categoryTitle as string,
     subsectionTitle: r.subsectionTitle as string,

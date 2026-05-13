@@ -1,11 +1,11 @@
 import { A, useParams } from "@solidjs/router";
 import Circle from "lucide-solid/icons/circle";
-import { createResource, For, onMount } from "solid-js";
+import { createMemo, createResource, For, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { getReadLessons } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
+import { fetchReadCounts } from "~/utils/tracking";
 
 export default function CategoryPage() {
   const params = useParams();
@@ -20,36 +20,25 @@ export default function CategoryPage() {
   const subsections = category?.subsections ?? [];
 
   const [readCounts, { refetch }] = createResource(
-    () => subsections,
-    async (subs) => {
-      if (!subs.length) return new Map<string, number>();
-      const results = await Promise.all(
-        subs.map(async (sub) => {
-          const read = await getReadLessons(params.course, sub.subsection);
-          return { subsection: sub.subsection, read: read.length };
-        }),
-      );
-      return new Map(results.map((r) => [r.subsection, r.read]));
-    },
+    () => ({ course: params.course, subsections }),
+    async ({ course, subsections }) => fetchReadCounts(course, subsections),
   );
 
-  onMount(() => {
-    refetch();
-  });
+  onMount(refetch);
 
-  const totalSubs = subsections.length;
+  const breadcrumbs = createMemo(() => [
+    { label: SITE_NAME, href: "/" },
+    { label: course?.title, href: `/${params.course}` },
+    { label: category?.title },
+  ]);
 
   return (
     <CoursePageShell
       title={category?.title}
-      subtitle={`${totalSubs} section${totalSubs !== 1 ? "s" : ""}`}
+      subtitle={`${subsections.length} section${subsections.length !== 1 ? "s" : ""}`}
       containerClass="container-medium"
       pageLevel="category"
-      breadcrumbs={[
-        { label: SITE_NAME, href: "/" },
-        { label: course?.title, href: `/${params.course}` },
-        { label: category?.title },
-      ]}
+      breadcrumbs={breadcrumbs()}
       backHref={`/${params.course}`}
       backLabel={course?.title}
     >

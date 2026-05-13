@@ -1,5 +1,10 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
+import {
+  SEARCH_BLUR_CLOSE_MS,
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_MIN_QUERY_LENGTH,
+} from "~/utils/constants";
 import { loadSearchIndex, searchSiteData } from "~/utils/search";
 
 export default function Search() {
@@ -37,13 +42,13 @@ export default function Search() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       const trimmed = q.trim();
-      if (trimmed.length < 3) {
+      if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) {
         setResults([]);
         return;
       }
       await loadSearchIndex();
       setResults(searchSiteData(trimmed));
-    }, 200);
+    }, SEARCH_DEBOUNCE_MS);
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
@@ -77,8 +82,10 @@ export default function Search() {
   const handleFocus = () => setIsOpen(true);
 
   const handleBlur = () => {
-    setTimeout(() => setIsOpen(false), 200);
+    setTimeout(() => setIsOpen(false), SEARCH_BLUR_CLOSE_MS);
   };
+
+  const isMac = navigator.platform.includes("Mac");
 
   return (
     <div class="search">
@@ -113,11 +120,11 @@ export default function Search() {
           aria-label="Search lessons"
         />
         <span class="search__shortcut" aria-hidden="true">
-          <kbd>{navigator.platform.includes("Mac") ? "\u2318" : "Ctrl"}</kbd>
+          <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>
           <kbd>K</kbd>
         </span>
       </div>
-      {isOpen() && query().trim().length >= 3 && (
+      {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (
         <div class="search__dropdown" role="listbox">
           {results().length === 0 ? (
             <div class="search__empty">No results found</div>

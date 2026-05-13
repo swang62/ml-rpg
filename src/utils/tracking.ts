@@ -1,6 +1,7 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
 import { createStorage } from "unstorage";
 import indexedDbDriver from "unstorage/drivers/indexedb";
+import type { Category, Subsection } from "~/data/types";
 import { POLL_INTERVAL } from "./constants";
 
 let _storage: ReturnType<typeof createStorage> | null = null;
@@ -67,6 +68,48 @@ export async function resetSection(
   if (!storage || !course || !subsection) return;
   const key = sectionKey(course, subsection);
   await storage.removeItem(key);
+}
+
+/**
+ * For each category, check whether every subsection's lessons are all read.
+ * Returns a map keyed by category slug, value is boolean[] (one per subsection).
+ */
+export async function fetchSectionReadStatus(
+  course: string | undefined,
+  cats: Category[],
+): Promise<Map<string, boolean[]>> {
+  if (!cats.length || !course) return new Map();
+  const results = await Promise.all(
+    cats.map(async (cat) => {
+      const statuses = await Promise.all(
+        cat.subsections.map(
+          async (sub) =>
+            (await getReadLessons(course, sub.subsection)).length >=
+            sub.lessons.length,
+        ),
+      );
+      return { category: cat.category, statuses };
+    }),
+  );
+  return new Map(results.map((r) => [r.category, r.statuses]));
+}
+
+/**
+ * For each subsection in a category, count how many lessons are read.
+ * Returns a map keyed by subsection slug, value is the count of read lessons.
+ */
+export async function fetchReadCounts(
+  course: string | undefined,
+  subs: Subsection[],
+): Promise<Map<string, number>> {
+  if (!subs.length || !course) return new Map();
+  const results = await Promise.all(
+    subs.map(async (sub) => {
+      const read = await getReadLessons(course, sub.subsection);
+      return { subsection: sub.subsection, read: read.length };
+    }),
+  );
+  return new Map(results.map((r) => [r.subsection, r.read]));
 }
 
 /**

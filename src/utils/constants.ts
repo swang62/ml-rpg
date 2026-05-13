@@ -1,3 +1,10 @@
 export const BASE_URL = "https://www.systemoverflow.com/learn";
 export const SITE_NAME = "System Overflow";
 export const POLL_INTERVAL = 1000;
+export const LESSON_READ_DELAY_MS = 5000;
+export const NOT_FOUND_PATH = "/404";
+export const SEARCH_INDEX_PATH = "/search/index.json";
+export const SEARCH_DEBOUNCE_MS = 200;
+export const SEARCH_BLUR_CLOSE_MS = 200;
+export const SEARCH_MIN_QUERY_LENGTH = 3;
+export const SEARCH_MAX_RESULTS = 6;

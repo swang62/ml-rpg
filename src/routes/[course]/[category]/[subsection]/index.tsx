@@ -1,13 +1,13 @@
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createResource, onMount, Show } from "solid-js";
+import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { getReadLessons, resetSection } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
+import { getReadLessons, resetSection } from "~/utils/tracking";
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -23,13 +23,11 @@ export default function SubsectionPage() {
   useNotFound(!course || !category || !subsection);
 
   const [readLessons, { refetch }] = createResource(
-    () => params.subsection,
-    async (subsection) => getReadLessons(params.course, subsection),
+    () => ({ course: params.course, subsection: params.subsection }),
+    async ({ course, subsection }) => getReadLessons(course, subsection),
   );
 
-  onMount(() => {
-    refetch();
-  });
+  onMount(refetch);
 
   const onClickReset = async () => {
     await resetSection(params.course, params.subsection);
@@ -37,12 +35,19 @@ export default function SubsectionPage() {
   };
 
   const lessons = subsection?.lessons ?? [];
-  const totalLessons = lessons.length;
+  const sortedLessons = [...lessons].sort((a, b) => a.order - b.order);
+
+  const breadcrumbs = createMemo(() => [
+    { label: SITE_NAME, href: "/" },
+    { label: course?.title, href: `/${params.course}` },
+    { label: category?.title, href: `/${params.course}/${params.category}` },
+    { label: subsection?.title },
+  ]);
 
   return (
     <CoursePageShell
       title={subsection?.title}
-      subtitle={`${totalLessons} lesson${totalLessons !== 1 ? "s" : ""}`}
+      subtitle={`${lessons.length} lesson${lessons.length !== 1 ? "s" : ""}`}
       extra={
         <ResetButton onClick={onClickReset}>
           <RotateCcw size={12} />
@@ -51,35 +56,28 @@ export default function SubsectionPage() {
       }
       pageLevel="section"
       containerClass="container-narrow"
-      breadcrumbs={[
-        { label: SITE_NAME, href: "/" },
-        { label: course?.title, href: `/${params.course}` },
-        {
-          label: category?.title,
-          href: `/${params.course}/${params.category}`,
-        },
-        { label: subsection?.title },
-      ]}
+      breadcrumbs={breadcrumbs()}
       backHref={`/${params.course}/${params.category}`}
       backLabel={category?.title}
     >
       <section class="articles-list">
-        {[...lessons]
-          .sort((a, b) => a.order - b.order)
-          .map((article) => (
+        {sortedLessons.map((article) => {
+          const isRead = readLessons()?.includes(article.lesson);
+          return (
             <A
               href={`/${params.course}/${params.category}/${params.subsection}/${article.lesson}`}
-              class={`card card--article${readLessons()?.includes(article.lesson) ? " card--article--read" : ""}`}
+              class={`card card--article${isRead ? " card--article--read" : ""}`}
             >
               <span class="article-order">{article.order}</span>
               <span class="article-title">{article.title}</span>
-              <Show when={readLessons()?.includes(article.lesson)}>
+              <Show when={isRead}>
                 <span class="article-read-checkmark">
                   <Check size={14} />
                 </span>
               </Show>
             </A>
-          ))}
+          );
+        })}
       </section>
     </CoursePageShell>
   );

@@ -10,8 +10,8 @@ import PageTitle from "~/components/PageTitle";
 import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
 import { BASE_URL, SITE_NAME } from "~/utils/constants";
-import { useLessonReadStatus } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
+import { useLessonReadStatus } from "~/utils/tracking";
 
 export default function LessonPage() {
   const params = useParams();

@@ -1,5 +1,6 @@
 import { createEffect, onCleanup } from "solid-js";
-import { markLessonRead } from "~/utils/lesson-progress";
+import { LESSON_READ_DELAY_MS } from "~/utils/constants";
+import { markLessonRead } from "~/utils/tracking";
 
 interface Props {
   course?: string;
@@ -33,7 +34,7 @@ export default function LessonTracker(props: Props) {
     const timer = setTimeout(() => {
       timedOut = true;
       tryMark();
-    }, 5000);
+    }, LESSON_READ_DELAY_MS);
 
     const observer = new IntersectionObserver(
       (entries) => {
