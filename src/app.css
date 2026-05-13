@@ -1096,16 +1096,26 @@ main {
   }
 }
 
-/* ===== Lesson number header ===== */
+/* ===== Lesson header ===== */
 
-.lesson-number {
+.lesson-title {
   text-align: center;
-  color: var(--text-muted);
-  font-size: 1rem;
-  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 8px 0 24px;
+  line-height: 1.4;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.5;
+  transition: color 0.3s ease;
+  color: var(--text-heading);
+}
+
+.lesson-title--read {
+  color: var(--text-muted);
 }
 
 /* ===== Lesson navigation ===== */
@@ -1240,6 +1250,14 @@ main {
     0 4px 32px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.04);
   padding: 40px 36px;
+  transition: box-shadow 0.3s ease;
+}
+
+.lesson-card--unread {
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(163, 163, 163, 0.2),
+    0 0 4px rgba(155, 155, 155, 0.2);
 }
 
 .lesson-footer {

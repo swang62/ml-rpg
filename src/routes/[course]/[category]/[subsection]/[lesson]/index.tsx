@@ -74,7 +74,7 @@ export default function LessonPage() {
       <PageTitle segment={currentLesson()?.title} />
       <Breadcrumbs items={breadcrumbs()} />
 
-      <div class="lesson-card">
+      <div class={`lesson-card ${!isRead() ? " lesson-card--unread" : ""}`}>
         <LessonNav
           prevLesson={navData()?.prevLesson}
           nextLesson={navData()?.nextLesson}
@@ -82,8 +82,9 @@ export default function LessonPage() {
           category={params.category}
           subsection={params.subsection}
         />
-        <div class="lesson-number flex justify-center items-center flex-nowrap gap-2">
-          Lesson {currentLesson()?.order}
+
+        <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
+          <span>Lesson {currentLesson()?.order}</span>
           <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
             <ExternalLink size={14} color="grey" />
           </a>
