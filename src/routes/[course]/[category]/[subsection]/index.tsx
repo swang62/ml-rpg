@@ -1,10 +1,12 @@
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
+import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
+import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { getReadLessons } from "~/utils/lesson-progress";
+import { getReadLessons, resetSection } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
 
 export default function SubsectionPage() {
@@ -15,11 +17,10 @@ export default function SubsectionPage() {
   const [course] = createResource(() => params.course, loadCourse);
   const [readLessons, { refetch }] = createResource(
     () => params.subsection,
-    () => getReadLessons(params.course, params.subsection),
+    async (subsection) => getReadLessons(params.course, subsection),
   );
 
   // Force a client-side refetch after hydration so IndexedDB data is loaded
-  // (SSR returns empty because IndexedDB isn't available on the server)
   onMount(() => {
     refetch();
   });
@@ -32,17 +33,27 @@ export default function SubsectionPage() {
     category()?.subsections.find((s) => s.subsection === params.subsection),
   );
 
+  // Handlers
+  const onClickReset = async () => {
+    await resetSection(params.course, params.subsection);
+    refetch();
+  };
+  const totalLessons = () => subsection()?.lessons.length;
+
   // Early out
   useNotFound(() => !course() || !category() || !subsection());
-
-  const totalLessons = () => subsection()?.lessons.length ?? 0;
-  const completedCount = () => readLessons()?.length ?? 0;
 
   return (
     <Show when={params.subsection} keyed>
       <CoursePageShell
         title={subsection()?.title}
         subtitle={`${totalLessons()} lesson${totalLessons() !== 1 ? "s" : ""}`}
+        extra={
+          <ResetButton onClick={onClickReset}>
+            <RotateCcw size={12} />
+            Reset
+          </ResetButton>
+        }
         pageLevel="section"
         containerClass="container-narrow"
         breadcrumbs={[

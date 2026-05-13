@@ -1,24 +1,23 @@
 import { A, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
+import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
+import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
-import { getReadLessons } from "~/utils/lesson-progress";
+import { getReadLessons, resetSection } from "~/utils/lesson-progress";
 import { useNotFound } from "~/utils/not-found";
 
 export default function CategoryPage() {
   const params = useParams();
   if (!params.category) return;
 
+  // Resources
   const [course] = createResource(() => params.course, loadCourse);
-
   const category = createMemo(() =>
     course()?.categories.find((cat) => cat.category === params.category),
   );
-
-  useNotFound(() => !course() || !category());
-
   const subsectionList = createMemo(() => category()?.subsections ?? []);
 
   const [allReadMap, { refetch }] = createResource(
@@ -29,10 +28,7 @@ export default function CategoryPage() {
         subsections.map(async (sub) => {
           if (!sub.lessons.length)
             return { subsection: sub.subsection, allRead: false };
-          const read = await getReadLessons(
-            params.course ?? "",
-            sub.subsection,
-          );
+          const read = await getReadLessons(params.course, sub.subsection);
           return {
             subsection: sub.subsection,
             allRead: read.length >= sub.lessons.length,
@@ -48,18 +44,30 @@ export default function CategoryPage() {
     refetch();
   });
 
-  const totalSubs = () => category()?.subsections.length ?? 0;
-  const completedSubs = () => {
-    const map = allReadMap();
-    if (!map) return 0;
-    return [...map.values()].filter(Boolean).length;
+  // Handlers
+  const onClickReset = async () => {
+    const subs = category()?.subsections ?? [];
+    await Promise.all(
+      subs.map((s) => resetSection(params.course, s.subsection)),
+    );
+    refetch();
   };
+  const totalSubs = () => category()?.subsections.length;
+
+  // Early out
+  useNotFound(() => !course() || !category());
 
   return (
     <Show when={category()}>
       <CoursePageShell
         title={category()?.title}
         subtitle={`${totalSubs()} section${totalSubs() !== 1 ? "s" : ""}`}
+        extra={
+          <ResetButton onClick={onClickReset}>
+            <RotateCcw size={12} />
+            Reset
+          </ResetButton>
+        }
         containerClass="container-medium"
         pageLevel="category"
         breadcrumbs={[

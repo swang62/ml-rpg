@@ -42,7 +42,7 @@ export default function LessonTracker(props: Props) {
     timer = setTimeout(() => {
       timedOut = true;
       tryMark();
-    }, 10000);
+    }, 5000);
 
     observer = new IntersectionObserver(
       (entries) => {

@@ -201,21 +201,21 @@ const course: Course = {
       subsections: [
         {
           subsection: "api-data-ingestion",
-          title: "Api Data Ingestion",
+          title: "API Data Ingestion",
           lessons: [
             {
               lesson: "what-is-api-based-data-ingestion",
-              title: "What Is Api Based Data Ingestion",
+              title: "What Is API Based Data Ingestion",
               order: 1,
             },
             {
               lesson: "four-core-api-ingestion-patterns",
-              title: "Four Core Api Ingestion Patterns",
+              title: "Four Core API Ingestion Patterns",
               order: 2,
             },
             {
               lesson: "api-ingestion-at-scale-production-reality",
-              title: "Api Ingestion At Scale Production Reality",
+              title: "API Ingestion At Scale Production Reality",
               order: 3,
             },
             {
@@ -227,7 +227,7 @@ const course: Course = {
             },
             {
               lesson: "failure-modes-and-edge-cases-in-api-ingestion",
-              title: "Failure Modes And Edge Cases In Api Ingestion",
+              title: "Failure Modes And Edge Cases In API Ingestion",
               order: 5,
             },
           ],
@@ -316,7 +316,7 @@ const course: Course = {
             },
             {
               lesson: "when-to-use-data-virtualization-vs-etl",
-              title: "When To Use Data Virtualization Vs Etl",
+              title: "When To Use Data Virtualization Vs ETL",
               order: 4,
             },
             {
@@ -359,31 +359,31 @@ const course: Course = {
         },
         {
           subsection: "reverse-etl",
-          title: "Reverse Etl",
+          title: "Reverse ETL",
           lessons: [
             {
               lesson: "what-is-reverse-etl",
-              title: "What Is Reverse Etl",
+              title: "What Is Reverse ETL",
               order: 1,
             },
             {
               lesson: "how-reverse-etl-works-the-three-phase-pipeline",
-              title: "How Reverse Etl Works The Three Phase Pipeline",
+              title: "How Reverse ETL Works The Three Phase Pipeline",
               order: 2,
             },
             {
               lesson: "reverse-etl-at-scale-production-architecture",
-              title: "Reverse Etl At Scale Production Architecture",
+              title: "Reverse ETL At Scale Production Architecture",
               order: 3,
             },
             {
               lesson: "when-to-use-reverse-etl-vs-alternatives",
-              title: "When To Use Reverse Etl Vs Alternatives",
+              title: "When To Use Reverse ETL Vs Alternatives",
               order: 4,
             },
             {
               lesson: "reverse-etl-failure-modes-and-edge-cases",
-              title: "Reverse Etl Failure Modes And Edge Cases",
+              title: "Reverse ETL Failure Modes And Edge Cases",
               order: 5,
             },
           ],
@@ -1120,7 +1120,7 @@ const course: Course = {
             },
             {
               lesson: "etl-vs-elt-where-to-transform-data",
-              title: "Etl Vs Elt Where To Transform Data",
+              title: "ETL Vs Elt Where To Transform Data",
               order: 3,
             },
             {
@@ -1142,13 +1142,13 @@ const course: Course = {
         },
         {
           subsection: "etl-pipelines",
-          title: "Etl Pipelines",
+          title: "ETL Pipelines",
           lessons: [
             {
               lesson:
                 "extract-transform-load-etl-vs-extract-load-transform-elt-timing-and-trade-offs",
               title:
-                "Extract Transform Load Etl Vs Extract Load Transform Elt Timing And Trade Offs",
+                "Extract Transform Load ETL Vs Extract Load Transform Elt Timing And Trade Offs",
               order: 1,
             },
             {

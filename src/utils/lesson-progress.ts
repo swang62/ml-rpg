@@ -58,11 +58,11 @@ export async function markLessonRead(
 
 /** Reset all read progress for a single section. */
 export async function resetSection(
-  course: string,
-  subsection: string,
+  course?: string,
+  subsection?: string,
 ): Promise<void> {
   const storage = getStorage();
-  if (!storage) return;
+  if (!storage || !course || !subsection) return;
   const key = sectionKey(course, subsection);
   await storage.removeItem(key);
 }

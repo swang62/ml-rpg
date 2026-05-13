@@ -23,9 +23,8 @@ export default function CourseIndexPage() {
           cat.subsections.map(async (sub) => ({
             category: cat.category,
             allRead:
-              sub.lessons.length > 0 &&
-              (await getReadLessons(params.course ?? "", sub.subsection))
-                .length >= sub.lessons.length,
+              (await getReadLessons(params.course, sub.subsection)).length >=
+              sub.lessons.length,
           })),
         ),
       );
@@ -73,7 +72,7 @@ export default function CourseIndexPage() {
                   style={
                     prog
                       ? {
-                          color: `hsl(${Math.round((120 * prog.completed) / prog.total)}, 65%, 42%)`,
+                          color: `hsl(${Math.round((120 * prog.completed) / prog.total)}, 35%, 52%)`,
                           opacity: 0.8 + 0.2 * (prog.completed / prog.total),
                         }
                       : undefined
