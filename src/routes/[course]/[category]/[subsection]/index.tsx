@@ -1,7 +1,6 @@
 import { A, useParams } from "@solidjs/router";
-import Check from "lucide-solid/icons/check";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createMemo, createResource, onMount, Show } from "solid-js";
+import { createMemo, createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
@@ -71,11 +70,13 @@ export default function SubsectionPage() {
             >
               <span class="article-order">{article.order}</span>
               <span class="article-title">{article.title}</span>
-              <Show when={isRead}>
-                <span class="article-read-checkmark">
-                  <Check size={14} />
-                </span>
-              </Show>
+              <span
+                class="article-xp-badge"
+                classList={{ "article-xp-badge--read": isRead }}
+              >
+                {article.order * 25}{" "}
+                <span class="article-xp-badge__label">XP</span>
+              </span>
             </A>
           );
         })}
