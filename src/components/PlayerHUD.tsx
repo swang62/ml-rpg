@@ -1,7 +1,14 @@
 import { createMemo, createResource, onCleanup, onMount } from "solid-js";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
+function fmtXp(n: number): string {
+  return n >= 1000
+    ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1).replace(/\.0$/, "")}k`
+    : `${n}`;
+}
+
 async function fetchXp(): Promise<number> {
+  if (typeof document === "undefined") return 0;
   const res = await fetch("/api/xp");
   const data = await res.json();
   return data.xp as number;
@@ -34,11 +41,10 @@ export default function PlayerHUD() {
   const progress = createMemo(() => xpToNextLevel(xp()));
 
   onMount(() => {
+    refetch();
     const interval = setInterval(refetch, 3000);
     onCleanup(() => clearInterval(interval));
   });
-
-  if (!level()) return null;
 
   return (
     <div class="player-hud">
@@ -68,8 +74,8 @@ export default function PlayerHUD() {
           <span class="player-hud__lvl">Lv.{level().level}</span>
           <span class="player-hud__xp-count">
             {progress().xpNeeded > 0
-              ? `${progress().currentXp}/${progress().xpNeeded} XP`
-              : `${xp()} XP (MAX)`}
+              ? `${fmtXp(progress().currentXp)} / ${fmtXp(progress().xpNeeded)} XP`
+              : `${fmtXp(xp())} XP (MAX)`}
           </span>
         </div>
       </div>
