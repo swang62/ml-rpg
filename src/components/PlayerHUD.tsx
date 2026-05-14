@@ -1,4 +1,4 @@
-import { createMemo, createResource, onCleanup, onMount } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { getTotalXp } from "~/server/xp-store";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
@@ -30,49 +30,59 @@ function avatarGlow(level: number): string {
 }
 
 export default function PlayerHUD() {
-  const [xp, { refetch }] = createResource(getTotalXp, { initialValue: 0 });
-  const level = createMemo(() => getLevel(xp()));
-  const progress = createMemo(() => xpToNextLevel(xp()));
+  const [xp, setXp] = createSignal<number>(0);
 
-  onMount(() => {
-    refetch();
-    const interval = setInterval(refetch, 3000);
+  onMount(async () => {
+    const fetchIt = async () => {
+      try {
+        const val = await getTotalXp();
+        setXp(val);
+      } catch {
+        // server function not available
+      }
+    };
+    await fetchIt();
+    const interval = setInterval(fetchIt, 3000);
     onCleanup(() => clearInterval(interval));
   });
 
+  const level = createMemo(() => getLevel(xp()));
+  const progress = createMemo(() => xpToNextLevel(xp()));
   return (
-    <div class="player-hud">
-      <div
-        class="player-hud__avatar"
-        style={{
-          border: `2px solid ${avatarBorderColor(level().level)}`,
-          "box-shadow": avatarGlow(level().level),
-        }}
-      >
-        <img
-          src={`/assets/avatars/lvl${level().level}.svg`}
-          alt={level().title}
-          width="28"
-          height="28"
-        />
-      </div>
-      <div class="player-hud__info">
-        <span class="player-hud__title">{level().title}</span>
-        <div class="player-hud__xp-bar">
-          <div
-            class="player-hud__xp-fill"
-            style={{ width: `${progress().pct}%` }}
+    <Show when={xp() > 0} fallback={<div class="player-hud"></div>}>
+      <div class="player-hud">
+        <div
+          class="player-hud__avatar"
+          style={{
+            border: `2px solid ${avatarBorderColor(level().level)}`,
+            "box-shadow": avatarGlow(level().level),
+          }}
+        >
+          <img
+            src={`/assets/avatars/lvl${level().level}.svg`}
+            alt={level().title}
+            width="28"
+            height="28"
           />
         </div>
-        <div class="player-hud__stats">
-          <span class="player-hud__lvl">Lv.{level().level}</span>
-          <span class="player-hud__xp-count">
-            {progress().xpNeeded > 0
-              ? `${fmtXp(progress().currentXp)} / ${fmtXp(progress().xpNeeded)} XP`
-              : `${fmtXp(xp())} XP (MAX)`}
-          </span>
+        <div class="player-hud__info">
+          <span class="player-hud__title">{level().title}</span>
+          <div class="player-hud__xp-bar">
+            <div
+              class="player-hud__xp-fill"
+              style={{ width: `${progress().pct}%` }}
+            />
+          </div>
+          <div class="player-hud__stats">
+            <span class="player-hud__lvl">Lv.{level().level}</span>
+            <span class="player-hud__xp-count">
+              {progress().xpNeeded > 0
+                ? `${fmtXp(progress().currentXp)} / ${fmtXp(progress().xpNeeded)} XP`
+                : `${fmtXp(xp())} XP (MAX)`}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Show>
   );
 }
