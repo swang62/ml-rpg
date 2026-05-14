@@ -542,6 +542,7 @@ a {
 
 .breadcrumbs__link {
   color: var(--accent);
+  opacity: 90%;
   transition: color 0.15s ease;
 }
 

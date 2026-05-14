@@ -23,7 +23,7 @@ export default function CategoryPage() {
     async ({ course, subsections }) => fetchReadCounts(course, subsections),
   );
 
-  onMount(refetch);
+  // onMount(refetch);
 
   return (
     <CoursePageShell

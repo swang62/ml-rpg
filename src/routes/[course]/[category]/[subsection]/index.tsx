@@ -25,9 +25,7 @@ export default function SubsectionPage() {
     async ({ course, subsection }) => getReadLessons(course, subsection),
   );
 
-  onMount(() => {
-    refetch();
-  });
+  // onMount(refetch);
 
   const onClickReset = async () => {
     await resetSection(params.course, params.subsection);
@@ -48,7 +46,7 @@ export default function SubsectionPage() {
       backHref={`/${params.course}/${params.category}`}
       backLabel="Level"
       extra={
-        <div class="flex flex-nowrap gap-2 items-baseline">
+        <div class="flex flex-nowrap gap-2 items-center">
           <span class="subtitle-xp-counter">
             {readLessons()?.length ?? 0} / {totalSections} completed
           </span>

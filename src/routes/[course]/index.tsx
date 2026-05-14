@@ -19,7 +19,7 @@ export default function CourseIndexPage() {
       fetchSectionReadStatus(course, categories),
   );
 
-  onMount(refetch);
+  // onMount(refetch);
 
   return (
     <CoursePageShell
