@@ -62,6 +62,14 @@ export default function LessonPage() {
     <main class="container container-narrow page-level--lesson">
       <PageTitle segment={currentLesson()?.title} />
 
+      <A
+        href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
+        class="lesson-back-link"
+      >
+        <ChevronLeft size={16} />
+        Back to Quest
+      </A>
+
       <div class={`lesson-card`}>
         <LessonNav
           prevLesson={navData()?.prevLesson}
@@ -92,17 +100,6 @@ export default function LessonPage() {
           subsection={params.subsection}
         />
 
-        <div class="lesson-footer">
-          <div class="lesson-footer__inner">
-            <A
-              href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
-              class="back-link"
-            >
-              <ChevronLeft size={14} />
-              Back to Quest
-            </A>
-          </div>
-        </div>
         <Show when={isRead()}>
           <div class="lesson-read-badge">
             <Check size={14} />

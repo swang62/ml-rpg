@@ -1483,18 +1483,36 @@ main {
   transition: box-shadow 0.3s ease;
 }
 
-.lesson-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
-  width: 100%;
+.lesson-back-link {
+  position: fixed;
+  top: 74px;
+  left: 54px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--surface-glass);
+  border: 1px solid var(--border-glow-section);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--level-section);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  line-height: 1;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.lesson-footer__inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  width: 100%;
+.lesson-back-link:hover {
+  border-color: var(--level-section);
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.35),
+    0 0 0 1px var(--border-glow-section);
 }
 
 .lesson-read-badge {
