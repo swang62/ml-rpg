@@ -10,9 +10,9 @@ export default function HomePage() {
     <main class="page-level--course">
       <PageTitle />
       <section class="hero">
-        <div class="hero__tag">World Catalog</div>
+        <div class="hero__tag">World Hub</div>
         <h1>{SITE_NAME}</h1>
-        <p class="subtitle">A curated navigation hub for system-overflow.com</p>
+        <p class="subtitle">Choose your adventure</p>
 
         <section class="flex flex-wrap justify-center">
           <For each={Object.keys(COURSE_INDEX)}>

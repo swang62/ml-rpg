@@ -815,7 +815,8 @@ a {
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  color: var(--level-course);
+  font-family: var(--font-pixel);
+  color: var(--accent);
   background: var(--tint-course);
   border: 1px solid var(--border-glow-course);
   padding: 4px 12px;

@@ -38,6 +38,8 @@ export default function PlayerHUD() {
     onCleanup(() => clearInterval(interval));
   });
 
+  if (!level()) return null;
+
   return (
     <div class="player-hud">
       <div
@@ -66,7 +68,7 @@ export default function PlayerHUD() {
           <span class="player-hud__lvl">Lv.{level().level}</span>
           <span class="player-hud__xp-count">
             {progress().xpNeeded > 0
-              ? `${progress().currentXp} / ${progress().xpNeeded} XP`
+              ? `${progress().currentXp}/${progress().xpNeeded} XP`
               : `${xp()} XP (MAX)`}
           </span>
         </div>

@@ -47,7 +47,7 @@ export default function SubsectionPage() {
   return (
     <CoursePageShell
       title={subsection?.title}
-      subtitle="Complete all objectives to master this quest"
+      subtitle="Complete all objectives"
       badge="QUEST"
       containerClass="container-narrow"
       pageLevel="section"
@@ -57,7 +57,7 @@ export default function SubsectionPage() {
       extra={
         <ResetButton onClick={onClickReset}>
           <RotateCcw size={12} />
-          Reset Progress
+          Reset All
         </ResetButton>
       }
     >

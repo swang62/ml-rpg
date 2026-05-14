@@ -74,7 +74,7 @@ export default function LessonPage() {
       <PageTitle segment={currentLesson()?.title} />
       <Breadcrumbs items={breadcrumbs()} />
 
-      <div class={`lesson-card ${!isRead() ? " lesson-card--unread" : ""}`}>
+      <div class={`lesson-card`}>
         <LessonNav
           prevLesson={navData()?.prevLesson}
           nextLesson={navData()?.nextLesson}
