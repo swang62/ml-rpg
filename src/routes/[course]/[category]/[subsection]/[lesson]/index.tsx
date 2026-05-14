@@ -6,7 +6,7 @@ import { createMemo, createResource, Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
-import { getLessonHTML } from "~/server/lesson";
+import { getLessonHTML } from "~/server/lesson-data";
 import { BASE_URL, COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 import { useLessonReadStatus } from "~/utils/tracking";

@@ -68,22 +68,22 @@ export const AVATAR_TIERS: AvatarTier[] = [
     glow: "0 0 12px rgba(251,191,36,0.7), 0 0 24px rgba(251,191,36,0.3)",
   },
   {
-    minLevel: 17,
+    minLevel: 15,
     borderColor: "#a78bfa",
     glow: "0 0 10px rgba(167,139,250,0.6), 0 0 20px rgba(167,139,250,0.2)",
   },
   {
-    minLevel: 14,
+    minLevel: 10,
     borderColor: "#60a5fa",
     glow: "0 0 8px rgba(96,165,250,0.5), 0 0 16px rgba(96,165,250,0.2)",
   },
   {
-    minLevel: 10,
+    minLevel: 5,
     borderColor: "#34d399",
     glow: "0 0 6px rgba(52,211,153,0.4)",
   },
   {
-    minLevel: 5,
+    minLevel: 0,
     borderColor: "var(--accent)",
     glow: "0 0 4px var(--accent-glow)",
   },

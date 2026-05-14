@@ -1,18 +1,14 @@
 "use server";
 
-import { createStorage } from "unstorage";
-import fsDriver from "unstorage/drivers/fs";
-import { dataDir } from "~/server/data-loading";
+import { getStorage, type Prefix } from "./storage";
 
-let _xpStorage: ReturnType<typeof createStorage> | null = null;
+const PREFIX: Prefix = "xp";
 
-function getStorage() {
-  if (!_xpStorage) {
-    _xpStorage = createStorage({
-      driver: fsDriver({ base: dataDir("xp") }),
-    });
-  }
-  return _xpStorage;
+function lessonKey(course: string, subsection: string, lesson: string) {
+  return `${course}:${subsection}:${lesson}`;
+}
+function sectionKey(course: string, subsection: string) {
+  return `${course}:${subsection}`;
 }
 
 export async function addLessonXp(
@@ -21,8 +17,8 @@ export async function addLessonXp(
   lesson: string,
   xp: number,
 ): Promise<void> {
-  const storage = getStorage();
-  const key = `${course}:${subsection}:${lesson}`;
+  const storage = getStorage(PREFIX);
+  const key = lessonKey(course, subsection, lesson);
   const exists = await storage.getItem(key);
   if (!exists) {
     await storage.setItem(key, xp);
@@ -30,7 +26,7 @@ export async function addLessonXp(
 }
 
 export async function getTotalXp(): Promise<number> {
-  const storage = getStorage();
+  const storage = getStorage(PREFIX);
   const keys = await storage.getKeys();
   let total = 0;
   for (const key of keys) {
@@ -45,11 +41,12 @@ export async function removeSectionXp(
   subsection?: string,
 ): Promise<void> {
   if (!course || !subsection) return;
-  const storage = getStorage();
+  const storage = getStorage(PREFIX);
   const keys = await storage.getKeys();
-  const prefix = `${course}:${subsection}:`;
+  const section = sectionKey(course, subsection);
+
   for (const key of keys) {
-    if (key.startsWith(prefix)) {
+    if (key.includes(section)) {
       await storage.removeItem(key);
     }
   }
@@ -60,11 +57,13 @@ export async function getSectionXp(
   subsection?: string,
 ): Promise<number> {
   if (!course || !subsection) return 0;
-  const storage = getStorage();
+  const storage = getStorage(PREFIX);
   const keys = await storage.getKeys();
+  const section = sectionKey(course, subsection);
+
   let total = 0;
   for (const key of keys) {
-    if (key.startsWith(`${course}:${subsection}:`)) {
+    if (key.includes(section)) {
       const val = await storage.getItem<number>(key);
       if (val) total += val;
     }

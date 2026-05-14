@@ -1,5 +1,5 @@
-import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
-import { getTotalXp } from "~/server/xp-store";
+import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { getTotalXp } from "~/server/xp";
 import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
@@ -41,34 +41,32 @@ export default function PlayerHUD() {
   const avatarStyle = createMemo(() => getAvatarStyle(level().level));
 
   return (
-    <Show when={xp() > 0} fallback={<div class="player-hud"></div>}>
-      <div class="player-hud">
-        <div class="player-hud__avatar" style={avatarStyle()}>
-          <img
-            src={`/assets/avatars/lvl${level().level}.svg`}
-            alt={level().title}
-            width="28"
-            height="28"
+    <div class="player-hud">
+      <div class="player-hud__avatar" style={avatarStyle()}>
+        <img
+          src={`/assets/avatars/lvl${level().level}.svg`}
+          alt={level().title}
+          width="28"
+          height="28"
+        />
+      </div>
+      <div class="player-hud__info">
+        <span class="player-hud__title">{level().title}</span>
+        <div class="player-hud__xp-bar">
+          <div
+            class="player-hud__xp-fill"
+            style={{ width: `${progress().pct}%` }}
           />
         </div>
-        <div class="player-hud__info">
-          <span class="player-hud__title">{level().title}</span>
-          <div class="player-hud__xp-bar">
-            <div
-              class="player-hud__xp-fill"
-              style={{ width: `${progress().pct}%` }}
-            />
-          </div>
-          <div class="player-hud__stats">
-            <span class="player-hud__lvl">Lv.{level().level}</span>
-            <span class="player-hud__xp-count">
-              {progress().xpNeeded > 0
-                ? `${fmtXp(progress().currentXp)}/${fmtXp(progress().xpNeeded)} XP`
-                : `${fmtXp(xp())} XP (MAX)`}
-            </span>
-          </div>
+        <div class="player-hud__stats">
+          <span class="player-hud__lvl">Lv.{level().level}</span>
+          <span class="player-hud__xp-count">
+            {progress().xpNeeded > 0
+              ? `${fmtXp(progress().currentXp)}/${fmtXp(progress().xpNeeded)} XP`
+              : `${fmtXp(xp())} XP (MAX)`}
+          </span>
         </div>
       </div>
-    </Show>
+    </div>
   );
 }

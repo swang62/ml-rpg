@@ -1,6 +1,6 @@
 import { createEffect, onCleanup } from "solid-js";
 import { markLessonRead } from "~/server/tracking";
-import { addLessonXp } from "~/server/xp-store";
+import { addLessonXp } from "~/server/xp";
 import { LESSON_READ_DELAY_MS } from "~/utils/constants";
 
 interface Props {

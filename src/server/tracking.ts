@@ -1,24 +1,13 @@
 "use server";
 
-import { createStorage } from "unstorage";
-import fsDriver from "unstorage/drivers/fs";
-import { dataDir } from "~/server/data-loading";
-import { removeSectionXp } from "~/server/xp-store";
+import { removeSectionXp } from "~/server/xp";
 import type { Category, Subsection } from "~/utils/types";
+import { getStorage, type Prefix } from "./storage";
 
-let _storage: ReturnType<typeof createStorage> | null = null;
-
-function getStorage() {
-  if (!_storage) {
-    _storage = createStorage({
-      driver: fsDriver({ base: dataDir("tracking") }),
-    });
-  }
-  return _storage;
-}
+const PREFIX: Prefix = "tracking";
 
 function sectionKey(course: string, subsection: string) {
-  return `read:${course}:${subsection}`;
+  return `${course}:${subsection}`;
 }
 
 export async function getReadLessons(
@@ -26,7 +15,7 @@ export async function getReadLessons(
   subsection?: string,
 ): Promise<string[]> {
   if (!course || !subsection) return [];
-  const storage = getStorage();
+  const storage = getStorage(PREFIX);
   const key = sectionKey(course, subsection);
   return (await storage.getItem<string[]>(key)) ?? [];
 }
@@ -46,7 +35,7 @@ export async function markLessonRead(
   subsection: string,
   lesson: string,
 ): Promise<void> {
-  const storage = getStorage();
+  const storage = getStorage(PREFIX);
   const key = sectionKey(course, subsection);
   const lessons = (await storage.getItem<string[]>(key)) ?? [];
   if (!lessons.includes(lesson)) {
@@ -60,7 +49,7 @@ export async function resetSection(
   subsection?: string,
 ): Promise<void> {
   if (!course || !subsection) return;
-  const storage = getStorage();
+  const storage = getStorage(PREFIX);
   const key = sectionKey(course, subsection);
   await storage.removeItem(key);
   await removeSectionXp(course, subsection);
