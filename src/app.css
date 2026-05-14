@@ -308,55 +308,39 @@ a {
 }
 
 /* Level-up animation */
-@keyframes pulse-avatar {
-  0% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(1.06);
-  }
-  100% {
-    transform: scale(1);
+@keyframes pulse-zoom {
+  50% {
+    transform: scale(1.4);
   }
 }
 
-@keyframes pulse-title {
-  0% {
-    color: var(--text-heading);
-  }
-  40% {
-    color: var(--accent);
-  }
-  100% {
-    color: var(--text-heading);
-  }
-}
-
-@keyframes pulse-badge {
-  0% {
-    transform: scale(1);
-    color: var(--accent);
-  }
-  40% {
-    transform: scale(1.35);
+@keyframes pulse-zoom-and-color {
+  50% {
     color: var(--level-section);
+    transform: scale(1.3);
   }
-  100% {
-    transform: scale(1);
-    color: var(--accent);
+}
+
+@keyframes pulse-color {
+  50% {
+    color: var(--level-section);
   }
 }
 
 .player-hud__avatar.level-up {
-  animation: pulse-avatar 0.6s ease-out;
+  animation: pulse-zoom 0.8s ease-out;
+}
+
+.player-hud__xp-count.level-up {
+  animation: pulse-zoom-and-color 0.8s ease-out;
 }
 
 .player-hud__title.level-up {
-  animation: pulse-title 0.6s ease-out;
+  animation: pulse-color 0.8s ease-out;
 }
 
 .player-hud__lvl.level-up {
-  animation: pulse-badge 0.6s ease-out;
+  animation: pulse-zoom-and-color 0.8s ease-out;
 }
 
 .player-hud__info {

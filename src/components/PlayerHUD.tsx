@@ -1,5 +1,4 @@
 import { useParams } from "@solidjs/router";
-import confetti from "canvas-confetti";
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { getTotalXp } from "~/server/xp";
 import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
@@ -57,16 +56,7 @@ export default function PlayerHUD() {
     const currentLevel = level().level;
     if (initialized && currentLevel > prevLevel) {
       setLevelUp(true);
-      setTimeout(() => setLevelUp(false), 800);
-      const star = confetti.shapeFromText({ text: "✨", scalar: 2 });
-      const gem = confetti.shapeFromText({ text: "💎", scalar: 2 });
-      confetti({
-        particleCount: 18,
-        spread: 60,
-        origin: { y: 1 },
-        shapes: [star, gem],
-        colors: ["#60a5fa", "#fbbf24", "#a78bfa", "#34d399"],
-      });
+      setTimeout(() => setLevelUp(false), POLL_INTERVAL);
     }
     prevLevel = currentLevel;
     initialized = true;
@@ -100,7 +90,10 @@ export default function PlayerHUD() {
           <span class="player-hud__lvl" classList={{ "level-up": levelUp() }}>
             Lv.{level().level}
           </span>
-          <span class="player-hud__xp-count">
+          <span
+            class="player-hud__xp-count"
+            classList={{ "level-up": levelUp() }}
+          >
             {progress().xpNeeded > 0
               ? `${progress().currentXp}/${fmtXp(progress().xpNeeded)} XP`
               : `${fmtXp(xp())} XP (MAX)`}

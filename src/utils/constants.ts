@@ -5,7 +5,7 @@ import type { Course } from "~/utils/types";
 export const BASE_URL = "https://www.systemoverflow.com/learn";
 export const NOT_FOUND_PATH = "/404";
 
-export const LESSON_READ_DELAY_MS = 5000;
+export const LESSON_READ_DELAY_MS = 1000;
 export const POLL_INTERVAL = 2000;
 
 export const SEARCH_BLUR_CLOSE_MS = 200;
