@@ -764,7 +764,7 @@ a {
 
 .card--article--read {
   color: var(--text-muted);
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .article-xp-badge {
