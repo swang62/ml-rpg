@@ -3,13 +3,12 @@ import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
 import { createMemo, createResource, Show } from "solid-js";
-import Breadcrumbs from "~/components/Breadcrumbs";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
 import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
-import { BASE_URL, SITE_NAME } from "~/utils/constants";
+import { BASE_URL } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 import { useLessonReadStatus } from "~/utils/tracking";
 
@@ -43,16 +42,6 @@ export default function LessonPage() {
         idx < sortedLessons.length - 1 ? sortedLessons[idx + 1] : null,
     };
   });
-  const breadcrumbs = createMemo(() => [
-    { label: SITE_NAME, href: "/" },
-    { label: course?.title, href: `/${params.course}` },
-    { label: category?.title, href: `/${params.course}/${params.category}` },
-    {
-      label: subsection?.title,
-      href: `/${params.course}/${params.category}/${params.subsection}`,
-    },
-    { label: currentLesson()?.title },
-  ]);
   const lessonURL = createMemo(
     () =>
       `${BASE_URL}/${category?.category}/${subsection?.subsection}/${currentLesson()?.lesson}`,
@@ -72,7 +61,6 @@ export default function LessonPage() {
   return (
     <main class="container container-narrow page-level--lesson">
       <PageTitle segment={currentLesson()?.title} />
-      <Breadcrumbs items={breadcrumbs()} />
 
       <div class={`lesson-card`}>
         <LessonNav

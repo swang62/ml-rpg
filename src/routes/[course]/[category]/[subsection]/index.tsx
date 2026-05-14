@@ -1,11 +1,10 @@
 import { A, useParams } from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createMemo, createResource, onMount } from "solid-js";
+import { createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
 import { getReadLessons, resetSection } from "~/server/tracking";
-import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 export default function SubsectionPage() {
@@ -39,13 +38,6 @@ export default function SubsectionPage() {
   const sortedLessons = [...lessons].sort((a, b) => a.order - b.order);
   const totalSections = sortedLessons.length;
 
-  const breadcrumbs = createMemo(() => [
-    { label: SITE_NAME, href: "/" },
-    { label: course?.title, href: `/${params.course}` },
-    { label: category?.title, href: `/${params.course}/${params.category}` },
-    { label: subsection?.title },
-  ]);
-
   return (
     <CoursePageShell
       title={subsection?.title}
@@ -53,7 +45,6 @@ export default function SubsectionPage() {
       badge="QUEST"
       containerClass="container-narrow"
       pageLevel="section"
-      breadcrumbs={breadcrumbs()}
       backHref={`/${params.course}/${params.category}`}
       backLabel="Level"
       extra={

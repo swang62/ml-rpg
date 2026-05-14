@@ -1,10 +1,9 @@
 import { A, useParams } from "@solidjs/router";
-import { createMemo, createResource, onMount } from "solid-js";
+import { createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { loadCourse } from "~/server/course";
 import { fetchSectionReadStatus } from "~/server/tracking";
-import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 export default function CourseIndexPage() {
@@ -22,11 +21,6 @@ export default function CourseIndexPage() {
 
   onMount(refetch);
 
-  const breadcrumbs = createMemo(() => [
-    { label: SITE_NAME, href: "/" },
-    { label: course?.title },
-  ]);
-
   return (
     <CoursePageShell
       title={course?.title}
@@ -34,7 +28,6 @@ export default function CourseIndexPage() {
       badge="WORLD"
       containerClass=""
       pageLevel="course"
-      breadcrumbs={breadcrumbs()}
       backHref="/"
       backLabel="Worlds"
     >
