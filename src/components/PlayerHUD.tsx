@@ -1,9 +1,18 @@
-import { createResource } from "solid-js";
-import { getTotalXp } from "~/server/xp-store";
+import { createSignal, onMount } from "solid-js";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
-  const [xp] = createResource(getTotalXp);
+  const [xp, setXp] = createSignal<number>();
+
+  onMount(async () => {
+    try {
+      const res = await fetch("/api/xp");
+      const data = await res.json();
+      setXp(data.xp);
+    } catch {
+      // API not available yet
+    }
+  });
 
   const lvl = () => {
     const x = xp();
