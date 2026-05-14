@@ -1,11 +1,5 @@
 import { useParams } from "@solidjs/router";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { getTotalXp } from "~/server/xp";
 import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
@@ -77,7 +71,7 @@ export default function PlayerHUD() {
           <span class="player-hud__lvl">Lv.{level().level}</span>
           <span class="player-hud__xp-count">
             {progress().xpNeeded > 0
-              ? `${fmtXp(progress().currentXp)}/${fmtXp(progress().xpNeeded)} XP`
+              ? `${progress().currentXp}/${fmtXp(progress().xpNeeded)} XP`
               : `${fmtXp(xp())} XP (MAX)`}
           </span>
         </div>

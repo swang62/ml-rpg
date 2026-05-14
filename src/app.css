@@ -284,7 +284,7 @@ a {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  min-width: 200px;
+  min-width: 250px;
 }
 
 .player-hud__avatar {
@@ -317,7 +317,7 @@ a {
 
 .player-hud__title {
   font-family: var(--font-pixel);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--text-heading);
   letter-spacing: 0.03em;
   line-height: 1.2;
@@ -329,6 +329,7 @@ a {
   background: var(--progress-track);
   border: 1px solid var(--border);
   border-radius: 2px;
+  margin: 1px 0;
   overflow: hidden;
 }
 
@@ -348,7 +349,7 @@ a {
 
 .player-hud__lvl {
   font-family: var(--font-pixel);
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   color: var(--accent);
   line-height: 1;
   white-space: nowrap;
@@ -356,7 +357,7 @@ a {
 
 .player-hud__xp-count {
   font-family: var(--font-pixel);
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   color: var(--level-category);
   line-height: 1;
   white-space: nowrap;
