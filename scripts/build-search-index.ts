@@ -8,7 +8,7 @@ import {
 import { join } from "node:path";
 import MiniSearch from "minisearch";
 import { COURSE_INDEX } from "../src/data/course-index";
-import type { Category } from "../src/data/types";
+import type { Category } from "../src/utils/types";
 
 // Dynamic-load each course data file — must be updated when a new course is added
 async function loadCourseData(slug: string): Promise<Category[]> {

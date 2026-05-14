@@ -1,4 +1,4 @@
-import type { Course } from "~/data/types";
+import type { Course } from "~/utils/types";
 
 const course: Course = {
   title: "ML System Design",

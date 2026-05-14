@@ -2,9 +2,9 @@
 
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
-import type { Category, Subsection } from "~/data/types";
 import { dataDir } from "~/server/data-path";
 import { removeSectionXp } from "~/server/xp-store";
+import type { Category, Subsection } from "~/utils/types";
 
 let _storage: ReturnType<typeof createStorage> | null = null;
 

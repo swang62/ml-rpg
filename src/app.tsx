@@ -1,5 +1,5 @@
 import "./app.css";
-import "./data/legacy-bootstrap-shim.css";
+import "./legacy-shim.css";
 import "@fontsource-variable/plus-jakarta-sans";
 import "@fontsource/press-start-2p";
 

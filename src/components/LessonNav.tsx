@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import type { Lesson } from "~/data/types";
+import type { Lesson } from "~/utils/types";
 
 interface LessonNavProps {
   prevLesson: Lesson | null;

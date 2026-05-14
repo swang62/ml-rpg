@@ -4,4 +4,4 @@
 
 export type { CourseIndexEntry } from "~/data/course-index";
 export { COURSE_INDEX } from "~/data/course-index";
-export type { Category, Course, Lesson, Subsection } from "~/data/types";
+export type { Category, Course, Lesson, Subsection } from "~/utils/types";
