@@ -106,7 +106,7 @@ pnpm lint           # biome check --write . && pnpm typecheck && fallow audit
 
 - Each objective awards `order * 25` XP (objective 1 = 25 XP, objective 6 = 150 XP)
 - 20 ranks from Novice (0) to Eternal (20), quadratic XP curve
-- Level 20 requires ~61,200 XP (70% of ~87,500 total available XP)
+- Level 20 requires 60,000 XP (69% of ~87,000 total available XP)
 - Server-side persistence via unstorage + fs driver (`.data/xp/`)
 - Separate dev/prod stores based on `NODE_ENV`
 

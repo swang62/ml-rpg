@@ -6,30 +6,30 @@ export interface LevelDef {
 
 /**
  * 20 levels with quadratically increasing XP thresholds.
- * Level 20 requires ~61,200 XP (70% of ~87,500 total available XP).
+ * Level 20 requires 60,000 XP (69% of ~87,000 total available XP).
  */
 export const LEVELS: LevelDef[] = [
   { level: 0, title: "Novice", xpRequired: 0 },
-  { level: 1, title: "Villager", xpRequired: 150 },
-  { level: 2, title: "Squire", xpRequired: 600 },
-  { level: 3, title: "Knight", xpRequired: 1350 },
-  { level: 4, title: "Mage", xpRequired: 2450 },
-  { level: 5, title: "Captain", xpRequired: 3850 },
-  { level: 6, title: "Champion", xpRequired: 5550 },
-  { level: 7, title: "Legend", xpRequired: 7550 },
-  { level: 8, title: "Mythic", xpRequired: 9850 },
-  { level: 9, title: "Sage", xpRequired: 12450 },
-  { level: 10, title: "Hero", xpRequired: 15350 },
-  { level: 11, title: "Paladin", xpRequired: 18550 },
-  { level: 12, title: "Warden", xpRequired: 22050 },
-  { level: 13, title: "Overlord", xpRequired: 25850 },
-  { level: 14, title: "Titan", xpRequired: 29950 },
-  { level: 15, title: "Elder", xpRequired: 34350 },
-  { level: 16, title: "Guardian", xpRequired: 39050 },
-  { level: 17, title: "Celestial", xpRequired: 44150 },
-  { level: 18, title: "Divine", xpRequired: 49550 },
-  { level: 19, title: "Transcendent", xpRequired: 55250 },
-  { level: 20, title: "Eternal", xpRequired: 61200 },
+  { level: 1, title: "Villager", xpRequired: 200 },
+  { level: 2, title: "Squire", xpRequired: 500 },
+  { level: 3, title: "Knight", xpRequired: 1000 },
+  { level: 4, title: "Mage", xpRequired: 2000 },
+  { level: 5, title: "Captain", xpRequired: 3500 },
+  { level: 6, title: "Champion", xpRequired: 5500 },
+  { level: 7, title: "Legend", xpRequired: 8000 },
+  { level: 8, title: "Mythic", xpRequired: 11000 },
+  { level: 9, title: "Sage", xpRequired: 14000 },
+  { level: 10, title: "Hero", xpRequired: 18000 },
+  { level: 11, title: "Paladin", xpRequired: 22000 },
+  { level: 12, title: "Warden", xpRequired: 26000 },
+  { level: 13, title: "Overlord", xpRequired: 30000 },
+  { level: 14, title: "Titan", xpRequired: 34000 },
+  { level: 15, title: "Elder", xpRequired: 38000 },
+  { level: 16, title: "Guardian", xpRequired: 42000 },
+  { level: 17, title: "Celestial", xpRequired: 46000 },
+  { level: 18, title: "Divine", xpRequired: 50000 },
+  { level: 19, title: "Transcendent", xpRequired: 55000 },
+  { level: 20, title: "Eternal", xpRequired: 60000 },
 ];
 
 export function getLevel(xp: number): LevelDef {
