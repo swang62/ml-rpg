@@ -6,7 +6,7 @@ import "@fontsource/press-start-2p";
 import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { createSignal, onCleanup, onMount, Suspense } from "solid-js";
+import { Suspense } from "solid-js";
 import LoadingFallback from "~/components/LoadingFallback";
 import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
