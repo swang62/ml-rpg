@@ -4,13 +4,46 @@ import "@fontsource-variable/plus-jakarta-sans";
 import "@fontsource/press-start-2p";
 
 import { Link, MetaProvider, Title } from "@solidjs/meta";
-import { Router } from "@solidjs/router";
+import { Router, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { Suspense } from "solid-js";
+import { onCleanup, onMount, Suspense } from "solid-js";
 import LoadingFallback from "~/components/LoadingFallback";
 import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
 import { SITE_NAME } from "./utils/constants";
+
+function GlobalBackspaceHandler() {
+  const navigate = useNavigate();
+
+  onMount(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Backspace") return;
+
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+
+      const path = window.location.pathname;
+      const segments = path.split("/").filter(Boolean);
+      if (segments.length === 0) return;
+
+      const parentPath = `/${segments.slice(0, -1).join("/")}`;
+      navigate(parentPath);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    onCleanup(() => document.removeEventListener("keydown", handleKeyDown));
+  });
+
+  return null;
+}
 
 export default function App() {
   return (
@@ -20,6 +53,7 @@ export default function App() {
           <Title>{SITE_NAME}</Title>
           <Link rel="icon" type="image/svg+xml" href="/favicon.svg" />
           <Link rel="alternate icon" href="/favicon.ico" sizes="any" />
+          <GlobalBackspaceHandler />
           <div class="app-layout">
             <header class="app-header">
               <div class="app-header__inner">
