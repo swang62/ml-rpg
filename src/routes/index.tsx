@@ -1,11 +1,14 @@
 import { A } from "@solidjs/router";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import { For } from "solid-js";
+import { createResource, For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { COURSE_INDEX } from "~/data/course-index";
+import { getSiteStats } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
 
 export default function HomePage() {
+  const [stats] = createResource(getSiteStats);
+
   return (
     <main class="page-level--course">
       <PageTitle />
@@ -30,6 +33,25 @@ export default function HomePage() {
             }}
           </For>
         </section>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat__value">{stats()?.worlds ?? "—"}</span>
+            <span class="hero-stat__label">Worlds</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat__value">{stats()?.levels ?? "—"}</span>
+            <span class="hero-stat__label">Levels</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat__value">{stats()?.quests ?? "—"}</span>
+            <span class="hero-stat__label">Quests</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat__value">{stats()?.missions ?? "—"}</span>
+            <span class="hero-stat__label">Missions</span>
+          </div>
+        </div>
       </section>
     </main>
   );

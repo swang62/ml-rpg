@@ -451,6 +451,19 @@ a {
   box-shadow: var(--shadow-card-hover);
 }
 
+/* Colored ambient glow on hierarchy cards */
+.card--lesson:hover {
+  box-shadow:
+    var(--shadow-card-hover),
+    0 0 24px var(--glow-section);
+}
+
+.card--course:hover {
+  box-shadow:
+    var(--shadow-card-hover),
+    0 0 24px var(--glow-course);
+}
+
 /* ===== Category card (course-level grid) ===== */
 
 .card--category {
@@ -466,7 +479,8 @@ a {
   border-color: var(--level-course);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-glow-accent);
+    0 0 0 1px var(--border-glow-accent),
+    0 0 32px var(--glow-course);
 }
 
 .card--category h2 {
@@ -526,7 +540,8 @@ a {
   border-color: var(--level-category);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-glow-category);
+    0 0 0 1px var(--border-glow-category),
+    0 0 32px var(--glow-category);
 }
 
 .card--subsection h2 {
@@ -560,7 +575,8 @@ a {
   border-color: var(--level-section);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-glow-section);
+    0 0 0 1px var(--border-glow-section),
+    0 0 24px var(--glow-section);
 }
 
 .card--article .article-title {
@@ -598,6 +614,23 @@ a {
 
 .card--article--read {
   opacity: 0.4;
+}
+
+.article-xp {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--level-section);
+  background: var(--tint-section);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
+}
+
+.card--article--read .article-xp {
+  opacity: 0.5;
 }
 
 .article-read-checkmark {
@@ -673,32 +706,33 @@ a {
   line-height: 1.6;
 }
 
-/* ===== Stats bar ===== */
+/* ===== Hero stats strip ===== */
 
-.stats-bar {
+.hero-stats {
   display: flex;
   justify-content: center;
   gap: 32px;
   flex-wrap: wrap;
-  padding: 0 24px 48px;
+  padding: 12px 24px 0;
 }
 
-.stat {
+.hero-stat {
   text-align: center;
 }
 
-.stat__value {
-  font-size: 1.6rem;
+.hero-stat__value {
+  font-size: 1.4rem;
   font-weight: 700;
-  color: var(--text-heading);
+  color: var(--accent);
   letter-spacing: -0.02em;
   line-height: 1;
 }
 
-.stat__label {
-  font-size: 0.8rem;
+.hero-stat__label {
+  font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 4px;
+  letter-spacing: 0.03em;
 }
 
 /* ===== Home course card ===== */
