@@ -1,4 +1,5 @@
 import { useParams } from "@solidjs/router";
+import confetti from "canvas-confetti";
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { getTotalXp } from "~/server/xp";
 import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
@@ -57,6 +58,26 @@ export default function PlayerHUD() {
     if (initialized && currentLevel > prevLevel) {
       setLevelUp(true);
       setTimeout(() => setLevelUp(false), 800);
+      confetti({
+        particleCount: 120,
+        spread: 100,
+        origin: { y: 0.35 },
+        colors: ["#60a5fa", "#fbbf24", "#a78bfa", "#34d399"],
+      });
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          spread: 80,
+          origin: { y: 0.3, x: 0.3 },
+          colors: ["#fbbf24", "#60a5fa"],
+        });
+        confetti({
+          particleCount: 60,
+          spread: 80,
+          origin: { y: 0.3, x: 0.7 },
+          colors: ["#34d399", "#a78bfa"],
+        });
+      }, 200);
     }
     prevLevel = currentLevel;
     initialized = true;
