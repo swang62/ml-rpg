@@ -24,61 +24,22 @@ Each objective awards XP (order * 25) when read. Players level up through 20 ran
 ## Folder Structure
 
 ```
-├── scripts/                        # Build-time utilities (Python and TS)
+├── scripts/                    # Build-time utilities (Python and TS)
 ├── public/
 │   ├── assets/
-│   │   ├── avatars/                 # 21 level icons (lvl0.svg - lvl20.svg)
-│   │   ├── bg/                     # Hierarchy-specific background images
-│   │   └── icons/                  # Game-themed UI icons
-│   └── search/
-│       └── index.json              # Pre-built minisearch index (generated)
+│   │   ├── avatars/            # 21 level icons (lvl0.svg - lvl20.svg)
+│   │   ├── bg/                 # Hierarchy-specific background images
+│   │   └── icons/              # Game-themed UI icons
+│   └── search/                 # Pre-built minisearch index (generated)
 ├── src/
-│   ├── app.tsx                     # Root app component
-│   ├── app.css                     # Global styles (1600+ lines of custom CSS)
-│   ├── entry-client.tsx            # Client-side hydration entry point
-│   ├── entry-server.tsx            # Server-side render entry point
-│   ├── global.d.ts                 # Global type declarations
-│   ├── components/                 # Reusable UI components
-│   │   ├── Breadcrumbs.tsx
-│   │   ├── CoursePageShell.tsx     # Consistent page layout wrapper
-│   │   ├── LessonNav.tsx           # Previous/next objective navigation
-│   │   ├── LessonTracker.tsx       # Marks objectives read, awards XP on scroll
-│   │   ├── LoadingFallback.tsx
-│   │   ├── PageHeader.tsx
-│   │   ├── PageTitle.tsx
-│   │   ├── PlayerHUD.tsx           # XP bar, level badge, avatar (3s polling)
-│   │   ├── ProgressBar.tsx
-│   │   ├── ResetButton.tsx         # Resets quest progress
-│   │   └── Search.tsx
+│   ├── components/             # Reusable UI components
 │   ├── data/
-│   │   ├── types.ts                # Data model types
-│   │   ├── site-data.ts            # World/level/quest/objective hierarchy (static)
-│   │   └── lessons/                # Objective TSX components (server-rendered)
-│   │       ├── ml-system-design/
-│   │       └── data-engineering/
-│   ├── server/                     # "use server" functions (Nitro)
-│   │   ├── course.ts               # Course data loader
-│   │   ├── data-path.ts            # Env-aware data directory resolution
-│   │   ├── lesson.tsx              # Lesson HTML rendering (renderToString)
-│   │   ├── tracking.ts             # Read status persistence
-│   │   └── xp-store.ts             # XP persistence and totals
-│   ├── utils/
-│   │   ├── constants.ts
-│   │   ├── not-found.ts
-│   │   ├── search.ts
-│   │   ├── tracking.ts             # Client-side read status hook
-│   │   └── xp.ts                   # Level definitions and math
-│   └── routes/                     # File-system routing
-│       ├── index.tsx               # Home page (full-viewport hero)
-│       ├── 404.tsx                 # Not found
-│       └── [course]/
-│           ├── index.tsx           # World overview (levels list)
-│           └── [category]/
-│               ├── index.tsx       # Level overview (quests list)
-│               └── [subsection]/
-│                   ├── index.tsx   # Quest page (objectives with XP badges)
-│                   └── [lesson]/
-│                       └── index.tsx   # Individual objective page
+│   │   ├── course-index.ts     # Course metadata index
+│   │   ├── courses/            # Per-course data definitions
+│   │   └── lessons/            # Objective TSX components (server-rendered)
+│   ├── server/                 # "use server" functions (Nitro)
+│   ├── utils/                  # Shared utilities, types, and constants
+│   └── routes/                 # File-system routing
 ```
 
 ## Commands
