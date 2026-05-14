@@ -280,12 +280,13 @@ a {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  min-width: 200px;
 }
 
 .player-hud__avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,34 +308,20 @@ a {
   flex-direction: column;
   gap: 3px;
   min-width: 0;
+  flex: 1;
 }
 
-.player-hud__row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.player-hud__level {
+.player-hud__title {
   font-family: var(--font-pixel);
-  font-size: 0.65rem;
-  color: var(--accent);
+  font-size: 0.6rem;
+  color: var(--text-heading);
   letter-spacing: 0.03em;
   line-height: 1.2;
-  white-space: nowrap;
-}
-
-.player-hud__xp {
-  font-family: var(--font-pixel);
-  font-size: 0.55rem;
-  color: var(--level-category);
-  white-space: nowrap;
 }
 
 .player-hud__xp-bar {
   width: 100%;
-  min-width: 120px;
-  height: 6px;
+  height: 5px;
   background: var(--progress-track);
   border: 1px solid var(--border);
   border-radius: 2px;
@@ -348,10 +335,25 @@ a {
   transition: width 0.5s ease;
 }
 
-.player-hud__xp-text {
+.player-hud__stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.player-hud__lvl {
   font-family: var(--font-pixel);
   font-size: 0.5rem;
-  color: var(--text-muted);
+  color: var(--accent);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.player-hud__xp-count {
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: var(--level-category);
   line-height: 1;
   white-space: nowrap;
 }
@@ -1323,10 +1325,6 @@ main {
   color: var(--text-heading);
 }
 
-.lesson-title--read {
-  color: var(--text-muted);
-}
-
 /* ===== Lesson navigation ===== */
 
 .lesson-nav {
@@ -1457,16 +1455,9 @@ main {
   background: var(--surface-hover);
   border-radius: 4px;
   border: 2px solid var(--border);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
   padding: 40px 36px;
   transition: box-shadow 0.3s ease;
-}
-
-.lesson-card--unread {
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.2),
-    0 0 0 1px var(--border);
-  opacity: 0.85;
 }
 
 .lesson-footer {

@@ -50,26 +50,25 @@ export default function PlayerHUD() {
         <img
           src={`/assets/avatars/lvl${level().level}.svg`}
           alt={level().title}
-          width="32"
-          height="32"
+          width="28"
+          height="28"
         />
       </div>
       <div class="player-hud__info">
-        <div class="player-hud__row">
-          <span class="player-hud__level">
-            Lv.{level().level} {level().title}
-          </span>
-        </div>
+        <span class="player-hud__title">{level().title}</span>
         <div class="player-hud__xp-bar">
           <div
             class="player-hud__xp-fill"
             style={{ width: `${progress().pct}%` }}
           />
         </div>
-        <div class="player-hud__xp-text">
-          {progress().xpNeeded > 0
-            ? `${progress().currentXp} / ${progress().xpNeeded} XP`
-            : `${xp()} XP (MAX)`}
+        <div class="player-hud__stats">
+          <span class="player-hud__lvl">Lv.{level().level}</span>
+          <span class="player-hud__xp-count">
+            {progress().xpNeeded > 0
+              ? `${progress().currentXp} / ${progress().xpNeeded} XP`
+              : `${xp()} XP (MAX)`}
+          </span>
         </div>
       </div>
     </div>
