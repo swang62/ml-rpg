@@ -1560,9 +1560,8 @@ main {
 }
 
 .lesson-back-link--unread {
-  opacity: 0.35;
+  opacity: 0.5;
   filter: grayscale(0.7);
-  pointer-events: none;
   transition:
     opacity 0.3s ease,
     filter 0.3s ease;
