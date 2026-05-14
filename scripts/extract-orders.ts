@@ -122,9 +122,7 @@ const enriched = curriculum.map((cat) => ({
 }));
 
 writeFileSync(
-  "scripts/data-curriculum-with-orders.json",
+  "scripts/data-curriculum.json",
   JSON.stringify(enriched, null, 2),
 );
-console.log(
-  "\nSaved enriched curriculum to scripts/data-curriculum-with-orders.json",
-);
+console.log("\nSaved enriched curriculum");
