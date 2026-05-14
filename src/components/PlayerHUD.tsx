@@ -77,7 +77,7 @@ export default function PlayerHUD() {
             <span class="player-hud__lvl">Lv.{level().level}</span>
             <span class="player-hud__xp-count">
               {progress().xpNeeded > 0
-                ? `${fmtXp(progress().currentXp)} / ${fmtXp(progress().xpNeeded)} XP`
+                ? `${fmtXp(progress().currentXp)}/${fmtXp(progress().xpNeeded)} XP`
                 : `${fmtXp(xp())} XP (MAX)`}
             </span>
           </div>
