@@ -58,26 +58,15 @@ export default function PlayerHUD() {
     if (initialized && currentLevel > prevLevel) {
       setLevelUp(true);
       setTimeout(() => setLevelUp(false), 800);
+      const star = confetti.shapeFromText({ text: "✨", scalar: 2 });
+      const gem = confetti.shapeFromText({ text: "💎", scalar: 2 });
       confetti({
-        particleCount: 120,
-        spread: 100,
-        origin: { y: 0.35 },
+        particleCount: 18,
+        spread: 60,
+        origin: { y: 1 },
+        shapes: [star, gem],
         colors: ["#60a5fa", "#fbbf24", "#a78bfa", "#34d399"],
       });
-      setTimeout(() => {
-        confetti({
-          particleCount: 60,
-          spread: 80,
-          origin: { y: 0.3, x: 0.3 },
-          colors: ["#fbbf24", "#60a5fa"],
-        });
-        confetti({
-          particleCount: 60,
-          spread: 80,
-          origin: { y: 0.3, x: 0.7 },
-          colors: ["#34d399", "#a78bfa"],
-        });
-      }, 200);
     }
     prevLevel = currentLevel;
     initialized = true;
