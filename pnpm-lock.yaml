@@ -11,6 +11,9 @@ importers:
       '@fontsource-variable/plus-jakarta-sans':
         specifier: ^5.2.8
         version: 5.2.8
+      '@fontsource/press-start-2p':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@solidjs/meta':
         specifier: ^0.29.4
         version: 0.29.4(solid-js@1.9.12)
@@ -535,6 +538,9 @@ packages:
 
   '@fontsource-variable/plus-jakarta-sans@5.2.8':
     resolution: {integrity: sha512-iQecBizIdZxezODNHzOn4SvvRMrZL/S8k4MEXGDynCmUrImVW0VmX+tIAMqnADwH4haXlHSXqMgU6+kcfBQJdw==}
+
+  '@fontsource/press-start-2p@5.2.7':
+    resolution: {integrity: sha512-ezSxYRchANoteja170ZHh2Tt4oejmVEvX42VFPOVVvERSZ68pcuZFjbhHfrK/sNjYmaGg656y7B3431ojO9PCQ==}
 
   '@ioredis/commands@1.5.1':
     resolution: {integrity: sha512-JH8ZL/ywcJyR9MmJ5BNqZllXNZQqQbnVZOqpPQqE1vHiFgAw4NHbvE0FOduNU8IX9babitBT46571OnPTT0Zcw==}
@@ -3368,6 +3374,8 @@ snapshots:
     optional: true
 
   '@fontsource-variable/plus-jakarta-sans@5.2.8': {}
+
+  '@fontsource/press-start-2p@5.2.7': {}
 
   '@ioredis/commands@1.5.1': {}
 

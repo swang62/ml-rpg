@@ -70,7 +70,6 @@ export default function SubsectionPage() {
             >
               <span class="article-order">{article.order}</span>
               <span class="article-title">{article.title}</span>
-              <span class="article-xp">+{article.order * 25} XP</span>
               <Show when={isRead}>
                 <span class="article-read-checkmark">
                   <Check size={14} />

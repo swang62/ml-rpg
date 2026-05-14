@@ -1,12 +1,14 @@
 import "./app.css";
 import "./data/legacy-bootstrap-shim.css";
 import "@fontsource-variable/plus-jakarta-sans";
+import "@fontsource/press-start-2p";
 
 import { Link, MetaProvider, Title } from "@solidjs/meta";
-import { A, Router } from "@solidjs/router";
+import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { createSignal, onCleanup, onMount, Suspense } from "solid-js";
 import LoadingFallback from "~/components/LoadingFallback";
+import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
 import { SITE_NAME } from "./utils/constants";
 
@@ -36,32 +38,7 @@ export default function App() {
               class={`app-header${headerHidden() ? " app-header--hidden" : ""}`}
             >
               <div class="app-header__inner">
-                <A href="/" class="app-header__logo">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <rect
-                      x="1"
-                      y="1"
-                      width="18"
-                      height="18"
-                      rx="4"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                    <path
-                      d="M7 7h6M7 10h6M7 13h4"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                    />
-                  </svg>
-                  System<span>Overflow</span>
-                </A>
+                <PlayerHUD />
                 <Search />
               </div>
             </header>
