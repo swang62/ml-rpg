@@ -422,6 +422,24 @@ a {
   letter-spacing: 0.08em;
 }
 
+.page-level--course .page-header__badge {
+  color: var(--level-course);
+  background: var(--tint-course);
+  border-color: var(--border-glow-course);
+}
+
+.page-level--category .page-header__badge {
+  color: var(--level-category);
+  background: var(--tint-category);
+  border-color: var(--border-glow-category);
+}
+
+.page-level--section .page-header__badge {
+  color: var(--level-section);
+  background: var(--tint-section);
+  border-color: var(--border-glow-section);
+}
+
 .subtitle {
   color: var(--text-muted);
   font-size: 1rem;
@@ -797,9 +815,9 @@ a {
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  color: var(--accent);
-  background: var(--tint-accent);
-  border: 1px solid var(--border-accent-soft);
+  color: var(--level-course);
+  background: var(--tint-course);
+  border: 1px solid var(--border-glow-course);
   padding: 4px 12px;
   border-radius: 999px;
   margin-bottom: 20px;
@@ -884,8 +902,8 @@ a {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--tint-course);
-  color: var(--level-course);
+  background: var(--tint-accent);
+  color: var(--accent);
   flex-shrink: 0;
   transition:
     background 0.2s ease,
@@ -893,7 +911,6 @@ a {
 }
 
 .hero-course-card:hover .hero-course-card__arrow {
-  background: var(--tint-course-hover);
   transform: translateX(4px);
 }
 
@@ -1318,11 +1335,10 @@ main {
   font-weight: 600;
   margin: 8px 0 24px;
   line-height: 1.4;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   font-family: var(--font-pixel);
   transition: color 0.3s ease;
-  color: var(--text-heading);
+  color: var(--text-muted);
 }
 
 /* ===== Lesson navigation ===== */
