@@ -1,5 +1,11 @@
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createResource, onCleanup, onMount } from "solid-js";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
+
+async function fetchXp(): Promise<number> {
+  const res = await fetch("/api/xp");
+  const data = await res.json();
+  return data.xp as number;
+}
 
 function avatarBorderColor(level: number): string {
   if (level >= 20) return "#fbbf24";
@@ -23,48 +29,28 @@ function avatarGlow(level: number): string {
 }
 
 export default function PlayerHUD() {
-  const [xp, setXp] = createSignal<number>();
+  const [xp, { refetch }] = createResource(fetchXp, { initialValue: 0 });
 
-  onMount(async () => {
-    const fetchXp = async () => {
-      try {
-        const res = await fetch("/api/xp");
-        const data = await res.json();
-        setXp(data.xp);
-      } catch {
-        // API not available yet
-      }
-    };
-
-    await fetchXp();
-    const interval = setInterval(fetchXp, 3000);
+  onMount(() => {
+    const interval = setInterval(refetch, 3000);
     onCleanup(() => clearInterval(interval));
   });
 
-  const lvl = () => {
-    const x = xp();
-    if (x === undefined) return null;
-    return getLevel(x);
-  };
-
-  const prog = () => {
-    const x = xp();
-    if (x === undefined) return null;
-    return xpToNextLevel(x);
-  };
+  const lvl = () => getLevel(xp());
+  const prog = () => xpToNextLevel(xp());
 
   return (
     <div class="player-hud">
       <div
         class="player-hud__avatar"
         style={{
-          border: `2px solid ${avatarBorderColor(lvl()?.level ?? 0)}`,
-          "box-shadow": avatarGlow(lvl()?.level ?? 0),
+          border: `2px solid ${avatarBorderColor(lvl().level)}`,
+          "box-shadow": avatarGlow(lvl().level),
         }}
       >
         <img
-          src={`/assets/avatars/lvl${lvl()?.level ?? 0}.svg`}
-          alt={lvl()?.title ?? "-"}
+          src={`/assets/avatars/lvl${lvl().level}.svg`}
+          alt={lvl().title}
           width="32"
           height="32"
         />
@@ -72,19 +58,19 @@ export default function PlayerHUD() {
       <div class="player-hud__info">
         <div class="player-hud__row">
           <span class="player-hud__level">
-            {xp() !== undefined ? `Lv.${lvl()?.level} ${lvl()?.title}` : "--"}
+            Lv.{lvl().level} {lvl().title}
           </span>
         </div>
         <div class="player-hud__xp-bar">
           <div
             class="player-hud__xp-fill"
-            style={{ width: `${prog()?.pct ?? 0}%` }}
+            style={{ width: `${prog().pct}%` }}
           />
         </div>
         <div class="player-hud__xp-text">
-          {xp() !== undefined
-            ? `${prog()?.currentXp ?? 0} / ${prog()?.xpNeeded ?? 0} XP`
-            : ""}
+          {prog().xpNeeded > 0
+            ? `${prog().currentXp} / ${prog().xpNeeded} XP`
+            : `${xp()} XP (MAX)`}
         </div>
       </div>
     </div>
