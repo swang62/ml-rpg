@@ -1,0 +1,434 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-14T00:00:00.000Z",
+  "title": "Design System: System Overflow",
+  "extensions": {
+    "colorMeta": {
+      "void-bg": {
+        "role": "neutral",
+        "displayName": "Void BG",
+        "canonical": "oklch(10% 0.008 270)",
+        "tonalRamp": [
+          "#050608",
+          "#0a0c10",
+          "#0d0f14",
+          "#11131a",
+          "#151820",
+          "#191c26",
+          "#1d212c",
+          "#212532"
+        ]
+      },
+      "screen-surface": {
+        "role": "neutral",
+        "displayName": "Screen Surface",
+        "canonical": "oklch(14% 0.01 270)",
+        "tonalRamp": [
+          "#090b10",
+          "#0e1017",
+          "#12151e",
+          "#161922",
+          "#1a1e28",
+          "#1e2230",
+          "#222738",
+          "#262c40"
+        ]
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "Surface Hover",
+        "canonical": "oklch(18% 0.015 270)",
+        "tonalRamp": [
+          "#0d0f17",
+          "#12151f",
+          "#181b29",
+          "#1f2335",
+          "#262b41",
+          "#2d334d",
+          "#353b59",
+          "#3c4365"
+        ]
+      },
+      "surface-elevated": {
+        "role": "neutral",
+        "displayName": "Surface Elevated",
+        "canonical": "oklch(16% 0.012 270)",
+        "tonalRamp": [
+          "#0b0d14",
+          "#10131c",
+          "#151825",
+          "#1c2030",
+          "#23283b",
+          "#2a3046",
+          "#313851",
+          "#38405c"
+        ]
+      },
+      "scanline-border": {
+        "role": "neutral",
+        "displayName": "Scanline Border",
+        "canonical": "oklch(23% 0.02 270)",
+        "tonalRamp": [
+          "#131724",
+          "#191e30",
+          "#21263c",
+          "#2a2f45",
+          "#33384e",
+          "#3c4157",
+          "#454a60",
+          "#4e5369"
+        ]
+      },
+      "scanline-border-hover": {
+        "role": "neutral",
+        "displayName": "Scanline Border Hover",
+        "canonical": "oklch(30% 0.04 270)",
+        "tonalRamp": [
+          "#1c2138",
+          "#262d4c",
+          "#303860",
+          "#3d4470",
+          "#4a5080",
+          "#575c90",
+          "#6468a0",
+          "#7174b0"
+        ]
+      },
+      "screen-text": {
+        "role": "neutral",
+        "displayName": "Screen Text",
+        "canonical": "oklch(88% 0.008 270)",
+        "tonalRamp": [
+          "#9ba3b5",
+          "#aab1c2",
+          "#b9c0cf",
+          "#c8cedc",
+          "#d7dce9",
+          "#e6eaf6",
+          "#f5f8ff",
+          "#ffffff"
+        ]
+      },
+      "dim-text": {
+        "role": "neutral",
+        "displayName": "Dim Text",
+        "canonical": "oklch(68% 0.015 270)",
+        "tonalRamp": [
+          "#6a7283",
+          "#788195",
+          "#8690a7",
+          "#949fb9",
+          "#a2aecb",
+          "#b0bddd",
+          "#beccf0",
+          "#ccdbff"
+        ]
+      },
+      "bright-text": {
+        "role": "neutral",
+        "displayName": "Bright Text",
+        "canonical": "oklch(95% 0.005 270)",
+        "tonalRamp": [
+          "#c6cde0",
+          "#d3d9ea",
+          "#e0e5f4",
+          "#f0f4fc",
+          "#f7f9ff",
+          "#fafbff",
+          "#fcfdff",
+          "#ffffff"
+        ]
+      },
+      "power-up-blue": {
+        "role": "primary",
+        "displayName": "Power-Up Blue",
+        "canonical": "oklch(68% 0.12 250)",
+        "tonalRamp": [
+          "#1a3f73",
+          "#20529a",
+          "#2d66bb",
+          "#60a5fa",
+          "#7bb8ff",
+          "#96cbff",
+          "#b1deff",
+          "#ccf1ff"
+        ]
+      },
+      "power-up-blue-hover": {
+        "role": "primary",
+        "displayName": "Power-Up Blue Hover",
+        "canonical": "oklch(78% 0.10 250)",
+        "tonalRamp": [
+          "#3a6ba8",
+          "#4f83c4",
+          "#6f9fda",
+          "#93c5fd",
+          "#a8d3ff",
+          "#bde1ff",
+          "#d2efff",
+          "#e7fdff"
+        ]
+      },
+      "rare-purple": {
+        "role": "secondary",
+        "displayName": "Rare Purple",
+        "canonical": "oklch(67% 0.16 280)",
+        "tonalRamp": [
+          "#2d1f6e",
+          "#3d2b8f",
+          "#553db0",
+          "#a78bfa",
+          "#bba1ff",
+          "#cfb7ff",
+          "#e3cdff",
+          "#f7e3ff"
+        ]
+      },
+      "hp-green": {
+        "role": "tertiary",
+        "displayName": "HP Green",
+        "canonical": "oklch(75% 0.15 165)",
+        "tonalRamp": [
+          "#0d5e40",
+          "#147a58",
+          "#1c9670",
+          "#34d399",
+          "#4de0a8",
+          "#66edb7",
+          "#7ffac6",
+          "#99ffd5"
+        ]
+      },
+      "coin-yellow": {
+        "role": "tertiary",
+        "displayName": "Coin Yellow",
+        "canonical": "oklch(82% 0.16 85)",
+        "tonalRamp": [
+          "#7a5a0d",
+          "#a67a14",
+          "#d29a1c",
+          "#fbbf24",
+          "#fdce45",
+          "#fedd66",
+          "#fee588",
+          "#ffedb0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero page headings on the world select screen. Single-use; only one display heading per page."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All reading text, lesson content, page descriptions. Cap line length at 65-75ch."
+      },
+      "label": {
+        "displayName": "Label (Pixel)",
+        "purpose": "HUD metadata readouts in Press Start 2P: player rank, level number, XP count, order badges."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-shadow",
+        "value": "inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)",
+        "purpose": "Resting shadow for all cards, nav links, and secondary buttons. The inset highlight creates the CRT phosphor glow."
+      },
+      {
+        "name": "card-shadow-hover",
+        "value": "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px #3d4470",
+        "purpose": "Lifted state for hovered cards. The highlight brightens and the drop shadow deepens."
+      },
+      {
+        "name": "dropdown-shadow",
+        "value": "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px #2a2f45",
+        "purpose": "Deepest shadow in the system. Used for the search dropdown."
+      },
+      {
+        "name": "lesson-card-shadow",
+        "value": "0 4px 32px rgba(0,0,0,0.3)",
+        "purpose": "The reading pane - deep and wide but soft."
+      },
+      {
+        "name": "pill-shadow",
+        "value": "0 2px 12px rgba(0,0,0,0.25)",
+        "purpose": "Fixed-position pills (lesson back link, lesson read badge)."
+      },
+      {
+        "name": "hierarchy-hover-glow",
+        "value": "0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px var(--border-glow-X), 0 0 32px var(--glow-X)",
+        "purpose": "Colored ambient glow ring on hover. X is replaced with course/category/section depending on hierarchy depth."
+      },
+      {
+        "name": "search-focus-glow",
+        "value": "0 0 0 3px rgba(96,165,250,0.15)",
+        "purpose": "Focus ring for the search input."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-default",
+        "value": "0.2s ease",
+        "purpose": "Default transition timing for border-color, background, box-shadow, and color changes."
+      },
+      {
+        "name": "ease-progress",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Standard ease-out curve for progress bar width transitions and extended animations."
+      },
+      {
+        "name": "duration-hover",
+        "value": "0.2s",
+        "purpose": "Hover state transitions."
+      },
+      {
+        "name": "duration-level-up",
+        "value": "0.6s",
+        "purpose": "Level-up animation duration for avatar pulse, title flash, and badge scale."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "480px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1200px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Card (Default)",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The fundamental container. 3px chunky border with CRT inner glow highlight.",
+      "html": "<div class=\"ds-card\"><p style=\"color: #9aa3b8; font-size: 0.8rem; margin-bottom: 4px;\">WORLD</p><h3 style=\"font-family: 'Plus Jakarta Sans Variable', system-ui, sans-serif; font-size: 1.1rem; font-weight: 600; color: #f0f4fc; margin: 0;\">ML System Design</h3><p style=\"color: #9aa3b8; font-size: 0.8rem; margin-top: 8px;\">12 levels</p></div>",
+      "css": ".ds-card { position: relative; background: #161922; border: 3px solid #2a2f45; border-radius: 4px; padding: 24px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; cursor: pointer; z-index: 0; } .ds-card::after { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 40%); pointer-events: none; } .ds-card:hover { background: #1f2335; border-color: #3d4470; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px #3d4470; transform: translateY(-3px); }"
+    },
+    {
+      "name": "Card (Category - Purple Glow)",
+      "kind": "card",
+      "refersTo": "card-category",
+      "description": "Category card at the world level. Hover triggers purple ambient glow.",
+      "html": "<div class=\"ds-card-category\"><h3 style=\"font-family: 'Plus Jakarta Sans Variable', system-ui, sans-serif; font-size: 1.1rem; font-weight: 600; color: #f0f4fc; margin: 0 0 8px;\">AB Testing</h3><p style=\"color: #9aa3b8; font-size: 0.8rem; margin: 0;\">6 quests</p></div>",
+      "css": ".ds-card-category { position: relative; background: #161922; border: 3px solid #2a2f45; border-radius: 4px; padding: 24px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; cursor: pointer; z-index: 0; } .ds-card-category::after { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 40%); pointer-events: none; } .ds-card-category:hover { background: #1f2335; border-color: #a78bfa; box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(96,165,250,0.3), 0 0 32px rgba(167,139,250,0.2); transform: translateY(-3px); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "System-wide secondary button style. Used for lesson source links.",
+      "html": "<button class=\"ds-btn-secondary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#60a5fa\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle; margin-right: 6px;\"><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/><polyline points=\"15 3 21 3 21 9\"/><line x1=\"10\" y1=\"14\" x2=\"21\" y2=\"3\"/></svg>View source</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px 20px; font-size: 0.85rem; font-weight: 600; color: #60a5fa; background: #161922; border: 2px solid #2a2f45; border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.2s ease; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; } .ds-btn-secondary:hover { border-color: #60a5fa; background: #1f2335; box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(96,165,250,0.3); }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Search field with icon, focus glow, and dropdown.",
+      "html": "<div style=\"position: relative; width: 260px;\"><div class=\"ds-input-wrapper\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9aa3b8\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/></svg><input class=\"ds-input\" type=\"text\" placeholder=\"Search...\" value=\"\"/></div></div>",
+      "css": ".ds-input-wrapper { position: relative; } .ds-input { width: 100%; padding: 9px 14px 9px 36px; font-size: 0.88rem; color: #e0e4ec; background: #161922; border: none; border-radius: 6px; outline: none; transition: box-shadow 0.2s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; } .ds-input:focus { box-shadow: 0 0 0 3px rgba(96,165,250,0.15); } .ds-input::placeholder { color: #9aa3b8; }"
+    },
+    {
+      "name": "XP Badge",
+      "kind": "chip",
+      "refersTo": "badge-xp",
+      "description": "Quest XP reward indicator in pixel font. Read-only.",
+      "html": "<span class=\"ds-xp-badge\"><span class=\"ds-xp-badge__label\">+</span>75<span class=\"ds-xp-badge__label\"> XP</span></span>",
+      "css": ".ds-xp-badge { display: inline-flex; align-items: baseline; gap: 1px; font-family: 'Press Start 2P', monospace; font-size: 0.7rem; color: #fbbf24; } .ds-xp-badge__label { font-size: 0.6rem; }"
+    },
+    {
+      "name": "Order Badge",
+      "kind": "chip",
+      "refersTo": "badge-order",
+      "description": "Quest order number in pixel font on a dark badge.",
+      "html": "<span class=\"ds-order-badge\">03</span>",
+      "css": ".ds-order-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid #2a2f45; color: #9aa3b8; font-size: 0.75rem; font-weight: 600; font-family: 'Press Start 2P', monospace; flex-shrink: 0; }"
+    },
+    {
+      "name": "Player HUD",
+      "kind": "nav",
+      "refersTo": "hud",
+      "description": "Player status display in the top nav. Avatar, rank, XP bar, level, XP count.",
+      "html": "<div class=\"ds-hud\"><div class=\"ds-hud__avatar\"><img src=\"https://via.placeholder.com/36/1f2335/60a5fa?text=N\" alt=\"avatar\" style=\"width: 36px; height: 36px; image-rendering: pixelated; filter: brightness(1.2);\"/></div><div class=\"ds-hud__info\"><span class=\"ds-hud__title\">NOVICE</span><div class=\"ds-hud__xp-bar\"><div class=\"ds-hud__xp-fill\" style=\"width: 42%;\"></div></div><div class=\"ds-hud__stats\"><span class=\"ds-hud__lvl\">Lv.3</span><span class=\"ds-hud__xp-count\">1,250 XP</span></div></div></div>",
+      "css": ".ds-hud { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 250px; } .ds-hud__avatar { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); overflow: hidden; flex-shrink: 0; border: 2px solid #60a5fa; box-shadow: 0 0 4px rgba(96,165,250,0.15); } .ds-hud__info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; } .ds-hud__title { font-family: 'Press Start 2P', monospace; font-size: 0.7rem; color: #f0f4fc; letter-spacing: 0.03em; line-height: 1.2; } .ds-hud__xp-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border: 1px solid #2a2f45; border-radius: 2px; margin: 1px 0; overflow: hidden; } .ds-hud__xp-fill { height: 100%; background: #34d399; border-radius: 1px; transition: width 0.5s ease; } .ds-hud__stats { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; } .ds-hud__lvl { font-family: 'Press Start 2P', monospace; font-size: 0.6rem; color: #60a5fa; line-height: 1; white-space: nowrap; } .ds-hud__xp-count { font-family: 'Press Start 2P', monospace; font-size: 0.6rem; color: #34d399; line-height: 1; white-space: nowrap; }"
+    },
+    {
+      "name": "Lesson Nav Link",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Lesson pagination link at the bottom of lesson pages.",
+      "html": "<a class=\"ds-lesson-nav\"><span class=\"ds-lesson-nav__order\">04</span><span class=\"ds-lesson-nav__title\">What Is Power Analysis</span></a>",
+      "css": ".ds-lesson-nav { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; border: 2px solid #2a2f45; border-radius: 4px; background: #161922; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); color: #e0e4ec; font-size: 0.9rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; } .ds-lesson-nav:hover { border-color: #fbbf24; box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.2); } .ds-lesson-nav__order { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; font-size: 0.75rem; font-weight: 600; color: #e0e4ec; background: rgba(251,191,36,0.08); border: 1px solid #2a2f45; border-radius: 6px; flex-shrink: 0; font-family: 'Press Start 2P', monospace; transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease; } .ds-lesson-nav:hover .ds-lesson-nav__order { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.2); color: #fbbf24; } .ds-lesson-nav__title { flex: 1; min-width: 0; font-family: 'Plus Jakarta Sans Variable', system-ui, sans-serif; }"
+    },
+    {
+      "name": "Back Link",
+      "kind": "nav",
+      "refersTo": "nav-back",
+      "description": "Inline back link to the parent page.",
+      "html": "<a class=\"ds-back-link\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#60a5fa\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle; margin-right: 2px;\"><line x1=\"19\" y1=\"12\" x2=\"5\" y2=\"12\"/><polyline points=\"12 19 5 12 12 5\"/></svg>Back to AB Testing</a>",
+      "css": ".ds-back-link { display: inline-flex; align-items: center; gap: 4px; color: #60a5fa; font-size: 0.9rem; margin-top: 24px; transition: color 0.15s ease; font-family: 'Plus Jakarta Sans Variable', system-ui, sans-serif; text-decoration: none; cursor: pointer; } .ds-back-link:hover { color: #93c5fd; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Retro Console",
+    "overview": "System Overflow is a CRT-lit game console for self-guided learning. Every surface evokes the feel of a booting system: a dark void of deepest navy-black, layered panels that catch faint inner highlights like glass over an old monitor, and accent colors that glow with the energy of player stats. This system explicitly rejects SaaS-dashboard sterility, corporate blues, glassmorphism as default, and the hero-metric template. It is not a tool; it is a console you sit down at.",
+    "keyCharacteristics": [
+      "Console-dark. The palette lives in the deep end: backgrounds at #0d0f14, surfaces climbing through subtle brightness steps. No true black, no true white.",
+      "Glow as hierarchy. Purple, green, and gold glows signal your depth in the content tree (world > level > quest). The accent tells you what you can interact with.",
+      "Tactile response. Cards lift 3px on hover. Borders shift from muted scanline-gray to the level's glow color. Shadows deepen. Everything responds.",
+      "Occasional pixel. Press Start 2P is reserved for HUD metadata only -- the machine's internal readout. Never for body text.",
+      "3px borders. The card language is deliberately chunky. Not subtle 1px strokes; tangible borders that separate surfaces with intention."
+    ],
+    "rules": [
+      {
+        "name": "The Glow-as-Hierarchy Rule",
+        "body": "Purple, green, and gold are not decoration. They encode your position in the content tree. A card glowing purple means you are at the world level. Gold means this is a quest within a level. Never apply a hierarchy glow outside its tree depth.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rarity Rule",
+        "body": "Power-Up Blue is the only interactive accent. Hierarchy colors (purple, green, gold) signal where you are, not what you can click.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pixel-Restriction Rule",
+        "body": "Press Start 2P is only for HUD-like readouts: player rank, level number, XP count, order badges, and page-header hierarchy badges. Never for body text, headings, navigation, or instructional copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The One-H1 Rule",
+        "body": "Only one display or headline heading per page. The hierarchy is a path, not a menu.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lift-on-Hover Rule",
+        "body": "Every interactive surface gains elevation on hover. The hover lift is 3px translateY on category cards, deeper shadows on all cards, and brighter borders throughout. Resting surfaces are flat; only interaction triggers depth.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Stacked-Surface Rule",
+        "body": "Never nest a card inside a card. Tonal layering happens across distinct UI elements, never as parent-child containment.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the 3px card border. It is the signature structural element of the system.",
+      "Do tint every neutral toward the navy-blue hue (oklch hue ~270).",
+      "Do reserve Press Start 2P for HUD metadata only.",
+      "Do apply hierarchy glows (purple > green > gold) by tree depth.",
+      "Do use the CRT inner highlight on every elevated surface.",
+      "Do let cards lift 3px on hover.",
+      "Do keep Power-Up Blue as the sole interactive accent."
+    ],
+    "donts": [
+      "Don't use true black (#000) or true white (#fff).",
+      "Don't use glassmorphism as a default surface treatment.",
+      "Don't nest cards.",
+      "Don't replace Power-Up Blue with a hierarchy color for interactive elements.",
+      "Don't apply the hero-metric template.",
+      "Don't use gradient text.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe.",
+      "Don't add bounce or elastic easings.",
+      "Don't animate width, height, top, left, or margin."
+    ]
+  }
+}
