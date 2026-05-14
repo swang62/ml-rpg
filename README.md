@@ -27,14 +27,12 @@ Each objective awards XP (order * 25) when read. Players level up through 20 ran
 ├── scripts/                    # Build-time utilities (Python and TS)
 ├── public/
 │   ├── assets/
-│   │   ├── avatars/            # 21 level icons (lvl0.svg - lvl20.svg)
+│   │   ├── avatars/            # 21 level icons
 │   │   ├── bg/                 # Hierarchy-specific background images
-│   │   └── icons/              # Game-themed UI icons
-│   └── search/                 # Pre-built minisearch index (generated)
+│   └── search/                 # Pre-built minisearch index (generated at build-time)
 ├── src/
 │   ├── components/             # Reusable UI components
 │   ├── data/
-│   │   ├── course-index.ts     # Course metadata index
 │   │   ├── courses/            # Per-course data definitions
 │   │   └── lessons/            # Objective TSX components (server-rendered)
 │   ├── server/                 # "use server" functions (Nitro)

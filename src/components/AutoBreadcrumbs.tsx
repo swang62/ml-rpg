@@ -1,8 +1,7 @@
 import { useParams } from "@solidjs/router";
 import { createMemo } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
-import { loadCourse } from "~/server/course";
-import { SITE_NAME } from "~/utils/constants";
+import { COURSES, SITE_NAME } from "~/utils/constants";
 
 export default function AutoBreadcrumbs() {
   const params = useParams();
@@ -14,7 +13,7 @@ export default function AutoBreadcrumbs() {
 
     if (!params.course) return crumbs;
 
-    const course = loadCourse(params.course);
+    const course = COURSES[params.course as string];
     if (course) {
       crumbs.push({ label: course.title, href: `/${params.course}` });
 

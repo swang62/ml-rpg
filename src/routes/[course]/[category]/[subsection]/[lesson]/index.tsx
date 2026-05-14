@@ -6,9 +6,8 @@ import { createMemo, createResource, Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
-import { loadCourse } from "~/server/course";
 import { getLessonHTML } from "~/server/lesson";
-import { BASE_URL } from "~/utils/constants";
+import { BASE_URL, COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 import { useLessonReadStatus } from "~/utils/tracking";
 
@@ -16,7 +15,7 @@ export default function LessonPage() {
   const params = useParams();
   if (!params.category || !params.subsection || !params.lesson) return;
 
-  const course = loadCourse(params.course);
+  const course = COURSES[params.course as string];
   const category = course?.categories.find(
     (cat) => cat.category === params.category,
   );

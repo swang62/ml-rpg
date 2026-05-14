@@ -2,7 +2,7 @@
 
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
-import { dataDir } from "~/server/data-path";
+import { dataDir } from "~/server/data-loading";
 
 let _xpStorage: ReturnType<typeof createStorage> | null = null;
 

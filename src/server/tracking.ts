@@ -2,7 +2,7 @@
 
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
-import { dataDir } from "~/server/data-path";
+import { dataDir } from "~/server/data-loading";
 import { removeSectionXp } from "~/server/xp-store";
 import type { Category, Subsection } from "~/utils/types";
 

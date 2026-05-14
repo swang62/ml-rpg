@@ -1,25 +1,23 @@
 import { A, useParams } from "@solidjs/router";
-import { createResource, onMount } from "solid-js";
+import { createResource } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import { loadCourse } from "~/server/course";
 import { fetchSectionReadStatus } from "~/server/tracking";
+import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 export default function CourseIndexPage() {
   const params = useParams();
-  const course = loadCourse(params.course);
+  const course = COURSES[params.course as string];
   useNotFound(!course);
 
   const categories = course?.categories ?? [];
 
-  const [sectionReadStatus, { refetch }] = createResource(
+  const [sectionReadStatus] = createResource(
     () => ({ course: params.course, categories }),
     async ({ course, categories }) =>
       fetchSectionReadStatus(course, categories),
   );
-
-  // onMount(refetch);
 
   return (
     <CoursePageShell

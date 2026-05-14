@@ -1,16 +1,16 @@
 import { A, useParams } from "@solidjs/router";
-import { createResource, onMount } from "solid-js";
+import { createResource } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import { loadCourse } from "~/server/course";
 import { fetchReadCounts } from "~/server/tracking";
+import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 export default function CategoryPage() {
   const params = useParams();
   if (!params.category) return;
 
-  const course = loadCourse(params.course);
+  const course = COURSES[params.course as string];
   const category = course?.categories.find(
     (cat) => cat.category === params.category,
   );
@@ -18,12 +18,10 @@ export default function CategoryPage() {
 
   const subsections = category?.subsections ?? [];
 
-  const [readCounts, { refetch }] = createResource(
+  const [readCounts] = createResource(
     () => ({ course: params.course, subsections }),
     async ({ course, subsections }) => fetchReadCounts(course, subsections),
   );
-
-  // onMount(refetch);
 
   return (
     <CoursePageShell

@@ -11,7 +11,7 @@ interface CoursePageShellProps {
   badge?: string;
   extra?: JSX.Element;
   containerClass: string;
-  pageLevel: "course" | "category" | "section" | "lesson";
+  pageLevel: "world" | "course" | "category" | "section" | "lesson";
   backHref: string;
   backLabel?: string;
   children: JSX.Element;

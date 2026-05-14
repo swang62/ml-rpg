@@ -7,7 +7,7 @@ import { SITE_NAME } from "~/utils/constants";
 
 export default function HomePage() {
   return (
-    <main class="page-level--course">
+    <main class="page-level--world">
       <PageTitle />
       <section class="hero">
         <div class="hero__tag">World Hub</div>

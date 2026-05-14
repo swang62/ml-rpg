@@ -1,17 +1,17 @@
 import { A, useParams } from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createResource, onMount } from "solid-js";
+import { createResource } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
-import { loadCourse } from "~/server/course";
 import { getReadLessons, resetSection } from "~/server/tracking";
+import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 export default function SubsectionPage() {
   const params = useParams();
   if (!params.category || !params.subsection) return;
 
-  const course = loadCourse(params.course);
+  const course = COURSES[params.course as string];
   const category = course?.categories.find(
     (cat) => cat.category === params.category,
   );
@@ -24,8 +24,6 @@ export default function SubsectionPage() {
     () => ({ course: params.course, subsection: params.subsection }),
     async ({ course, subsection }) => getReadLessons(course, subsection),
   );
-
-  // onMount(refetch);
 
   const onClickReset = async () => {
     await resetSection(params.course, params.subsection);

@@ -1,6 +1,6 @@
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { getTotalXp } from "~/server/xp-store";
-import { AVATAR_TIERS, XP_POLL_INTERVAL } from "~/utils/constants";
+import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 function fmtXp(n: number): string {
@@ -32,7 +32,7 @@ export default function PlayerHUD() {
       }
     };
     await fetchIt();
-    const interval = setInterval(fetchIt, XP_POLL_INTERVAL);
+    const interval = setInterval(fetchIt, POLL_INTERVAL);
     onCleanup(() => clearInterval(interval));
   });
 

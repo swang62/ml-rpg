@@ -1,14 +1,25 @@
+import de from "~/data/courses/data-engineering";
+import mlSysDesign from "~/data/courses/ml-system-design";
+import type { Course } from "~/utils/types";
+
 export const BASE_URL = "https://www.systemoverflow.com/learn";
-export const SITE_NAME = "System Overflow";
-export const POLL_INTERVAL = 1000;
-export const XP_POLL_INTERVAL = 3000;
-export const LESSON_READ_DELAY_MS = 5000;
 export const NOT_FOUND_PATH = "/404";
-export const SEARCH_INDEX_PATH = "/search/index.json";
-export const SEARCH_DEBOUNCE_MS = 200;
+
+export const LESSON_READ_DELAY_MS = 5000;
+export const POLL_INTERVAL = 1000;
+
 export const SEARCH_BLUR_CLOSE_MS = 200;
-export const SEARCH_MIN_QUERY_LENGTH = 3;
+export const SEARCH_DEBOUNCE_MS = 200;
+export const SEARCH_INDEX_PATH = "/search/index.json";
 export const SEARCH_MAX_RESULTS = 6;
+export const SEARCH_MIN_QUERY_LENGTH = 3;
+
+export const SITE_NAME = "System Overflow";
+
+export const COURSES: Record<string, Course> = {
+  "ml-system-design": mlSysDesign,
+  "data-engineering": de,
+};
 
 export interface LevelDef {
   level: number;

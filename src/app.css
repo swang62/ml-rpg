@@ -37,7 +37,7 @@
   --glow-category: rgba(52, 211, 153, 0.2);
   --glow-section: rgba(251, 191, 36, 0.2);
   --progress-track: rgba(255, 255, 255, 0.06);
-  --surface-glass: rgba(13, 15, 20, 0.75);
+  --surface-glass: rgba(13, 15, 20, 0.65);
 
   /* Hierarchy tints and glows */
   --tint-course: rgba(167, 139, 250, 0.08);
@@ -140,6 +140,12 @@ a {
 }
 
 /* Full-viewport background images using :has() to detect page level */
+.app-layout:has(.page-level--world) {
+  background:
+    linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.5)),
+    url("/assets/bg/world-bg.jpg") center / cover fixed no-repeat;
+}
+
 .app-layout:has(.page-level--course) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.8)),
@@ -160,7 +166,7 @@ a {
 
 .app-layout:has(.page-level--lesson) {
   background:
-    linear-gradient(rgba(24, 26, 36, 0.9), rgba(24, 26, 36, 0.9)),
+    linear-gradient(rgba(24, 26, 36, 0.9), rgba(24, 26, 36, 0.7)),
     url("/assets/bg/lesson-bg.jpg") center / cover fixed no-repeat;
 }
 
@@ -282,8 +288,8 @@ a {
 }
 
 .player-hud__avatar {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -295,8 +301,8 @@ a {
 
 .player-hud__avatar img {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   image-rendering: pixelated;
   filter: brightness(1.2);
 }
@@ -1549,30 +1555,4 @@ main {
 
 .lesson-fade-in {
   animation: lesson-fade-in 0.3s ease-out;
-}
-
-/* ===== Lesson loading shimmer ===== */
-
-/* ===== Loading spinner (suspense fallback) ===== */
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  margin: 64px auto;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loading-spinner {
-    animation-duration: 2s;
-  }
 }

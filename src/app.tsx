@@ -7,7 +7,6 @@ import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { Router, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { onCleanup, onMount, Suspense } from "solid-js";
-import LoadingFallback from "~/components/LoadingFallback";
 import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
 import { SITE_NAME } from "./utils/constants";
@@ -62,9 +61,7 @@ export default function App() {
               </div>
             </header>
             <div class="app-content">
-              <Suspense fallback={<LoadingFallback />}>
-                {props.children}
-              </Suspense>
+              <Suspense>{props.children}</Suspense>
             </div>
           </div>
         </MetaProvider>
