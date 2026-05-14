@@ -35,7 +35,7 @@ export default function CategoryPage() {
   return (
     <CoursePageShell
       title={category?.title}
-      subtitle={`${subsections.length} section${subsections.length !== 1 ? "s" : ""}`}
+      subtitle={`${subsections.length} quest${subsections.length !== 1 ? "s" : ""}`}
       containerClass="container-medium"
       pageLevel="category"
       breadcrumbs={breadcrumbs()}

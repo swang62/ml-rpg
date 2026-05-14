@@ -111,13 +111,13 @@ export default function Search() {
           id="search-input"
           name="search"
           class="search__input"
-          placeholder="Search lessons..."
+          placeholder="Search missions..."
           value={query()}
           onInput={handleInput}
           onkeydown={handleKeydown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          aria-label="Search lessons"
+          aria-label="Search missions"
         />
         <span class="search__shortcut" aria-hidden="true">
           <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>

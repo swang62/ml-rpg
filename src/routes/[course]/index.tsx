@@ -30,7 +30,7 @@ export default function CourseIndexPage() {
   return (
     <CoursePageShell
       title={course?.title}
-      subtitle={`${categories.length} categories`}
+      subtitle={`${categories.length} level${categories.length !== 1 ? "s" : ""}`}
       containerClass=""
       pageLevel="course"
       breadcrumbs={breadcrumbs()}

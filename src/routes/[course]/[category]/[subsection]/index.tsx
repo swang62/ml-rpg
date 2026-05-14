@@ -47,7 +47,7 @@ export default function SubsectionPage() {
   return (
     <CoursePageShell
       title={subsection?.title}
-      subtitle={`${lessons.length} lesson${lessons.length !== 1 ? "s" : ""}`}
+      subtitle={`${lessons.length} mission${lessons.length !== 1 ? "s" : ""}`}
       extra={
         <ResetButton onClick={onClickReset}>
           <RotateCcw size={12} />
