@@ -3,9 +3,9 @@ import { createMemo, createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { loadCourse } from "~/server/course";
+import { fetchReadCounts } from "~/server/tracking";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
-import { fetchReadCounts } from "~/utils/tracking";
 
 export default function CategoryPage() {
   const params = useParams();

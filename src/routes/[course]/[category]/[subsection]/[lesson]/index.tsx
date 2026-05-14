@@ -94,6 +94,7 @@ export default function LessonPage() {
           course={params.course}
           subsection={params.subsection}
           lesson={currentLesson()?.lesson}
+          order={currentLesson()?.order}
         />
         <LessonNav
           prevLesson={navData()?.prevLesson}

@@ -1,6 +1,3 @@
-import type { Course } from "~/data/types";
-import { getReadLessons } from "~/utils/tracking";
-
 export interface LevelDef {
   level: number;
   title: string;
@@ -47,28 +44,4 @@ export function xpToNextLevel(xp: number): {
   const xpForNext = nextLevel.xpRequired - currentLevel.xpRequired;
   const pct = Math.round((xpIntoLevel / xpForNext) * 100);
   return { currentXp: xpIntoLevel, xpNeeded: xpForNext, pct };
-}
-
-export async function calculateTotalXp(courses: Course[]): Promise<number> {
-  let totalXp = 0;
-
-  for (const course of courses) {
-    for (const category of course.categories) {
-      for (const subsection of category.subsections) {
-        const readLessons = await getReadLessons(
-          course.title,
-          subsection.subsection,
-        );
-        const readSet = new Set(readLessons);
-
-        for (const lesson of subsection.lessons) {
-          if (readSet.has(lesson.lesson)) {
-            totalXp += lesson.order * 25;
-          }
-        }
-      }
-    }
-  }
-
-  return totalXp;
 }

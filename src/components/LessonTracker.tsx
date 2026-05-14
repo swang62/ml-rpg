@@ -1,11 +1,13 @@
 import { createEffect, onCleanup } from "solid-js";
+import { markLessonRead } from "~/server/tracking";
+import { addLessonXp } from "~/server/xp-store";
 import { LESSON_READ_DELAY_MS } from "~/utils/constants";
-import { markLessonRead } from "~/utils/tracking";
 
 interface Props {
   course?: string;
   subsection?: string;
   lesson?: string;
+  order?: number;
 }
 
 export default function LessonTracker(props: Props) {
@@ -15,6 +17,7 @@ export default function LessonTracker(props: Props) {
     const course = props.course;
     const subsection = props.subsection;
     const lesson = props.lesson;
+    const order = props.order;
 
     if (!course || !subsection || !lesson) return;
 
@@ -27,6 +30,9 @@ export default function LessonTracker(props: Props) {
       if (scrolled && timedOut) {
         done = true;
         markLessonRead(course, subsection, lesson);
+        if (order) {
+          addLessonXp(course, subsection, lesson, order * 25);
+        }
         cleanup();
       }
     };

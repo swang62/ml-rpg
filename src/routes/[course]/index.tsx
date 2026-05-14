@@ -3,9 +3,9 @@ import { createMemo, createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { loadCourse } from "~/server/course";
+import { fetchSectionReadStatus } from "~/server/tracking";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
-import { fetchSectionReadStatus } from "~/utils/tracking";
 
 export default function CourseIndexPage() {
   const params = useParams();

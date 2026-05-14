@@ -5,9 +5,9 @@ import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
+import { getReadLessons, resetSection } from "~/server/tracking";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
-import { getReadLessons, resetSection } from "~/utils/tracking";
 
 export default function SubsectionPage() {
   const params = useParams();

@@ -1,16 +1,9 @@
 import { createResource, Match, Switch } from "solid-js";
-import { loadCourse } from "~/server/course";
-import { calculateTotalXp, getLevel, xpToNextLevel } from "~/utils/xp";
-
-const courseSlugs = ["ml-system-design", "data-engineering"];
+import { getTotalXp } from "~/server/xp-store";
+import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
-  const [xp] = createResource(async () => {
-    const courses = courseSlugs.map((s) => loadCourse(s)).filter(Boolean);
-    return calculateTotalXp(
-      courses as NonNullable<ReturnType<typeof loadCourse>>[],
-    );
-  });
+  const [xp] = createResource(getTotalXp);
 
   const level = () => {
     const x = xp();
@@ -38,14 +31,16 @@ export default function PlayerHUD() {
         />
       </div>
       <div class="player-hud__info">
-        <Switch fallback={<span class="player-hud__loading">--</span>}>
-          <Match when={lvl && prog}>
-            <span class="player-hud__level">
-              Lv.{lvl?.level ?? "?"} {lvl?.title ?? "?"}
-            </span>
-            <span class="player-hud__xp">{xp() ?? 0} XP</span>
-          </Match>
-        </Switch>
+        <div class="player-hud__row">
+          <Switch fallback={<span class="player-hud__loading">--</span>}>
+            <Match when={lvl && prog}>
+              <span class="player-hud__level">
+                Lv.{lvl?.level ?? "?"} {lvl?.title ?? "?"}
+              </span>
+              <span class="player-hud__xp">{xp() ?? 0} XP</span>
+            </Match>
+          </Switch>
+        </div>
         <div class="player-hud__xp-bar">
           <div
             class="player-hud__xp-fill"
