@@ -726,9 +726,15 @@ a {
 }
 
 .article-read-checkmark {
-  color: var(--level-section);
   display: flex;
   flex-shrink: 0;
+}
+
+/* ===== Game icons base style ===== */
+
+.icon {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* ===== Back link ===== */

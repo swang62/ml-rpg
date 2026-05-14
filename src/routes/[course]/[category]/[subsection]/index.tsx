@@ -1,6 +1,4 @@
 import { A, useParams } from "@solidjs/router";
-import Check from "lucide-solid/icons/check";
-import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import { createMemo, createResource, onMount, Show } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
@@ -56,7 +54,13 @@ export default function SubsectionPage() {
       backLabel={category?.title}
       extra={
         <ResetButton onClick={onClickReset}>
-          <RotateCcw size={12} />
+          <img
+            src="/assets/icons/reset.svg"
+            width="12"
+            height="12"
+            alt=""
+            class="icon"
+          />
           Reset
         </ResetButton>
       }
@@ -73,7 +77,13 @@ export default function SubsectionPage() {
               <span class="article-title">{article.title}</span>
               <Show when={isRead}>
                 <span class="article-read-checkmark">
-                  <Check size={14} />
+                  <img
+                    src="/assets/icons/check.svg"
+                    width="14"
+                    height="14"
+                    alt=""
+                    class="icon icon--check"
+                  />
                 </span>
               </Show>
             </A>

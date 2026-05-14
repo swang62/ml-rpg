@@ -1,7 +1,4 @@
 import { A, useParams } from "@solidjs/router";
-import Check from "lucide-solid/icons/check";
-import ChevronLeft from "lucide-solid/icons/chevron-left";
-import ExternalLink from "lucide-solid/icons/external-link";
 import { createMemo, createResource, Show } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import LessonNav from "~/components/LessonNav";
@@ -85,8 +82,19 @@ export default function LessonPage() {
 
         <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
           <span>Lesson {currentLesson()?.order}</span>
-          <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
-            <ExternalLink size={14} color="grey" />
+          <a
+            href={lessonURL()}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="lesson-external-link"
+          >
+            <img
+              src="/assets/icons/external-link.svg"
+              width="14"
+              height="14"
+              alt="Open lesson"
+              class="icon"
+            />
           </a>
         </div>
         <div innerHTML={lessonHTML()} />
@@ -110,14 +118,26 @@ export default function LessonPage() {
               href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
               class="back-link"
             >
-              <ChevronLeft size={14} />
+              <img
+                src="/assets/icons/chevron-left.svg"
+                width="14"
+                height="14"
+                alt=""
+                class="icon"
+              />
               Back to Quest
             </A>
           </div>
         </div>
         <Show when={isRead()}>
           <div class="lesson-read-badge">
-            <Check size={14} />
+            <img
+              src="/assets/icons/check.svg"
+              width="14"
+              height="14"
+              alt=""
+              class="icon icon--check"
+            />
             <span>Read</span>
           </div>
         </Show>

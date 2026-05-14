@@ -1,5 +1,4 @@
 import { A } from "@solidjs/router";
-import ChevronLeft from "lucide-solid/icons/chevron-left";
 import type { JSX } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import PageHeader from "~/components/PageHeader";
@@ -38,7 +37,13 @@ export default function CoursePageShell(props: CoursePageShellProps) {
       {props.children}
       <div class="flex justify-between items-baseline">
         <A href={props.backHref} class="back-link">
-          <ChevronLeft size={14} />
+          <img
+            src="/assets/icons/chevron-left.svg"
+            width="14"
+            height="14"
+            alt=""
+            class="icon"
+          />
           Back to {props.backLabel}
         </A>
         <span>{props.extra}</span>

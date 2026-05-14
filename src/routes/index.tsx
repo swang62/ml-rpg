@@ -1,5 +1,4 @@
 import { A } from "@solidjs/router";
-import ChevronRight from "lucide-solid/icons/chevron-right";
 import { For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { COURSE_INDEX } from "~/data/course-index";
@@ -23,7 +22,13 @@ export default function HomePage() {
                     <h2>{COURSE_INDEX[slug].title}</h2>
                   </div>
                   <div class="hero-course-card__arrow">
-                    <ChevronRight size={16} />
+                    <img
+                      src="/assets/icons/chevron-right.svg"
+                      width="16"
+                      height="16"
+                      alt=""
+                      class="icon"
+                    />
                   </div>
                 </A>
               );
