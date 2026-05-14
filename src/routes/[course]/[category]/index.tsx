@@ -1,7 +1,7 @@
 import { A, useParams } from "@solidjs/router";
-import Circle from "lucide-solid/icons/circle";
-import { createMemo, createResource, For, onMount } from "solid-js";
+import { createMemo, createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
+import ProgressBar from "~/components/ProgressBar";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
@@ -43,28 +43,24 @@ export default function CategoryPage() {
       backLabel={course?.title}
     >
       <section class="subsections-list">
-        {subsections.map((section) => (
-          <A
-            href={`/${params.course}/${category?.category}/${section.subsection}`}
-            class="card card--subsection"
-          >
-            <h2>{section.title}</h2>
-            <span class="section-dots">
-              <For each={section.lessons}>
-                {(_, i) => (
-                  <Circle
-                    size={8}
-                    fill={
-                      i() < (readCounts()?.get(section.subsection) ?? 0)
-                        ? "currentColor"
-                        : "none"
-                    }
-                  />
-                )}
-              </For>
-            </span>
-          </A>
-        ))}
+        {subsections.map((section) => {
+          const readCount = readCounts()?.get(section.subsection) ?? 0;
+          return (
+            <A
+              href={`/${params.course}/${category?.category}/${section.subsection}`}
+              class="card card--subsection"
+            >
+              <h2>{section.title}</h2>
+              {section.lessons.length > 0 && (
+                <ProgressBar
+                  value={readCount}
+                  max={section.lessons.length}
+                  color="--level-category"
+                />
+              )}
+            </A>
+          );
+        })}
       </section>
     </CoursePageShell>
   );

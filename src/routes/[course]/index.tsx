@@ -1,7 +1,7 @@
 import { A, useParams } from "@solidjs/router";
-import Circle from "lucide-solid/icons/circle";
-import { createMemo, createResource, For, onMount } from "solid-js";
+import { createMemo, createResource, onMount } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
+import ProgressBar from "~/components/ProgressBar";
 import { loadCourse } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
@@ -38,21 +38,26 @@ export default function CourseIndexPage() {
       backLabel={SITE_NAME}
     >
       <section class="categories-grid">
-        {categories.map((category) => (
-          <A
-            href={`/${params.course}/${category.category}`}
-            class="card card--category"
-          >
-            <h2>{category.title}</h2>
-            <span class="course-dots">
-              <For each={sectionReadStatus()?.get(category.category) ?? []}>
-                {(allRead) => (
-                  <Circle size={8} fill={allRead ? "currentColor" : "none"} />
-                )}
-              </For>
-            </span>
-          </A>
-        ))}
+        {categories.map((category) => {
+          const subsectionStatuses =
+            sectionReadStatus()?.get(category.category) ?? [];
+          const completed = subsectionStatuses.filter(Boolean).length;
+          return (
+            <A
+              href={`/${params.course}/${category.category}`}
+              class="card card--category"
+            >
+              <h2>{category.title}</h2>
+              {subsectionStatuses.length > 0 && (
+                <ProgressBar
+                  value={completed}
+                  max={subsectionStatuses.length}
+                  color="--level-course"
+                />
+              )}
+            </A>
+          );
+        })}
       </section>
     </CoursePageShell>
   );
