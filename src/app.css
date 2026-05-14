@@ -122,24 +122,84 @@ a {
   z-index: 0;
 }
 
-/* Full-viewport background gradient behind all page content */
+/* Full-viewport ambient glow behind all page content */
 .app-layout::before {
   content: "";
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(
-      ellipse 120% 70% at 50% 0%,
-      var(--accent-glow) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 80% 60% at 50% 100%,
-      var(--accent-glow) 0%,
-      transparent 70%
-    );
+  background: /* Subtle dot grid */
+      radial-gradient(
+        1px 1px at 20px 20px,
+        rgba(255, 255, 255, 0.04) 0%,
+        transparent 100%
+      ),
+      /* Ambient glow top */
+      radial-gradient(
+        ellipse 120% 70% at 50% 0%,
+        var(--accent-glow) 0%,
+        transparent 70%
+      ),
+      /* Ambient glow bottom */
+      radial-gradient(
+        ellipse 80% 60% at 50% 100%,
+        var(--accent-glow) 0%,
+        transparent 70%
+      );
+  background-size:
+    40px 40px,
+    100% 100%,
+    100% 100%;
+  background-repeat: repeat, no-repeat, no-repeat;
   pointer-events: none;
   z-index: -1;
+}
+
+/* Animated light trail that occasionally sweeps across the screen */
+.app-layout::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(96, 165, 250, 0.03) 15%,
+    rgba(167, 139, 250, 0.06) 25%,
+    rgba(96, 165, 250, 0.03) 35%,
+    transparent 50%
+  );
+  background-size: 200% 100%;
+  animation: light-trail 14s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes light-trail {
+  0% {
+    transform: translateX(-100%) translateY(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(60vw) translateY(20vh);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(100vw) translateY(40vh);
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(140vw) translateY(20vh);
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(200%) translateY(0);
+    opacity: 0;
+  }
 }
 
 .app-content {
