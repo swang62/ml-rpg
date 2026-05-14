@@ -164,8 +164,8 @@ a {
     url("/assets/bg/lesson-bg.jpg") center / cover fixed no-repeat;
 }
 
-/* Ensure page content extends to full viewport height so background covers entirely */
-.page-level--course,
+/* Ensure page content extends to full viewport height on non-homepage pages
+   so the fixed background covers the full visible area */
 .page-level--category,
 .page-level--section,
 .page-level--lesson {
@@ -790,9 +790,13 @@ a {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 64px 24px 48px;
+  padding: 48px 24px;
   overflow: hidden;
-  min-height: calc(100vh - 56px);
+}
+
+/* Homepage hero fills viewport exactly — no scroll */
+.page-level--course:has(.hero) .hero {
+  height: calc(100vh - 56px);
 }
 
 .hero__tag {
