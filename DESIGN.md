@@ -11,11 +11,11 @@ colors:
   text: "#c8ced8"
   text-muted: "#7a8299"
   text-heading: "#e8ecf4"
-  accent: "#67b3f0"
-  accent-hover: "#8fc8f5"
-  level-course: "#b8a0f0"
-  level-category: "#5cc9a0"
-  level-section: "#f0c860"
+  accent: "#60a5fa"
+  accent-hover: "#93c5fd"
+  level-course: "#a78bfa"
+  level-category: "#34d399"
+  level-section: "#fbbf24"
 typography:
   body:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif"
@@ -103,7 +103,7 @@ The system is friendly and calm, with soft edges, muted surfaces, and a dark bac
 The palette is restrained — tinted dark neutrals with a single blue accent used sparingly. Three hierarchy colors (purple, green, gold) mark the content level and carry progress state; they're decorative-recognizable, not attention-grabbing.
 
 ### Primary
-- **Soft Blue Accent** (`#67b3f0`, oklch ~68% 0.1 250): Used for interactive elements — links, focus rings, search results, accent bars. Hover state shifts lighter (`#8fc8f5`).
+- **Soft Blue Accent** (`#60a5fa`): Used for interactive elements — links, focus rings, search results, accent bars. Hover state shifts lighter (`#93c5fd`).
 
 ### Neutral
 - **Deep Charcoal** (`#0d0f14`): Page background. The canvas.
@@ -117,9 +117,9 @@ The palette is restrained — tinted dark neutrals with a single blue accent use
 - **Text Muted** (`#7a8299`): Secondary information, breadcrumbs, metadata, placeholders.
 
 ### Hierarchy Indicators
-- **Course Purple** (`#b8a0f0`): Course-level navigation, progress dots, card icons.
-- **Category Green** (`#5cc9a0`): Category-level progress dots, section indicators.
-- **Section Gold** (`#f0c860`): Subsection-level progress dots, article checkmarks, lesson navigation accents.
+- **Course Purple** (`#a78bfa`): Course-level navigation, progress dots, card icons.
+- **Category Green** (`#34d399`): Category-level progress dots, section indicators.
+- **Section Gold** (`#fbbf24`): Subsection-level progress dots, article checkmarks, lesson navigation accents.
 
 ### Named Rules
 **The Variable-Only Rule.** Every color value in CSS must be referenced through a `var(--color-X)` custom property. No hardcoded hex or rgba values anywhere in component styles. The `@theme` block in `app.css` is the single source of truth.
@@ -153,7 +153,7 @@ Hover states lift the card with a brighter inner highlight, a slightly stronger 
 - **Canvas** (bg `#0d0f14`): The page background. Never directly overlapped.
 - **Surface** (`#161922`): Cards, containers, inputs. The default interaction layer.
 - **Surface Elevated** (`#1c2030`): Dropdowns, floating overlays. Same border but higher background.
-- **Header** (bg `rgba(13, 15, 20, 0.75)` + blur): Sticky top bar. Glass layer that sits above scroll content.
+- **Header** (bg `var(--surface-glass)` + blur): Sticky top bar. Glass layer that sits above scroll content.
 
 ### Shadow Palette
 - **Card Rest** (`inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)`): Default card state. Subtle inner highlight + low drop shadow.
@@ -166,7 +166,7 @@ Hover states lift the card with a brighter inner highlight, a slightly stronger 
 The foundational container for all list and grid content. Soft and approachable.
 
 - **Corner Style:** Gently rounded (10px default, 14px for lesson card)
-- **Background:** Surface dark (`#161922`) with inner top highlight for depth
+- **Background:** Surface dark (`#161922`) with inner top highlight for depth. Lesson card shares the same surface color.
 - **Shadow Strategy:** Subtle at rest, lifted on hover with border brightening
 - **Border:** 1px solid border color at rest; hover transitions to border-hover
 - **Internal Padding:** 20–24px vertical, 24–32px horizontal
