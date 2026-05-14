@@ -701,13 +701,12 @@ a {
 }
 
 .card--article .article-title {
+  font-size: 0.92rem;
   color: var(--text-heading);
   line-height: 1.45;
   flex: 1;
   min-width: 0;
-  font-family: var(--font-pixel);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
 }
 
 .card--article .article-order {
@@ -1318,13 +1317,13 @@ main {
   justify-content: center;
   align-items: center;
   gap: 4px;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
   margin: 8px 0 24px;
   line-height: 1.4;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-family: var(--font-display);
+  font-family: var(--font-pixel);
   transition: color 0.3s ease;
   color: var(--text-heading);
 }
