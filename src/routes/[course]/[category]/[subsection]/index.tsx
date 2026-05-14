@@ -5,6 +5,7 @@ import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { loadCourse } from "~/server/course";
 import { getReadLessons, resetSection } from "~/server/tracking";
+import { getSectionXp } from "~/server/xp-store";
 import { SITE_NAME } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
@@ -26,7 +27,14 @@ export default function SubsectionPage() {
     async ({ course, subsection }) => getReadLessons(course, subsection),
   );
 
-  onMount(refetch);
+  const [sectionXp] = createResource(
+    () => ({ course: params.course, subsection: params.subsection }),
+    async ({ course, subsection }) => getSectionXp(course, subsection),
+  );
+
+  onMount(() => {
+    refetch();
+  });
 
   const onClickReset = async () => {
     await resetSection(params.course, params.subsection);
@@ -35,6 +43,10 @@ export default function SubsectionPage() {
 
   const lessons = subsection?.lessons ?? [];
   const sortedLessons = [...lessons].sort((a, b) => a.order - b.order);
+  const totalSectionXp = sortedLessons.reduce(
+    (sum, l) => sum + l.order * 25,
+    0,
+  );
 
   const breadcrumbs = createMemo(() => [
     { label: SITE_NAME, href: "/" },
@@ -54,10 +66,15 @@ export default function SubsectionPage() {
       backHref={`/${params.course}/${params.category}`}
       backLabel="Level"
       extra={
-        <ResetButton onClick={onClickReset}>
-          <RotateCcw size={12} />
-          Reset All
-        </ResetButton>
+        <>
+          <span class="subtitle-xp-counter">
+            {sectionXp() ?? 0} / {totalSectionXp} XP
+          </span>
+          <ResetButton onClick={onClickReset}>
+            <RotateCcw size={12} />
+            Reset All
+          </ResetButton>
+        </>
       }
     >
       <section class="articles-list">

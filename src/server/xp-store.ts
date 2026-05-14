@@ -39,3 +39,20 @@ export async function getTotalXp(): Promise<number> {
   }
   return total;
 }
+
+export async function getSectionXp(
+  course?: string,
+  subsection?: string,
+): Promise<number> {
+  if (!course || !subsection) return 0;
+  const storage = getStorage();
+  const keys = await storage.getKeys();
+  let total = 0;
+  for (const key of keys) {
+    if (key.startsWith(`${course}:${subsection}:`)) {
+      const val = await storage.getItem<number>(key);
+      if (val) total += val;
+    }
+  }
+  return total;
+}
