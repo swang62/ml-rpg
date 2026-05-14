@@ -41,7 +41,7 @@ export default function CategoryPage() {
       pageLevel="category"
       breadcrumbs={breadcrumbs()}
       backHref={`/${params.course}`}
-      backLabel={course?.title}
+      backLabel="World"
     >
       <section class="subsections-list">
         {subsections.map((section) => {

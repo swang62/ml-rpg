@@ -164,6 +164,14 @@ a {
     url("/assets/bg/lesson-bg.jpg") center / cover fixed no-repeat;
 }
 
+/* Ensure page content extends to full viewport height so background covers entirely */
+.page-level--course,
+.page-level--category,
+.page-level--section,
+.page-level--lesson {
+  min-height: 100vh;
+}
+
 /* Full-viewport ambient glow */
 .app-layout::before {
   content: "";

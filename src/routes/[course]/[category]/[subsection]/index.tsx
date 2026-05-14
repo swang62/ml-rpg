@@ -53,11 +53,11 @@ export default function SubsectionPage() {
       pageLevel="section"
       breadcrumbs={breadcrumbs()}
       backHref={`/${params.course}/${params.category}`}
-      backLabel={category?.title}
+      backLabel="Level"
       extra={
         <ResetButton onClick={onClickReset}>
           <RotateCcw size={12} />
-          Reset
+          Reset Progress
         </ResetButton>
       }
     >

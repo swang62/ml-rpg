@@ -84,7 +84,7 @@ export default function LessonPage() {
         />
 
         <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
-          <span>Lesson {currentLesson()?.order}</span>
+          <span>Mission {currentLesson()?.order}</span>
           <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
             <ExternalLink size={14} color="grey" />
           </a>
@@ -118,7 +118,7 @@ export default function LessonPage() {
         <Show when={isRead()}>
           <div class="lesson-read-badge">
             <Check size={14} />
-            <span>Read</span>
+            <span>Completed</span>
           </div>
         </Show>
       </div>
