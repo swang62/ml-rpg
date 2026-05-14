@@ -1,16 +1,16 @@
 "use server";
 
-import { resolve } from "node:path";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
 import type { Category, Subsection } from "~/data/types";
+import { dataDir } from "~/server/data-path";
 
 let _storage: ReturnType<typeof createStorage> | null = null;
 
 function getStorage() {
   if (!_storage) {
     _storage = createStorage({
-      driver: fsDriver({ base: resolve(".data/tracking") }),
+      driver: fsDriver({ base: dataDir("tracking") }),
     });
   }
   return _storage;

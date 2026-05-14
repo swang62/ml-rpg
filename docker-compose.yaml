@@ -8,3 +8,10 @@ services:
     restart: unless-stopped
     ports:
       - "3333:3000"
+    volumes:
+      - xp-data:/app/.data/xp/prod
+      - tracking-data:/app/.data/tracking/prod
+
+volumes:
+  xp-data:
+  tracking-data:

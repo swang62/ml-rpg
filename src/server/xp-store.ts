@@ -1,15 +1,15 @@
 "use server";
 
-import { resolve } from "node:path";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
+import { dataDir } from "~/server/data-path";
 
 let _xpStorage: ReturnType<typeof createStorage> | null = null;
 
 function getStorage() {
   if (!_xpStorage) {
     _xpStorage = createStorage({
-      driver: fsDriver({ base: resolve(".data/xp") }),
+      driver: fsDriver({ base: dataDir("xp") }),
     });
   }
   return _xpStorage;
