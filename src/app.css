@@ -222,22 +222,21 @@ a {
 }
 
 .page-level--category {
-  background:
-    linear-gradient(rgba(13, 15, 20, 0.9), rgba(13, 15, 20, 0.9)),
-    url("/assets/bg/category-bg.jpg") center / cover fixed no-repeat;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-level--section {
-  background:
-    linear-gradient(rgba(13, 15, 20, 0.9), rgba(13, 15, 20, 0.9)),
-    url("/assets/bg/section-bg.jpg") center / cover fixed no-repeat;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-level--lesson {
   flex: 1;
-  background:
-    linear-gradient(rgba(24, 26, 36, 0.88), rgba(24, 26, 36, 0.88)),
-    url("/assets/bg/lesson-bg.jpg") center / cover fixed no-repeat;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-content {
