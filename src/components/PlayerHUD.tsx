@@ -1,4 +1,4 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onCleanup, onMount } from "solid-js";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 function avatarBorderColor(level: number): string {
@@ -26,13 +26,19 @@ export default function PlayerHUD() {
   const [xp, setXp] = createSignal<number>();
 
   onMount(async () => {
-    try {
-      const res = await fetch("/api/xp");
-      const data = await res.json();
-      setXp(data.xp);
-    } catch {
-      // API not available yet
-    }
+    const fetchXp = async () => {
+      try {
+        const res = await fetch("/api/xp");
+        const data = await res.json();
+        setXp(data.xp);
+      } catch {
+        // API not available yet
+      }
+    };
+
+    await fetchXp();
+    const interval = setInterval(fetchXp, 3000);
+    onCleanup(() => clearInterval(interval));
   });
 
   const lvl = () => {

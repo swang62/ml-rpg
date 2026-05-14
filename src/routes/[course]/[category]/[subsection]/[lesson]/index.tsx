@@ -84,7 +84,7 @@ export default function LessonPage() {
         />
 
         <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
-          <span>Mission {currentLesson()?.order}</span>
+          <span>Objective {currentLesson()?.order}</span>
           <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
             <ExternalLink size={14} color="grey" />
           </a>
