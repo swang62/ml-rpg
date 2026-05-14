@@ -1601,5 +1601,5 @@ main {
 }
 
 .lesson-read-badge--enter {
-  animation: badge-slide-in 0.4s ease-out;
+  animation: badge-slide-in 0.3s ease-out;
 }
