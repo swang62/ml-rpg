@@ -1559,6 +1559,15 @@ main {
     0 0 0 1px var(--border-glow-section);
 }
 
+.lesson-back-link--read {
+  opacity: 0.35;
+  filter: grayscale(0.7);
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+}
+
 .lesson-read-badge {
   position: fixed;
   bottom: 24px;
@@ -1581,15 +1590,17 @@ main {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 
-@keyframes lesson-fade-in {
+@keyframes badge-slide-in {
   from {
     opacity: 0;
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.lesson-fade-in {
-  animation: lesson-fade-in 0.3s ease-out;
+.lesson-read-badge--enter {
+  animation: badge-slide-in 0.4s ease-out;
 }

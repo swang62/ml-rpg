@@ -56,7 +56,7 @@ export default function PlayerHUD() {
     const currentLevel = level().level;
     if (initialized && currentLevel > prevLevel) {
       setLevelUp(true);
-      setTimeout(() => setLevelUp(false), POLL_INTERVAL);
+      setTimeout(() => setLevelUp(false), 800);
     }
     prevLevel = currentLevel;
     initialized = true;

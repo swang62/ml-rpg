@@ -63,7 +63,10 @@ export default function LessonPage() {
 
       <A
         href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
-        class="lesson-back-link"
+        classList={{
+          "lesson-back-link": true,
+          "lesson-back-link--read": isRead(),
+        }}
       >
         <ChevronLeft size={16} />
         Back to Quest
@@ -100,7 +103,7 @@ export default function LessonPage() {
         />
 
         <Show when={isRead()}>
-          <div class="lesson-read-badge">
+          <div class="lesson-read-badge lesson-read-badge--enter">
             <Check size={14} />
             <span>Completed</span>
           </div>
