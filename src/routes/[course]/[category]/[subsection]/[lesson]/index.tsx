@@ -65,7 +65,7 @@ export default function LessonPage() {
         href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
         classList={{
           "lesson-back-link": true,
-          "lesson-back-link--read": isRead(),
+          "lesson-back-link--unread": !isRead(),
         }}
       >
         <ChevronLeft size={16} />

@@ -1559,7 +1559,7 @@ main {
     0 0 0 1px var(--border-glow-section);
 }
 
-.lesson-back-link--read {
+.lesson-back-link--unread {
   opacity: 0.35;
   filter: grayscale(0.7);
   pointer-events: none;
