@@ -1,17 +1,11 @@
 import { createMemo, createResource, onCleanup, onMount } from "solid-js";
+import { getTotalXp } from "~/server/xp-store";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 function fmtXp(n: number): string {
   return n >= 1000
     ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1).replace(/\.0$/, "")}k`
     : `${n}`;
-}
-
-async function fetchXp(): Promise<number> {
-  if (typeof document === "undefined") return 0;
-  const res = await fetch("/api/xp");
-  const data = await res.json();
-  return data.xp as number;
 }
 
 function avatarBorderColor(level: number): string {
@@ -36,7 +30,7 @@ function avatarGlow(level: number): string {
 }
 
 export default function PlayerHUD() {
-  const [xp, { refetch }] = createResource(fetchXp, { initialValue: 0 });
+  const [xp, { refetch }] = createResource(getTotalXp, { initialValue: 0 });
   const level = createMemo(() => getLevel(xp()));
   const progress = createMemo(() => xpToNextLevel(xp()));
 
