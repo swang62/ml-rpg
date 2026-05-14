@@ -4,6 +4,7 @@ import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
 import type { Category, Subsection } from "~/data/types";
 import { dataDir } from "~/server/data-path";
+import { removeSectionXp } from "~/server/xp-store";
 
 let _storage: ReturnType<typeof createStorage> | null = null;
 
@@ -62,6 +63,7 @@ export async function resetSection(
   const storage = getStorage();
   const key = sectionKey(course, subsection);
   await storage.removeItem(key);
+  await removeSectionXp(course, subsection);
 }
 
 export async function fetchSectionReadStatus(

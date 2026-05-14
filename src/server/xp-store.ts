@@ -40,6 +40,21 @@ export async function getTotalXp(): Promise<number> {
   return total;
 }
 
+export async function removeSectionXp(
+  course?: string,
+  subsection?: string,
+): Promise<void> {
+  if (!course || !subsection) return;
+  const storage = getStorage();
+  const keys = await storage.getKeys();
+  const prefix = `${course}:${subsection}:`;
+  for (const key of keys) {
+    if (key.startsWith(prefix)) {
+      await storage.removeItem(key);
+    }
+  }
+}
+
 export async function getSectionXp(
   course?: string,
   subsection?: string,
