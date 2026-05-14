@@ -47,6 +47,23 @@ No test framework is configured.
 
 `Course → Category → Subsection → Lesson` (rendered via dynamic routes)
 
+### Game terminology
+
+| UI Label | Internal | Route Param |
+|----------|----------|-------------|
+| WORLD | course | `[course]` |
+| LEVEL | category | `[category]` |
+| QUEST | subsection | `[subsection]` |
+| Objective | lesson | `[lesson]` |
+
+### XP & tracking system
+
+- XP stored server-side in `.data/xp/{env}/` via unstorage/fs driver (one file per lesson key)
+- Read status stored in `.data/tracking/{env}/` via unstorage/fs driver
+- `"use server"` functions in `src/server/` handle all persistence
+- `NODE_ENV` determines dev vs prod data directories (via `src/server/data-path.ts`)
+- Dev server uses `.data/{store}/dev/`, production Docker mounts volumes at `.data/{store}/prod/`
+
 ## Path Alias
 
 `~/*` → `./src/*` (configured in `tsconfig.json`)
