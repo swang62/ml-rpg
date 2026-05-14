@@ -23,6 +23,7 @@ function getAvatarStyle(level: number) {
 export default function PlayerHUD() {
   const params = useParams();
   const [xp, setXp] = createSignal<number>(0);
+  const [levelUp, setLevelUp] = createSignal(false);
 
   createEffect(async () => {
     let interval: NodeJS.Timeout;
@@ -49,9 +50,25 @@ export default function PlayerHUD() {
   const progress = createMemo(() => xpToNextLevel(xp()));
   const avatarStyle = createMemo(() => getAvatarStyle(level().level));
 
+  let prevLevel = 0;
+  let initialized = false;
+  createEffect(() => {
+    const currentLevel = level().level;
+    if (initialized && currentLevel > prevLevel) {
+      setLevelUp(true);
+      setTimeout(() => setLevelUp(false), 800);
+    }
+    prevLevel = currentLevel;
+    initialized = true;
+  });
+
   return (
     <div class="player-hud">
-      <div class="player-hud__avatar" style={avatarStyle()}>
+      <div
+        class="player-hud__avatar"
+        classList={{ "level-up": levelUp() }}
+        style={avatarStyle()}
+      >
         <img
           src={`/assets/avatars/lvl${level().level}.svg`}
           alt={level().title}
@@ -60,7 +77,9 @@ export default function PlayerHUD() {
         />
       </div>
       <div class="player-hud__info">
-        <span class="player-hud__title">{level().title}</span>
+        <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
+          {level().title}
+        </span>
         <div class="player-hud__xp-bar">
           <div
             class="player-hud__xp-fill"
@@ -68,7 +87,9 @@ export default function PlayerHUD() {
           />
         </div>
         <div class="player-hud__stats">
-          <span class="player-hud__lvl">Lv.{level().level}</span>
+          <span class="player-hud__lvl" classList={{ "level-up": levelUp() }}>
+            Lv.{level().level}
+          </span>
           <span class="player-hud__xp-count">
             {progress().xpNeeded > 0
               ? `${progress().currentXp}/${fmtXp(progress().xpNeeded)} XP`
