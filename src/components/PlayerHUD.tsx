@@ -1,4 +1,11 @@
-import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { useParams } from "@solidjs/router";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import { getTotalXp } from "~/server/xp";
 import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
@@ -20,20 +27,28 @@ function getAvatarStyle(level: number) {
 }
 
 export default function PlayerHUD() {
+  const params = useParams();
   const [xp, setXp] = createSignal<number>(0);
 
-  onMount(async () => {
+  createEffect(async () => {
+    let interval: NodeJS.Timeout;
+    let cancelled = false;
+
     const fetchIt = async () => {
-      try {
-        const val = await getTotalXp();
-        setXp(val);
-      } catch {
-        // server function not available
-      }
+      if (cancelled) return;
+      const val = await getTotalXp();
+      setXp(val);
     };
-    await fetchIt();
-    const interval = setInterval(fetchIt, POLL_INTERVAL);
-    onCleanup(() => clearInterval(interval));
+    fetchIt();
+
+    // Start polling only on section/lesson routes
+    if (params.subsection || params.lesson) {
+      interval = setInterval(fetchIt, POLL_INTERVAL);
+    }
+    onCleanup(() => {
+      cancelled = true;
+      clearInterval(interval);
+    });
   });
 
   const level = createMemo(() => getLevel(xp()));
