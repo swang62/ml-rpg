@@ -35,7 +35,8 @@ export default function CategoryPage() {
   return (
     <CoursePageShell
       title={category?.title}
-      subtitle={`${subsections.length} quest${subsections.length !== 1 ? "s" : ""}`}
+      subtitle="Choose a quest to continue"
+      badge="LEVEL"
       containerClass="container-medium"
       pageLevel="category"
       breadcrumbs={breadcrumbs()}

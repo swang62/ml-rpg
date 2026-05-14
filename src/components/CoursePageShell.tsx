@@ -13,6 +13,7 @@ interface BreadcrumbItem {
 interface CoursePageShellProps {
   title?: string;
   subtitle: string;
+  badge?: string;
   extra?: JSX.Element;
   containerClass: string;
   pageLevel: "course" | "category" | "section" | "lesson";
@@ -29,7 +30,11 @@ export default function CoursePageShell(props: CoursePageShellProps) {
     >
       <PageTitle segment={props.title} />
       <Breadcrumbs items={props.breadcrumbs} />
-      <PageHeader title={props.title} subtitle={props.subtitle} />
+      <PageHeader
+        title={props.title}
+        subtitle={props.subtitle}
+        badge={props.badge}
+      />
       {props.children}
       <div class="flex justify-between items-baseline">
         <A href={props.backHref} class="back-link">

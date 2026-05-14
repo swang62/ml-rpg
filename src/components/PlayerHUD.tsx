@@ -30,7 +30,7 @@ export default function PlayerHUD() {
     <div class="player-hud">
       <div class="player-hud__avatar">
         <img
-          src={`/assets/avatars/lvl${lvl()?.level ?? 0}-${(lvl()?.title ?? "nobody").toLowerCase()}.svg`}
+          src={`/assets/avatars/lvl${lvl()?.level ?? 0}-${(lvl()?.title ?? "novice").toLowerCase()}.svg`}
           alt={lvl()?.title ?? "-"}
           width="32"
           height="32"
@@ -41,15 +41,17 @@ export default function PlayerHUD() {
           <span class="player-hud__level">
             {xp() !== undefined ? `Lv.${lvl()?.level} ${lvl()?.title}` : "--"}
           </span>
-          <span class="player-hud__xp">
-            {xp() !== undefined ? `${xp()} XP` : "--"}
-          </span>
         </div>
         <div class="player-hud__xp-bar">
           <div
             class="player-hud__xp-fill"
             style={{ width: `${prog()?.pct ?? 0}%` }}
           />
+        </div>
+        <div class="player-hud__xp-text">
+          {xp() !== undefined
+            ? `${prog()?.currentXp ?? 0} / ${prog()?.xpNeeded ?? 0} XP`
+            : ""}
         </div>
       </div>
     </div>

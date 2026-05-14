@@ -111,7 +111,7 @@ export default function LessonPage() {
               class="back-link"
             >
               <ChevronLeft size={14} />
-              Back to {subsection?.title}
+              Back to Quest
             </A>
           </div>
         </div>

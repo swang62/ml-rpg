@@ -47,18 +47,19 @@ export default function SubsectionPage() {
   return (
     <CoursePageShell
       title={subsection?.title}
-      subtitle={`${lessons.length} mission${lessons.length !== 1 ? "s" : ""}`}
+      subtitle="Complete all missions to master this quest"
+      badge="QUEST"
+      containerClass="container-narrow"
+      pageLevel="section"
+      breadcrumbs={breadcrumbs()}
+      backHref={`/${params.course}/${params.category}`}
+      backLabel={category?.title}
       extra={
         <ResetButton onClick={onClickReset}>
           <RotateCcw size={12} />
           Reset
         </ResetButton>
       }
-      pageLevel="section"
-      containerClass="container-narrow"
-      breadcrumbs={breadcrumbs()}
-      backHref={`/${params.course}/${params.category}`}
-      backLabel={category?.title}
     >
       <section class="articles-list">
         {sortedLessons.map((article) => {

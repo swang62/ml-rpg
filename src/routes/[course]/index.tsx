@@ -30,12 +30,13 @@ export default function CourseIndexPage() {
   return (
     <CoursePageShell
       title={course?.title}
-      subtitle={`${categories.length} level${categories.length !== 1 ? "s" : ""}`}
+      subtitle="Choose a level to begin your training"
+      badge="WORLD"
       containerClass=""
       pageLevel="course"
       breadcrumbs={breadcrumbs()}
       backHref="/"
-      backLabel={SITE_NAME}
+      backLabel="Worlds"
     >
       <section class="categories-grid">
         {categories.map((category) => {
