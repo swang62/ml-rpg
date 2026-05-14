@@ -18,7 +18,7 @@ pnpm preview    # serve built app via node .output/server/index.mjs
 pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 ```
 
-> `pnpm dev` has HMR (hot module replacement). When inspecting UI changes, prefer directly visiting `localhost:3000` first. If it's not running yet (always check for existing servers, never start up more than 1 dev server), then start a new dev server (`pnpm dev`) and wait for HMR to pick up edits, rather than doing a full build + preview cycle. Do not restart the dev server to check for new changes.
+> **The user controls the dev server.** Never kill, restart, reload, start, or stop `pnpm dev`. The user starts it manually and it has HMR — edits are reflected instantly without a restart. If the page at `localhost:3000` shows stale content, wait for HMR to pick up the change. You can run linting and building to check things if needed.
 > Run `pnpm lint` before pushing — it handles formatting, linting, type checking in one pass.
 > Run `fallow` only when checking for dead code / duplication / complexity.
 
