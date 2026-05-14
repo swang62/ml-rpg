@@ -30,7 +30,7 @@ export default function PlayerHUD() {
     <div class="player-hud">
       <div class="player-hud__avatar">
         <img
-          src={`/assets/avatars/lvl${lvl()?.level ?? 0}-${(lvl()?.title ?? "novice").toLowerCase()}.svg`}
+          src={`/assets/avatars/lvl${lvl()?.level ?? 0}.svg`}
           alt={lvl()?.title ?? "-"}
           width="32"
           height="32"
