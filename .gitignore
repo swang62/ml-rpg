@@ -26,8 +26,9 @@ app.config.timestamp_*.js
 # Temp
 gitignore
 
-# Runtime data
-.data/
+# Runtime data - only track directory structure via .gitkeep
+.data/**
+!.data/**/.gitkeep
 
 # System Files
 .DS_Store
