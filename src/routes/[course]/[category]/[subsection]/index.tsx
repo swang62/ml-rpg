@@ -49,7 +49,7 @@ export default function SubsectionPage() {
       backLabel="Level"
       extra={
         <div class="flex flex-nowrap gap-2 items-baseline">
-          <span class="subtitle-xp-counter ">
+          <span class="subtitle-xp-counter">
             {readLessons()?.length ?? 0} / {totalSections} completed
           </span>
           <ResetButton onClick={onClickReset}>
