@@ -1,4 +1,4 @@
-import { createResource, onCleanup, onMount } from "solid-js";
+import { createMemo, createResource, onCleanup, onMount } from "solid-js";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 async function fetchXp(): Promise<number> {
@@ -30,27 +30,26 @@ function avatarGlow(level: number): string {
 
 export default function PlayerHUD() {
   const [xp, { refetch }] = createResource(fetchXp, { initialValue: 0 });
+  const level = createMemo(() => getLevel(xp()));
+  const progress = createMemo(() => xpToNextLevel(xp()));
 
   onMount(() => {
     const interval = setInterval(refetch, 3000);
     onCleanup(() => clearInterval(interval));
   });
 
-  const lvl = () => getLevel(xp());
-  const prog = () => xpToNextLevel(xp());
-
   return (
     <div class="player-hud">
       <div
         class="player-hud__avatar"
         style={{
-          border: `2px solid ${avatarBorderColor(lvl().level)}`,
-          "box-shadow": avatarGlow(lvl().level),
+          border: `2px solid ${avatarBorderColor(level().level)}`,
+          "box-shadow": avatarGlow(level().level),
         }}
       >
         <img
-          src={`/assets/avatars/lvl${lvl().level}.svg`}
-          alt={lvl().title}
+          src={`/assets/avatars/lvl${level().level}.svg`}
+          alt={level().title}
           width="32"
           height="32"
         />
@@ -58,18 +57,18 @@ export default function PlayerHUD() {
       <div class="player-hud__info">
         <div class="player-hud__row">
           <span class="player-hud__level">
-            Lv.{lvl().level} {lvl().title}
+            Lv.{level().level} {level().title}
           </span>
         </div>
         <div class="player-hud__xp-bar">
           <div
             class="player-hud__xp-fill"
-            style={{ width: `${prog().pct}%` }}
+            style={{ width: `${progress().pct}%` }}
           />
         </div>
         <div class="player-hud__xp-text">
-          {prog().xpNeeded > 0
-            ? `${prog().currentXp} / ${prog().xpNeeded} XP`
+          {progress().xpNeeded > 0
+            ? `${progress().currentXp} / ${progress().xpNeeded} XP`
             : `${xp()} XP (MAX)`}
         </div>
       </div>
