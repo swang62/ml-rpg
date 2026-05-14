@@ -166,8 +166,6 @@ a {
 
 /* Ensure page content extends to full viewport height on non-homepage pages
    so the fixed background covers the full visible area */
-.page-level--category,
-.page-level--section,
 .page-level--lesson {
   min-height: 100vh;
 }
