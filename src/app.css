@@ -1396,6 +1396,11 @@ main {
   font-family: var(--font-pixel);
   transition: color 0.3s ease;
   color: var(--text-muted);
+  text-decoration: none;
+}
+
+.lesson-title:hover {
+  text-decoration: underline;
 }
 
 .lesson-title--read {
