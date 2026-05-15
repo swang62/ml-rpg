@@ -20,5 +20,3 @@ export interface Course {
   title: string;
   categories: Category[];
 }
-
-export type Prefix = "xp" | "tracking";
