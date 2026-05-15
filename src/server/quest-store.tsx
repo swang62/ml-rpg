@@ -9,6 +9,7 @@ import {
   getSectionBySlug,
   getLessonsBySection,
   getLessonBySlug,
+  getAllCourses,
 } from "~/db/course_sql";
 import { getLessonHtml } from "~/db/lesson_sql";
 import { getUserBySlug } from "~/db/user_sql";
@@ -268,7 +269,7 @@ export const getLessonHTMLQuery = query(
     if (!lesson) return "";
 
     const htmlRow = await getLessonHtml(db, { id: lesson.id });
-    return htmlRow?.html ?? "";
+    return cleanLessonHtml(htmlRow?.html ?? "");
   },
   "lesson-html",
 );
@@ -362,10 +363,7 @@ export const getBreadcrumbsQuery = query(
 export const getCoursesQuery = query(async () => {
   "use server";
   const db = getDb();
-  const rows = db.prepare("SELECT slug, title FROM course").all() as {
-    slug: string;
-    title: string;
-  }[];
+  const rows = await getAllCourses(db);
   return rows.map((r) => ({ slug: r.slug, title: r.title }));
 }, "courses");
 
@@ -402,4 +400,12 @@ async function findLessonByPath(
     sectionId: sec.id,
   });
   return lesson ?? null;
+}
+
+function cleanLessonHtml(html: string): string {
+  return html
+    .replace(/&lt;code[^&]*?&gt;/g, (m) =>
+      m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+    )
+    .replaceAll("&lt;/code&gt;", "</code>");
 }

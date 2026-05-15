@@ -4,8 +4,14 @@ SELECT course.id, course.slug, course.title FROM course WHERE course.id = ?;
 -- name: GetCourseBySlug :one
 SELECT course.id, course.slug, course.title FROM course WHERE course.slug = ?;
 
+-- name: GetAllCourses :many
+SELECT course.id, course.slug, course.title FROM course;
+
 -- name: GetCategoriesByCourse :many
 SELECT category.id, category.slug, category.title FROM category WHERE category.course_id = ?;
+
+-- name: GetAllCategories :many
+SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category;
 
 -- name: GetCategoryById :one
 SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category WHERE category.id = ?;
@@ -15,6 +21,9 @@ SELECT category.id, category.slug, category.title, category.course_id AS coursei
 
 -- name: GetSectionsByCategory :many
 SELECT section.id, section.slug, section.title FROM section WHERE section.category_id = ?;
+
+-- name: GetAllSections :many
+SELECT section.id, section.slug, section.title, section.category_id AS categoryid, section.course_id AS courseid FROM section;
 
 -- name: GetSectionById :one
 SELECT section.id, section.slug, section.title, section.course_id AS courseid, section.category_id AS categoryid FROM section WHERE section.id = ?;
