@@ -1,9 +1,8 @@
 import { action, query } from "@solidjs/router";
 import type { Component } from "solid-js";
 import { renderToString } from "solid-js/web";
-import { USER_ID, XP_VALUE } from "~/utils/constants";
-import type { Category, Subsection } from "~/utils/types";
-import { getStorage } from "../utils/storage";
+import { COURSES, USER_ID, XP_VALUE } from "~/utils/constants";
+import { getStorage } from "~/utils/storage";
 
 const lessonComponents = import.meta.glob<Component>(
   "~/data/lessons/**/*.tsx",
@@ -16,16 +15,18 @@ function lessonKey(course: string, subsection: string, lesson: string) {
 function sectionPrefix(course: string, subsection: string) {
   return `${USER_ID}:${course}:${subsection}:`;
 }
-function coursePrefix(course: string) {
-  return `${USER_ID}:${course}:`;
+function userPrefix() {
+  return `${USER_ID}:`;
 }
 
 export const getTotalXpQuery = query(async () => {
   "use server";
   const storage = getStorage();
+  const prefix = userPrefix();
   const keys = await storage.getKeys();
   let total = 0;
   for (const key of keys) {
+    if (!key.startsWith(prefix)) continue;
     const order = await storage.getItem<number>(key);
     if (order) total += order;
   }
@@ -55,48 +56,46 @@ export const isLessonReadQuery = query(
   "lesson-read",
 );
 
-export const getSectionReadStatusesQuery = query(
-  async (course: string, cats: Category[]) => {
-    "use server";
-    if (!cats.length) return new Map<string, boolean[]>();
-    const storage = getStorage();
-    const prefix = coursePrefix(course);
-    const keys = await storage.getKeys();
-    const prefixed = keys.filter((k) => k.startsWith(prefix));
+export const getSectionReadStatusesQuery = query(async (course: string) => {
+  "use server";
+  const c = COURSES[course];
+  if (!c) return {} as Record<string, boolean[]>;
 
-    return new Map(
-      cats.map((cat) => {
-        const statuses = cat.subsections.map((sub) => {
-          const sp = sectionPrefix(course, sub.subsection);
-          const readCount = prefixed.filter((k) => k.startsWith(sp)).length;
-          return readCount >= sub.lessons.length;
-        });
-        return [cat.category, statuses];
-      }),
-    );
-  },
-  "section-statuses",
-);
+  const storage = getStorage();
+  const prefix = userPrefix();
+  const keys = await storage.getKeys();
+  const prefixed = keys.filter((k) => k.startsWith(prefix));
 
-export const getReadCountsQuery = query(
-  async (course: string, subs: Subsection[]) => {
-    "use server";
-    if (!subs.length) return new Map<string, number>();
-    const storage = getStorage();
-    const prefix = coursePrefix(course);
-    const keys = await storage.getKeys();
-    const prefixed = keys.filter((k) => k.startsWith(prefix));
+  const result: Record<string, boolean[]> = {};
+  for (const cat of c.categories) {
+    result[cat.category] = cat.subsections.map((sub) => {
+      const sp = sectionPrefix(course, sub.subsection);
+      const readCount = prefixed.filter((k) => k.startsWith(sp)).length;
+      return readCount >= sub.lessons.length;
+    });
+  }
+  return result;
+}, "section-statuses");
 
-    return new Map(
-      subs.map((sub) => {
-        const sp = sectionPrefix(course, sub.subsection);
-        const readCount = prefixed.filter((k) => k.startsWith(sp)).length;
-        return [sub.subsection, readCount];
-      }),
-    );
-  },
-  "read-counts",
-);
+export const getReadCountsQuery = query(async (course: string) => {
+  "use server";
+  const c = COURSES[course];
+  if (!c) return {} as Record<string, number>;
+
+  const storage = getStorage();
+  const prefix = userPrefix();
+  const keys = await storage.getKeys();
+  const prefixed = keys.filter((k) => k.startsWith(prefix));
+
+  const result: Record<string, number> = {};
+  for (const cat of c.categories) {
+    for (const sub of cat.subsections) {
+      const sp = sectionPrefix(course, sub.subsection);
+      result[sub.subsection] = prefixed.filter((k) => k.startsWith(sp)).length;
+    }
+  }
+  return result;
+}, "read-counts");
 
 export const getLessonHTMLQuery = query(
   async (course: string, subsection: string, lesson: string) => {
