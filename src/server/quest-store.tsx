@@ -1,6 +1,4 @@
 import { action, query } from "@solidjs/router";
-import type { Component } from "solid-js";
-import { renderToString } from "solid-js/web";
 import { USER_ID, XP_VALUE } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 import {
@@ -12,7 +10,7 @@ import {
   getLessonsBySection,
   getLessonBySlug,
 } from "~/db/course_sql";
-import { getLessonHtml, updateLessonHtml } from "~/db/lesson_sql";
+import { getLessonHtml } from "~/db/lesson_sql";
 import { getUserBySlug } from "~/db/user_sql";
 import {
   getTotalXp as getTotalXpDb,
@@ -23,11 +21,6 @@ import {
   getReadCountsByCourse,
   getAllReadLessons,
 } from "~/db/progress_sql";
-
-const lessonComponents = import.meta.glob<Component>(
-  "./.data/raw/lessons/**/*.tsx",
-  { import: "default" },
-);
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
   "use server";
@@ -275,25 +268,7 @@ export const getLessonHTMLQuery = query(
     if (!lesson) return "";
 
     const htmlRow = await getLessonHtml(db, { id: lesson.id });
-    if (htmlRow?.html) return htmlRow.html;
-
-    // Lazy render from TSX source and cache in DB
-    const key = Object.keys(lessonComponents).find((k) =>
-      k.endsWith(`/${courseSlug}/${subsectionSlug}__${lessonSlug}.tsx`),
-    );
-    if (key) {
-      const Comp = await lessonComponents[key]();
-      const html = renderToString(() => <Comp />);
-      const cleaned = html
-        .replace(/&lt;code[^&]*?&gt;/g, (m) =>
-          m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
-        )
-        .replaceAll("&lt;/code&gt;", "</code>");
-      updateLessonHtml(db, { html: cleaned, id: lesson.id });
-      return cleaned;
-    }
-
-    return "";
+    return htmlRow?.html ?? "";
   },
   "lesson-html",
 );
@@ -384,43 +359,15 @@ export const getBreadcrumbsQuery = query(
   "breadcrumbs",
 );
 
-/** Cache all lessons. Call via createAsync or from a startup hook. */
-export const cacheAllLessonsQuery = query(async () => {
+export const getCoursesQuery = query(async () => {
   "use server";
   const db = getDb();
-
-  for (const [filePath, loader] of Object.entries(lessonComponents)) {
-    const normalized = filePath.replace(/\\/g, "/");
-    const parts = normalized.replace(/\.tsx$/, "").split("/");
-    const srcIdx = parts.lastIndexOf("lessons");
-    if (srcIdx === -1) continue;
-
-    const courseSlug = parts[srcIdx + 1];
-    const rest = parts.slice(srcIdx + 2).join("/");
-    const delimIdx = rest.indexOf("__");
-    if (delimIdx === -1) continue;
-
-    const subsectionSlug = rest.slice(0, delimIdx);
-    const lessonSlug = rest.slice(delimIdx + 2);
-
-    try {
-      const lesson = await findLessonByPath(db, courseSlug, subsectionSlug, lessonSlug);
-      if (!lesson) continue;
-
-      const Comp = await loader();
-      const html = renderToString(() => <Comp />);
-      const cleaned = html
-        .replace(/&lt;code[^&]*?&gt;/g, (m) =>
-          m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
-        )
-        .replaceAll("&lt;/code&gt;", "</code>");
-
-      updateLessonHtml(db, { html: cleaned, id: lesson.id });
-    } catch (err) {
-      console.error(`Failed to cache HTML for ${filePath}: ${err}`);
-    }
-  }
-}, "cache-html");
+  const rows = db.prepare("SELECT slug, title FROM course").all() as {
+    slug: string;
+    title: string;
+  }[];
+  return rows.map((r) => ({ slug: r.slug, title: r.title }));
+}, "courses");
 
 async function findSectionBySlugInCourse(
   db: import("better-sqlite3").Database,
