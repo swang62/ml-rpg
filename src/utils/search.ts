@@ -1,9 +1,5 @@
 import MiniSearch from "minisearch";
-import {
-  SEARCH_INDEX_PATH,
-  SEARCH_MAX_RESULTS,
-  SEARCH_MIN_QUERY_LENGTH,
-} from "~/utils/constants";
+import { SEARCH_MAX_RESULTS, SEARCH_MIN_QUERY_LENGTH } from "~/utils/constants";
 
 export interface SearchResult {
   articleTitle: string;
@@ -13,33 +9,18 @@ export interface SearchResult {
 }
 
 let index: MiniSearch | null = null;
-let loadPromise: Promise<void> | null = null;
 
-export function loadSearchIndex(): Promise<void> {
-  if (index) return Promise.resolve();
-  if (loadPromise) return loadPromise;
-
-  loadPromise = fetch(SEARCH_INDEX_PATH)
-    .then((res) => res.json())
-    .then((data) => {
-      index = MiniSearch.loadJSON(JSON.stringify(data), {
-        fields: ["title", "text"],
-        storeFields: [
-          "articleTitle",
-          "categoryTitle",
-          "subsectionTitle",
-          "url",
-        ],
-        searchOptions: {
-          boost: { title: 1.5 },
-          fuzzy: 0.2,
-          prefix: true,
-          combineWith: "or",
-        },
-      });
-    });
-
-  return loadPromise;
+export function initSearchIndex(json: string) {
+  index = MiniSearch.loadJSON(json, {
+    fields: ["title", "text"],
+    storeFields: ["articleTitle", "categoryTitle", "subsectionTitle", "url"],
+    searchOptions: {
+      boost: { title: 1.5 },
+      fuzzy: 0.2,
+      prefix: true,
+      combineWith: "or",
+    },
+  });
 }
 
 export function searchSiteData(query: string): SearchResult[] {

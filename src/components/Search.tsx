@@ -1,11 +1,12 @@
-import { useNavigate } from "@solidjs/router";
+import { createAsync, useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
+import { getSearchIndexQuery } from "~/server/search";
 import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
 } from "~/utils/constants";
-import { loadSearchIndex, searchSiteData } from "~/utils/search";
+import { initSearchIndex, searchSiteData } from "~/utils/search";
 
 export default function Search() {
   const navigate = useNavigate();
@@ -22,6 +23,10 @@ export default function Search() {
   >([]);
   let inputRef: HTMLInputElement | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const searchIndexJson = createAsync(() => getSearchIndexQuery(), {
+    initialValue: null,
+  });
 
   onMount(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -46,8 +51,12 @@ export default function Search() {
         setResults([]);
         return;
       }
-      await loadSearchIndex();
-      setResults(searchSiteData(trimmed));
+
+      const json = searchIndexJson();
+      if (json) {
+        initSearchIndex(json);
+        setResults(searchSiteData(trimmed));
+      }
     }, SEARCH_DEBOUNCE_MS);
   };
 
