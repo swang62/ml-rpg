@@ -5,6 +5,7 @@
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
+    "gen:db": "sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
     "preview": "vinxi start",
     "prepare": "husky || true",
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",
     "@tailwindcss/vite": "^4.3.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.6.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.2",
