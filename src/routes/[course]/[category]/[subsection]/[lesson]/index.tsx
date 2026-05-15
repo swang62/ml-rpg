@@ -11,7 +11,7 @@ import {
   getLessonNavQuery,
   isLessonReadQuery,
 } from "~/server/quest-store";
-import { BASE_URL } from "~/utils/constants";
+import { BASE_URL, XP_VALUE } from "~/utils/constants";
 
 export default function LessonPage() {
   const params = useParams();
@@ -82,8 +82,8 @@ export default function LessonPage() {
             class="article-xp-badge"
             classList={{ "article-xp-badge--read": isRead() }}
           >
-            {(nav()?.currentLesson?.order ?? 0) * 25}
-            <span class="article-xp-badge__label">XP</span>
+            ({(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
+            <span class="article-xp-badge__label">XP)</span>
           </span>
         </a>
         <div innerHTML={lessonHtml()} />

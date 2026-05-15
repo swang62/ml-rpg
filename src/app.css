@@ -786,6 +786,7 @@ a {
 }
 
 .article-xp-badge__label {
+  padding-left: 2px;
   font-size: 0.6rem;
 }
 
@@ -1386,7 +1387,7 @@ main {
   text-align: center;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   font-size: 1rem;
   font-weight: 600;
@@ -1397,10 +1398,6 @@ main {
   transition: color 0.3s ease;
   color: var(--text-muted);
   text-decoration: none;
-}
-
-.lesson-title:hover {
-  text-decoration: underline;
 }
 
 .lesson-title--read {

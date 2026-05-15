@@ -11,7 +11,7 @@ System Overflow is a retro game-themed content-navigation site with an XP/leveli
 3. **Quest** (subsection) — a specific subject within a level (e.g., "Experiment Design")
 4. **Objective** (lesson) — an individual learning piece with its own page and external links
 
-Each objective awards XP (order * 25) when read. Players level up through 20 ranks (Novice → Eternal) with a quadratic XP curve. Progress persists server-side via unstorage.
+Each objective awards XP (order * xp value) when read. Players level up through 20 ranks (Novice → Eternal) with a quadratic XP curve. Progress persists server-side via unstorage.
 
 ## Tech Stack
 
@@ -62,7 +62,7 @@ pnpm lint           # biome check --write . && pnpm typecheck && fallow audit
 
 ### XP & Leveling
 
-- Each objective awards `order * 25` XP (objective 1 = 25 XP, objective 6 = 150 XP)
+- Each objective awards `order * XP_VALUE` XP (objective 1 = 25 XP, objective 6 = 150 XP)
 - 20 ranks from Novice (0) to Eternal (20), quadratic XP curve
 - Level 20 requires 60,000 XP (69% of ~87,000 total available XP)
 - Server-side persistence via unstorage + fs driver (`.data/xp/`)
