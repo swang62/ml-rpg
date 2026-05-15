@@ -97,6 +97,40 @@ export const getReadCountsQuery = query(async (course: string) => {
   return result;
 }, "read-counts");
 
+export const getCourseStructureQuery = query(async (courseSlug: string) => {
+  "use server";
+  return COURSES[courseSlug] ?? null;
+}, "course-structure");
+
+export const getLessonNavQuery = query(
+  async (
+    course: string,
+    category: string,
+    subsection: string,
+    lesson: string,
+  ) => {
+    "use server";
+    const c = COURSES[course];
+    const cat = c?.categories.find((cat) => cat.category === category);
+    const sub = cat?.subsections.find((s) => s.subsection === subsection);
+    if (!sub) return null;
+    const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
+    const idx = sorted.findIndex((l) => l.lesson === lesson);
+    return {
+      currentLesson: sorted[idx] ?? null,
+      prevLesson: idx > 0 ? sorted[idx - 1] : null,
+      nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+      sortedLessons: sorted,
+    } as {
+      currentLesson: { lesson: string; title: string; order: number } | null;
+      prevLesson: { lesson: string; title: string; order: number } | null;
+      nextLesson: { lesson: string; title: string; order: number } | null;
+      sortedLessons: { lesson: string; title: string; order: number }[];
+    };
+  },
+  "lesson-nav",
+);
+
 export const getLessonHTMLQuery = query(
   async (course: string, subsection: string, lesson: string) => {
     "use server";

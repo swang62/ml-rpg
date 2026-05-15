@@ -2,21 +2,28 @@ import { A, createAsync, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createMemo, Show } from "solid-js";
+import { createEffect, Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
 import {
   getLessonHTMLQuery,
+  getLessonNavQuery,
   getTotalXpQuery,
   isLessonReadQuery,
 } from "~/server/quest-store";
-import { BASE_URL, COURSES } from "~/utils/constants";
+import { BASE_URL } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 
 export const route = {
   preload: ({ params }: { params: Record<string, string> }) => {
     getTotalXpQuery();
+    getLessonNavQuery(
+      params.course as string,
+      params.category as string,
+      params.subsection as string,
+      params.lesson as string,
+    );
     isLessonReadQuery(
       params.course as string,
       params.subsection as string,
@@ -34,36 +41,21 @@ export default function LessonPage() {
   const params = useParams();
   if (!params.category || !params.subsection || !params.lesson) return;
 
-  const course = COURSES[params.course as string];
-  const category = course?.categories.find(
-    (cat) => cat.category === params.category,
+  const nav = createAsync(() =>
+    getLessonNavQuery(
+      params.course as string,
+      params.category as string,
+      params.subsection as string,
+      params.lesson as string,
+    ),
   );
-  const subsection = category?.subsections.find(
-    (s) => s.subsection === params.subsection,
-  );
-  const sortedLessons = subsection
-    ? [...subsection.lessons].sort((a, b) => a.order - b.order)
-    : [];
 
-  useNotFound(!course || !category || !subsection);
-
-  const currentLesson = createMemo(() =>
-    sortedLessons.find((l) => l.lesson === params.lesson),
-  );
-  const navData = createMemo(() => {
-    const idx = sortedLessons.findIndex(
-      (l) => l.lesson === currentLesson()?.lesson,
-    );
-    return {
-      prevLesson: idx > 0 ? sortedLessons[idx - 1] : null,
-      nextLesson:
-        idx < sortedLessons.length - 1 ? sortedLessons[idx + 1] : null,
-    };
+  createEffect(() => {
+    if (nav() !== undefined) useNotFound(!nav());
   });
-  const lessonURL = createMemo(
-    () =>
-      `${BASE_URL}/${category?.category}/${subsection?.subsection}/${currentLesson()?.lesson}`,
-  );
+
+  const lessonURL = () =>
+    `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.lesson}`;
 
   const isRead = createAsync(
     () =>
@@ -86,10 +78,10 @@ export default function LessonPage() {
 
   return (
     <main class="container container-narrow page-level--lesson">
-      <PageTitle segment={currentLesson()?.title} />
+      <PageTitle segment={nav()?.currentLesson?.title} />
 
       <A
-        href={`/${params.course}/${category?.category}/${subsection?.subsection}`}
+        href={`/${params.course}/${params.category}/${params.subsection}`}
         classList={{
           "lesson-back-link": true,
           "lesson-back-link--unread": !isRead(),
@@ -99,17 +91,17 @@ export default function LessonPage() {
         Back to Quest
       </A>
 
-      <div class={`lesson-card`}>
+      <div class="lesson-card">
         <LessonNav
-          prevLesson={navData()?.prevLesson}
-          nextLesson={navData()?.nextLesson}
+          prevLesson={nav()?.prevLesson ?? null}
+          nextLesson={nav()?.nextLesson ?? null}
           course={params.course}
           category={params.category}
           subsection={params.subsection}
         />
 
         <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
-          <span>Objective {currentLesson()?.order}</span>
+          <span>Objective {nav()?.currentLesson?.order}</span>
           <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
             <ExternalLink size={14} color="grey" />
           </a>
@@ -118,12 +110,12 @@ export default function LessonPage() {
         <LessonTracker
           course={params.course}
           subsection={params.subsection}
-          lesson={currentLesson()?.lesson}
-          order={currentLesson()?.order}
+          lesson={nav()?.currentLesson?.lesson}
+          order={nav()?.currentLesson?.order}
         />
         <LessonNav
-          prevLesson={navData()?.prevLesson}
-          nextLesson={navData()?.nextLesson}
+          prevLesson={nav()?.prevLesson ?? null}
+          nextLesson={nav()?.nextLesson ?? null}
           course={params.course}
           category={params.category}
           subsection={params.subsection}
