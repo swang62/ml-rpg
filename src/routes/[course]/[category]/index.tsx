@@ -1,40 +1,22 @@
 import { A, createAsync, useParams } from "@solidjs/router";
-import { createEffect } from "solid-js";
+import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import {
-  getCourseStructureQuery,
-  getReadCountsQuery,
-  getTotalXpQuery,
-} from "~/server/quest-store";
-import { useNotFound } from "~/utils/not-found";
+import { getCategoryMetaQuery, getReadCountsQuery } from "~/server/quest-store";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
-
-export const route = {
-  preload: ({ params }: { params: Record<string, string> }) => {
-    getTotalXpQuery();
-    getCourseStructureQuery(params.course as string);
-    getReadCountsQuery(params.course as string);
-  },
-};
 
 export default function CategoryPage() {
   const params = useParams();
   if (!params.category) return;
 
-  const course = createAsync(() =>
-    getCourseStructureQuery(params.course as string),
+  const category = createAsync(() =>
+    getCategoryMetaQuery(params.course as string, params.category as string),
   );
-  const category = () =>
-    course()?.categories.find((cat) => cat.category === params.category);
-  createEffect(() => {
-    if (course() !== undefined) useNotFound(!course() || !category());
-  });
-
-  const subsections = category()?.subsections ?? [];
   const readCounts = createAsync(() =>
     getReadCountsQuery(params.course as string),
   );
+
+  const subsections = createMemo(() => category()?.subsections ?? []);
 
   return (
     <CoursePageShell
@@ -47,11 +29,11 @@ export default function CategoryPage() {
       backLabel="World"
     >
       <section class="subsections-list">
-        {subsections.map((section) => {
+        {subsections().map((section) => {
           const readCount = readCounts()?.[section.subsection] ?? 0;
           return (
             <A
-              href={`/${params.course}/${category()?.category}/${section.subsection}`}
+              href={`/${params.course}/${params.category}/${section.subsection}`}
               class="card card--subsection"
               onMouseMove={onCardMove}
               onMouseLeave={onCardLeave}

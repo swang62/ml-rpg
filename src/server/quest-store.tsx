@@ -19,6 +19,47 @@ function userPrefix() {
   return `${USER_ID}:`;
 }
 
+export interface CourseMeta {
+  title: string;
+  categories: { category: string; title: string }[];
+}
+
+export const getCourseMetaQuery = query(async (courseSlug: string) => {
+  "use server";
+  const c = COURSES[courseSlug];
+  if (!c) return null;
+  return {
+    title: c.title,
+    categories: c.categories.map((cat) => ({
+      category: cat.category,
+      title: cat.title,
+    })),
+  };
+}, "course-meta");
+
+export const getCategoryMetaQuery = query(
+  async (courseSlug: string, categorySlug: string) => {
+    "use server";
+    const c = COURSES[courseSlug];
+    const cat = c?.categories.find((cat) => cat.category === categorySlug);
+    if (!cat) return null;
+    return { title: cat.title, subsections: cat.subsections };
+  },
+  "category-meta",
+);
+
+export const getSubsectionMetaQuery = query(
+  async (courseSlug: string, categorySlug: string, subsectionSlug: string) => {
+    "use server";
+    const c = COURSES[courseSlug];
+    const cat = c?.categories.find((cat) => cat.category === categorySlug);
+    const sub = cat?.subsections.find((s) => s.subsection === subsectionSlug);
+    if (!sub) return null;
+    return { title: sub.title, lessons: sub.lessons };
+  },
+  "subsection-meta",
+);
+
 export const getTotalXpQuery = query(async () => {
   "use server";
   const storage = getStorage();
@@ -59,7 +100,7 @@ export const isLessonReadQuery = query(
 export const getSectionReadStatusesQuery = query(async (course: string) => {
   "use server";
   const c = COURSES[course];
-  if (!c) return {} as Record<string, boolean[]>;
+  if (!c) return {};
 
   const storage = getStorage();
   const prefix = userPrefix();
@@ -80,7 +121,7 @@ export const getSectionReadStatusesQuery = query(async (course: string) => {
 export const getReadCountsQuery = query(async (course: string) => {
   "use server";
   const c = COURSES[course];
-  if (!c) return {} as Record<string, number>;
+  if (!c) return {};
 
   const storage = getStorage();
   const prefix = userPrefix();
@@ -96,11 +137,6 @@ export const getReadCountsQuery = query(async (course: string) => {
   }
   return result;
 }, "read-counts");
-
-export const getCourseStructureQuery = query(async (courseSlug: string) => {
-  "use server";
-  return COURSES[courseSlug] ?? null;
-}, "course-structure");
 
 export const getLessonNavQuery = query(
   async (
@@ -120,12 +156,6 @@ export const getLessonNavQuery = query(
       currentLesson: sorted[idx] ?? null,
       prevLesson: idx > 0 ? sorted[idx - 1] : null,
       nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
-      sortedLessons: sorted,
-    } as {
-      currentLesson: { lesson: string; title: string; order: number } | null;
-      prevLesson: { lesson: string; title: string; order: number } | null;
-      nextLesson: { lesson: string; title: string; order: number } | null;
-      sortedLessons: { lesson: string; title: string; order: number }[];
     };
   },
   "lesson-nav",

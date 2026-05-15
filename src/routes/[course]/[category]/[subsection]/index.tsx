@@ -1,40 +1,25 @@
 import { A, createAsync, useAction, useParams } from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createEffect } from "solid-js";
+import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import {
-  getCourseStructureQuery,
   getReadLessonsQuery,
-  getTotalXpQuery,
+  getSubsectionMetaQuery,
   resetSectionAction,
 } from "~/server/quest-store";
-import { useNotFound } from "~/utils/not-found";
-
-export const route = {
-  preload: ({ params }: { params: Record<string, string> }) => {
-    getTotalXpQuery();
-    getCourseStructureQuery(params.course as string);
-    getReadLessonsQuery(params.course as string, params.subsection as string);
-  },
-};
 
 export default function SubsectionPage() {
   const params = useParams();
   if (!params.category || !params.subsection) return;
 
-  const course = createAsync(() =>
-    getCourseStructureQuery(params.course as string),
+  const subsection = createAsync(() =>
+    getSubsectionMetaQuery(
+      params.course as string,
+      params.category as string,
+      params.subsection as string,
+    ),
   );
-  const category = () =>
-    course()?.categories.find((cat) => cat.category === params.category);
-  const subsection = () =>
-    category()?.subsections.find((s) => s.subsection === params.subsection);
-  createEffect(() => {
-    if (course() !== undefined)
-      useNotFound(!course() || !category() || !subsection());
-  });
-
   const readLessons = createAsync(
     () =>
       getReadLessonsQuery(params.course as string, params.subsection as string),
@@ -42,9 +27,9 @@ export default function SubsectionPage() {
   );
   const reset = useAction(resetSectionAction);
 
-  const lessons = subsection()?.lessons ?? [];
-  const sortedLessons = [...lessons].sort((a, b) => a.order - b.order);
-  const totalSections = sortedLessons.length;
+  const sortedLessons = createMemo(() =>
+    [...(subsection()?.lessons ?? [])].sort((a, b) => a.order - b.order),
+  );
 
   return (
     <CoursePageShell
@@ -58,7 +43,7 @@ export default function SubsectionPage() {
       extra={
         <div class="flex flex-nowrap gap-2 items-center">
           <span class="subtitle-xp-counter">
-            {readLessons().length} / {totalSections} completed
+            {readLessons().length} / {sortedLessons().length} completed
           </span>
           <ResetButton
             onClick={() =>
@@ -72,7 +57,7 @@ export default function SubsectionPage() {
       }
     >
       <section class="articles-list">
-        {sortedLessons.map((article) => {
+        {sortedLessons().map((article) => {
           const isRead = readLessons().includes(article.lesson);
           return (
             <A
