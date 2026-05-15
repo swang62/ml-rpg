@@ -125,8 +125,6 @@ function lookupLessonMeta(
   const course = COURSES[courseKey];
   if (!course) return null;
 
-  const base = `/${courseKey}`;
-
   for (const category of course.categories) {
     for (const subsection of category.subsections) {
       if (subsection.subsection !== subsectionKey) continue;
@@ -137,7 +135,7 @@ function lookupLessonMeta(
         articleTitle: lesson.title,
         categoryTitle: category.title,
         subsectionTitle: subsection.title,
-        url: `${base}/${category.category}/${subsection.subsection}/${lesson.lesson}`,
+        url: `/${courseKey}/${category.category}/${subsection.subsection}/${lesson.lesson}`,
       };
     }
   }
@@ -229,15 +227,10 @@ function buildIndex(): string {
 }
 
 let cached: string | null = null;
-
-export function getSearchIndexJson(): string {
+export const getSearchIndexQuery = query(async () => {
+  "use server";
   if (!cached) {
     cached = buildIndex();
   }
   return cached;
-}
-
-export const getSearchIndexQuery = query(async () => {
-  "use server";
-  return getSearchIndexJson();
 }, "search-index");
