@@ -91,8 +91,7 @@ export const isLessonReadQuery = query(
   async (course: string, subsection: string, lesson: string) => {
     "use server";
     const storage = getStorage();
-    const item = await storage.getItem(lessonKey(course, subsection, lesson));
-    return item !== null && item !== undefined;
+    return await storage.hasItem(lessonKey(course, subsection, lesson));
   },
   "lesson-read",
 );
@@ -179,8 +178,8 @@ export const markLessonReadAction = action(
     "use server";
     const storage = getStorage();
     const key = lessonKey(course, subsection, lesson);
-    const exists = await storage.getItem(key);
-    if (exists === null || exists === undefined) {
+    const exists = await storage.hasItem(key);
+    if (!exists) {
       await storage.setItem(key, order);
     }
   },

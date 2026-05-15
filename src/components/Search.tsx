@@ -1,6 +1,6 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
-import { searchLessons } from "~/server/search";
+import { searchLessons } from "~/server/search-core";
 import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
