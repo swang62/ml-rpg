@@ -12,10 +12,7 @@ import { onCardLeave, onCardMove } from "~/utils/tilt";
 export const route = {
   preload: ({ params }: { params: Record<string, string> }) => {
     getTotalXpQuery();
-    const course = COURSES[params.course as string];
-    if (course) {
-      getSectionReadStatusesQuery(params.course as string, course.categories);
-    }
+    getSectionReadStatusesQuery(params.course as string);
   },
 };
 
@@ -26,7 +23,7 @@ export default function CourseIndexPage() {
 
   const categories = course?.categories ?? [];
   const sectionReadStatus = createAsync(() =>
-    getSectionReadStatusesQuery(params.course as string, categories),
+    getSectionReadStatusesQuery(params.course as string),
   );
 
   return (
@@ -42,7 +39,7 @@ export default function CourseIndexPage() {
       <section class="categories-grid">
         {categories.map((category) => {
           const subsectionStatuses =
-            sectionReadStatus()?.get(category.category) ?? [];
+            sectionReadStatus()?.[category.category] ?? [];
           const completed = subsectionStatuses.filter(Boolean).length;
           return (
             <A

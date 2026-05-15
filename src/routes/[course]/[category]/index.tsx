@@ -9,13 +9,7 @@ import { onCardLeave, onCardMove } from "~/utils/tilt";
 export const route = {
   preload: ({ params }: { params: Record<string, string> }) => {
     getTotalXpQuery();
-    const course = COURSES[params.course as string];
-    const category = course?.categories.find(
-      (cat) => cat.category === params.category,
-    );
-    if (category) {
-      getReadCountsQuery(params.course as string, category.subsections);
-    }
+    getReadCountsQuery(params.course as string);
   },
 };
 
@@ -31,7 +25,7 @@ export default function CategoryPage() {
 
   const subsections = category?.subsections ?? [];
   const readCounts = createAsync(() =>
-    getReadCountsQuery(params.course as string, subsections),
+    getReadCountsQuery(params.course as string),
   );
 
   return (
@@ -46,7 +40,7 @@ export default function CategoryPage() {
     >
       <section class="subsections-list">
         {subsections.map((section) => {
-          const readCount = readCounts()?.get(section.subsection) ?? 0;
+          const readCount = readCounts()?.[section.subsection] ?? 0;
           return (
             <A
               href={`/${params.course}/${category?.category}/${section.subsection}`}
