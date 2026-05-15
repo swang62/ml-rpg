@@ -56,7 +56,9 @@ export default function App() {
           <div class="app-layout">
             <header class="app-header">
               <div class="app-header__inner">
-                <PlayerHUD />
+                <Suspense>
+                  <PlayerHUD />
+                </Suspense>
                 <Search />
               </div>
             </header>
