@@ -8,6 +8,7 @@ import {
   getSubsectionMetaQuery,
   resetSectionAction,
 } from "~/server/quest-store";
+import { XP_VALUE } from "~/utils/constants";
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -70,7 +71,7 @@ export default function SubsectionPage() {
                 class="article-xp-badge"
                 classList={{ "article-xp-badge--read": isRead }}
               >
-                {article.order * 25}{" "}
+                {article.order * XP_VALUE}{" "}
                 <span class="article-xp-badge__label">XP</span>
               </span>
             </A>
