@@ -168,7 +168,17 @@ export const getLessonHTMLQuery = query(
     );
     if (!key) return "";
     const Comp = await lessonComponents[key]();
-    return renderToString(() => <Comp />);
+    const html = renderToString(() => <Comp />);
+    // JSX text content containing &lt;code&gt; or &lt;code style="..."&gt;
+    // is decoded to literal "<code>" at compile time, then re-encoded to
+    // &lt;code&gt; by renderToString. The browser renders it as literal text
+    // rather than a <code> element via innerHTML.
+    // Convert entity-encoded markers back to real HTML elements.
+    return html
+      .replace(/&lt;code[^&]*?&gt;/g, (m) =>
+        m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+      )
+      .replaceAll("&lt;/code&gt;", "</code>");
   },
   "lesson-html",
 );
