@@ -1,34 +1,40 @@
 import { A, createAsync, useParams } from "@solidjs/router";
+import { createEffect } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import {
+  getCourseStructureQuery,
   getSectionReadStatusesQuery,
   getTotalXpQuery,
 } from "~/server/quest-store";
-import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export const route = {
   preload: ({ params }: { params: Record<string, string> }) => {
     getTotalXpQuery();
+    getCourseStructureQuery(params.course as string);
     getSectionReadStatusesQuery(params.course as string);
   },
 };
 
 export default function CourseIndexPage() {
   const params = useParams();
-  const course = COURSES[params.course as string];
-  useNotFound(!course);
+  const course = createAsync(() =>
+    getCourseStructureQuery(params.course as string),
+  );
+  createEffect(() => {
+    if (course() !== undefined) useNotFound(!course());
+  });
 
-  const categories = course?.categories ?? [];
+  const categories = course()?.categories ?? [];
   const sectionReadStatus = createAsync(() =>
     getSectionReadStatusesQuery(params.course as string),
   );
 
   return (
     <CoursePageShell
-      title={course?.title}
+      title={course()?.title}
       subtitle="Choose a level to begin your training"
       badge="WORLD"
       containerClass=""
