@@ -26,9 +26,6 @@ importers:
       better-sqlite3:
         specifier: ^12.10.0
         version: 12.10.0
-      db0:
-        specifier: ^0.3.4
-        version: 0.3.4(better-sqlite3@12.10.0)
       lucide-solid:
         specifier: ^1.14.0
         version: 1.14.0(solid-js@1.9.12)
@@ -38,9 +35,6 @@ importers:
       solid-js:
         specifier: ^1.9.5
         version: 1.9.12
-      unstorage:
-        specifier: ^1.17.5
-        version: 1.17.5(db0@0.3.4(better-sqlite3@12.10.0))(ioredis@5.10.1)
       vinxi:
         specifier: ^0.5.7
         version: 0.5.11(@types/node@25.6.2)(better-sqlite3@12.10.0)(db0@0.3.4(better-sqlite3@12.10.0))(ioredis@5.10.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.47.1)(yaml@2.8.4)

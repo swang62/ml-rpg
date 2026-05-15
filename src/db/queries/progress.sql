@@ -2,7 +2,7 @@
 SELECT COALESCE(SUM(lesson."order"), 0) AS totalorder FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?;
 
 -- name: GetReadLessonsBySection :many
-SELECT lesson.id FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.section_id = ?;
+SELECT lesson.slug FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.section_id = ?;
 
 -- name: IsLessonRead :one
 SELECT COUNT(*) AS readcount FROM progress WHERE progress.lesson_id = ? AND progress.user_id = ?;

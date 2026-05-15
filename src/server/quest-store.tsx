@@ -1,37 +1,45 @@
 import { action, query } from "@solidjs/router";
 import type { Component } from "solid-js";
 import { renderToString } from "solid-js/web";
-import { COURSES, USER_ID, XP_VALUE } from "~/utils/constants";
-import { getStorage } from "~/utils/storage";
+import {
+  getCategoriesByCourse,
+  getCategoryBySlug,
+  getCourseBySlug,
+  getLessonBySlug,
+  getLessonsBySection,
+  getSectionBySlug,
+  getSectionsByCategory,
+} from "~/db/course_sql";
+import { getLessonHtml, updateLessonHtml } from "~/db/lesson_sql";
+import {
+  getAllReadLessons,
+  getReadCountsByCourse,
+  getReadLessonsBySection,
+  getTotalXp as getTotalXpDb,
+  isLessonRead as isLessonReadDb,
+  markLessonRead,
+  resetSectionProgress,
+} from "~/db/progress_sql";
+import { getUserBySlug } from "~/db/user_sql";
+import { USER_ID, XP_VALUE } from "~/utils/constants";
+import { getDb } from "~/utils/storage";
 
 const lessonComponents = import.meta.glob<Component>(
   "~/data/lessons/**/*.tsx",
   { import: "default" },
 );
 
-function lessonKey(course: string, subsection: string, lesson: string) {
-  return `${USER_ID}:${course}:${subsection}:${lesson}`;
-}
-function sectionPrefix(course: string, subsection: string) {
-  return `${USER_ID}:${course}:${subsection}:`;
-}
-function userPrefix() {
-  return `${USER_ID}:`;
-}
-
-export interface CourseMeta {
-  title: string;
-  categories: { category: string; title: string }[];
-}
-
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
   "use server";
-  const c = COURSES[courseSlug];
-  if (!c) return null;
+  const db = getDb();
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return null;
+
+  const categories = await getCategoriesByCourse(db, { courseId: course.id });
   return {
-    title: c.title,
-    categories: c.categories.map((cat) => ({
-      category: cat.category,
+    title: course.title,
+    categories: categories.map((cat) => ({
+      category: cat.slug,
       title: cat.title,
     })),
   };
@@ -40,10 +48,33 @@ export const getCourseMetaQuery = query(async (courseSlug: string) => {
 export const getCategoryMetaQuery = query(
   async (courseSlug: string, categorySlug: string) => {
     "use server";
-    const c = COURSES[courseSlug];
-    const cat = c?.categories.find((cat) => cat.category === categorySlug);
+    const db = getDb();
+    const course = await getCourseBySlug(db, { slug: courseSlug });
+    if (!course) return null;
+
+    const cat = await getCategoryBySlug(db, {
+      slug: categorySlug,
+      courseId: course.id,
+    });
     if (!cat) return null;
-    return { title: cat.title, subsections: cat.subsections };
+
+    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
+    const subsections = await Promise.all(
+      sections.map(async (sec) => {
+        const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+        return {
+          subsection: sec.slug,
+          title: sec.title,
+          lessons: lessons.map((l) => ({
+            lesson: l.slug,
+            title: l.title,
+            order: l.order,
+          })),
+        };
+      }),
+    );
+
+    return { title: cat.title, subsections };
   },
   "category-meta",
 );
@@ -51,159 +82,287 @@ export const getCategoryMetaQuery = query(
 export const getSubsectionMetaQuery = query(
   async (courseSlug: string, categorySlug: string, subsectionSlug: string) => {
     "use server";
-    const c = COURSES[courseSlug];
-    const cat = c?.categories.find((cat) => cat.category === categorySlug);
-    const sub = cat?.subsections.find((s) => s.subsection === subsectionSlug);
-    if (!sub) return null;
-    return { title: sub.title, lessons: sub.lessons };
+    const db = getDb();
+    const course = await getCourseBySlug(db, { slug: courseSlug });
+    if (!course) return null;
+
+    const cat = await getCategoryBySlug(db, {
+      slug: categorySlug,
+      courseId: course.id,
+    });
+    if (!cat) return null;
+
+    const sec = await getSectionBySlug(db, {
+      slug: subsectionSlug,
+      categoryId: cat.id,
+    });
+    if (!sec) return null;
+
+    const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+    return {
+      title: sec.title,
+      lessons: lessons.map((l) => ({
+        lesson: l.slug,
+        title: l.title,
+        order: l.order,
+      })),
+    };
   },
   "subsection-meta",
 );
 
 export const getTotalXpQuery = query(async () => {
   "use server";
-  const storage = getStorage();
-  const prefix = userPrefix();
-  const keys = await storage.getKeys();
-  let total = 0;
-  for (const key of keys) {
-    if (!key.startsWith(prefix)) continue;
-    const order = await storage.getItem<number>(key);
-    if (order) total += order;
-  }
-  return total * XP_VALUE;
+  const db = getDb();
+  const user = await getUserBySlug(db, { slug: USER_ID });
+  if (!user) return 0;
+
+  const result = await getTotalXpDb(db, { userId: user.id });
+  return (result?.totalorder ?? 0) * XP_VALUE;
 }, "total-xp");
 
 export const getReadLessonsQuery = query(
-  async (course: string, subsection: string) => {
+  async (courseSlug: string, subsectionSlug: string) => {
     "use server";
-    const storage = getStorage();
-    const prefix = sectionPrefix(course, subsection);
-    const keys = await storage.getKeys();
-    return keys
-      .filter((k) => k.startsWith(prefix))
-      .map((k) => k.slice(prefix.length));
+    const db = getDb();
+    const user = await getUserBySlug(db, { slug: USER_ID });
+    if (!user) return [];
+
+    const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+    if (!sec) return [];
+
+    const rows = await getReadLessonsBySection(db, {
+      userId: user.id,
+      sectionId: sec.id,
+    });
+    return rows.map((r) => r.slug);
   },
   "read-lessons",
 );
 
 export const isLessonReadQuery = query(
-  async (course: string, subsection: string, lesson: string) => {
+  async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
     "use server";
-    const storage = getStorage();
-    return await storage.hasItem(lessonKey(course, subsection, lesson));
+    const db = getDb();
+    const user = await getUserBySlug(db, { slug: USER_ID });
+    if (!user) return false;
+
+    const lesson = await findLessonByPath(
+      db,
+      courseSlug,
+      subsectionSlug,
+      lessonSlug,
+    );
+    if (!lesson) return false;
+
+    const result = await isLessonReadDb(db, {
+      lessonId: lesson.id,
+      userId: user.id,
+    });
+    return (result?.readcount ?? 0) > 0;
   },
   "lesson-read",
 );
 
-export const getSectionReadStatusesQuery = query(async (course: string) => {
+export const getSectionReadStatusesQuery = query(async (courseSlug: string) => {
   "use server";
-  const c = COURSES[course];
-  if (!c) return {};
+  const db = getDb();
+  const user = await getUserBySlug(db, { slug: USER_ID });
+  if (!user) return {};
 
-  const storage = getStorage();
-  const prefix = userPrefix();
-  const keys = await storage.getKeys();
-  const prefixed = keys.filter((k) => k.startsWith(prefix));
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return {};
 
+  const allRead = await getAllReadLessons(db, { userId: user.id });
+  const readSet = new Set(allRead.map((r) => r.lessonid));
+
+  const categories = await getCategoriesByCourse(db, { courseId: course.id });
   const result: Record<string, boolean[]> = {};
-  for (const cat of c.categories) {
-    result[cat.category] = cat.subsections.map((sub) => {
-      const sp = sectionPrefix(course, sub.subsection);
-      const readCount = prefixed.filter((k) => k.startsWith(sp)).length;
-      return readCount >= sub.lessons.length;
-    });
+
+  for (const cat of categories) {
+    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
+    const statuses = await Promise.all(
+      sections.map(async (sec) => {
+        const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+        return lessons.every((l) => readSet.has(l.id));
+      }),
+    );
+    result[cat.slug] = statuses;
   }
+
   return result;
 }, "section-statuses");
 
-export const getReadCountsQuery = query(async (course: string) => {
+export const getReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
-  const c = COURSES[course];
-  if (!c) return {};
+  const db = getDb();
+  const user = await getUserBySlug(db, { slug: USER_ID });
+  if (!user) return {};
 
-  const storage = getStorage();
-  const prefix = userPrefix();
-  const keys = await storage.getKeys();
-  const prefixed = keys.filter((k) => k.startsWith(prefix));
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return {};
 
+  const rows = await getReadCountsByCourse(db, {
+    userId: user.id,
+    courseId: course.id,
+  });
   const result: Record<string, number> = {};
-  for (const cat of c.categories) {
-    for (const sub of cat.subsections) {
-      const sp = sectionPrefix(course, sub.subsection);
-      result[sub.subsection] = prefixed.filter((k) => k.startsWith(sp)).length;
-    }
+  for (const row of rows) {
+    result[String(row.sectionid)] = row.readcount;
   }
   return result;
 }, "read-counts");
 
 export const getLessonNavQuery = query(
   async (
-    course: string,
-    category: string,
-    subsection: string,
-    lesson: string,
+    courseSlug: string,
+    categorySlug: string,
+    subsectionSlug: string,
+    lessonSlug: string,
   ) => {
     "use server";
-    const c = COURSES[course];
-    const cat = c?.categories.find((cat) => cat.category === category);
-    const sub = cat?.subsections.find((s) => s.subsection === subsection);
-    if (!sub) return null;
-    const sorted = [...sub.lessons].sort((a, b) => a.order - b.order);
-    const idx = sorted.findIndex((l) => l.lesson === lesson);
+    const db = getDb();
+
+    const course = await getCourseBySlug(db, { slug: courseSlug });
+    if (!course) return null;
+
+    const cat = await getCategoryBySlug(db, {
+      slug: categorySlug,
+      courseId: course.id,
+    });
+    if (!cat) return null;
+
+    const sec = await getSectionBySlug(db, {
+      slug: subsectionSlug,
+      categoryId: cat.id,
+    });
+    if (!sec) return null;
+
+    const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+    const idx = lessons.findIndex((l) => l.slug === lessonSlug);
+    if (idx === -1) return null;
+
+    const mapLesson = (l: (typeof lessons)[number]) => ({
+      lesson: l.slug,
+      title: l.title,
+      order: l.order,
+    });
+
     return {
-      currentLesson: sorted[idx] ?? null,
-      prevLesson: idx > 0 ? sorted[idx - 1] : null,
-      nextLesson: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+      currentLesson: mapLesson(lessons[idx]),
+      prevLesson: idx > 0 ? mapLesson(lessons[idx - 1]) : null,
+      nextLesson: idx < lessons.length - 1 ? mapLesson(lessons[idx + 1]) : null,
     };
   },
   "lesson-nav",
 );
 
 export const getLessonHTMLQuery = query(
-  async (course: string, subsection: string, lesson: string) => {
+  async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
     "use server";
+    const db = getDb();
+
+    const lesson = await findLessonByPath(
+      db,
+      courseSlug,
+      subsectionSlug,
+      lessonSlug,
+    );
+    if (!lesson) return "";
+
+    const htmlRow = await getLessonHtml(db, { id: lesson.id });
+    if (htmlRow?.html) return htmlRow.html;
+
     const key = Object.keys(lessonComponents).find((k) =>
-      k.endsWith(`/${course}/${subsection}__${lesson}.tsx`),
+      k.endsWith(`/${courseSlug}/${subsectionSlug}__${lessonSlug}.tsx`),
     );
     if (!key) return "";
+
     const Comp = await lessonComponents[key]();
     const html = renderToString(() => <Comp />);
-    // JSX text content containing &lt;code&gt; or &lt;code style="..."&gt;
-    // is decoded to literal "<code>" at compile time, then re-encoded to
-    // &lt;code&gt; by renderToString. The browser renders it as literal text
-    // rather than a <code> element via innerHTML.
-    // Convert entity-encoded markers back to real HTML elements.
-    return html
+    const cleaned = html
       .replace(/&lt;code[^&]*?&gt;/g, (m) =>
         m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
       )
       .replaceAll("&lt;/code&gt;", "</code>");
+
+    await updateLessonHtml(db, { html: cleaned, id: lesson.id });
+    return cleaned;
   },
   "lesson-html",
 );
 
 export const markLessonReadAction = action(
-  async (course: string, subsection: string, lesson: string, order: number) => {
+  async (
+    courseSlug: string,
+    subsectionSlug: string,
+    lessonSlug: string,
+    _order: number,
+  ) => {
     "use server";
-    const storage = getStorage();
-    const key = lessonKey(course, subsection, lesson);
-    const exists = await storage.hasItem(key);
-    if (!exists) {
-      await storage.setItem(key, order);
-    }
+    const db = getDb();
+    const user = await getUserBySlug(db, { slug: USER_ID });
+    if (!user) return;
+
+    const lesson = await findLessonByPath(
+      db,
+      courseSlug,
+      subsectionSlug,
+      lessonSlug,
+    );
+    if (!lesson) return;
+
+    await markLessonRead(db, { lessonId: lesson.id, userId: user.id });
   },
   "mark-lesson-read",
 );
 
 export const resetSectionAction = action(
-  async (course: string, subsection: string) => {
+  async (courseSlug: string, subsectionSlug: string) => {
     "use server";
-    const storage = getStorage();
-    const prefix = sectionPrefix(course, subsection);
-    const keys = await storage.getKeys();
-    const toRemove = keys.filter((k) => k.startsWith(prefix));
-    await Promise.all(toRemove.map((k) => storage.removeItem(k)));
+    const db = getDb();
+    const user = await getUserBySlug(db, { slug: USER_ID });
+    if (!user) return;
+
+    const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+    if (!sec) return;
+
+    await resetSectionProgress(db, { userId: user.id, sectionId: sec.id });
   },
   "reset-section",
 );
+
+async function findSectionBySlugInCourse(
+  db: import("better-sqlite3").Database,
+  courseSlug: string,
+  sectionSlug: string,
+) {
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return null;
+
+  const categories = await getCategoriesByCourse(db, { courseId: course.id });
+  for (const cat of categories) {
+    const sec = await getSectionBySlug(db, {
+      slug: sectionSlug,
+      categoryId: cat.id,
+    });
+    if (sec) return sec;
+  }
+  return null;
+}
+
+async function findLessonByPath(
+  db: import("better-sqlite3").Database,
+  courseSlug: string,
+  subsectionSlug: string,
+  lessonSlug: string,
+) {
+  const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+  if (!sec) return null;
+
+  const lesson = await getLessonBySlug(db, {
+    slug: lessonSlug,
+    sectionId: sec.id,
+  });
+  return lesson ?? null;
+}
