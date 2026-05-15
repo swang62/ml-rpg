@@ -21,3 +21,27 @@ SELECT lesson.lesson_id, lesson.title, lesson."order", lesson.section_id, lesson
 
 -- name: GetAllLessons :many
 SELECT lesson.lesson_id, lesson.title, lesson."order", lesson.section_id, lesson.category_id, lesson.course_id FROM lesson;
+
+-- name: CreateCourse :exec
+INSERT INTO course (course_id, title) VALUES (?, ?);
+
+-- name: CreateCategory :exec
+INSERT INTO category (category_id, title, course_id) VALUES (?, ?, ?);
+
+-- name: CreateSection :exec
+INSERT INTO section (section_id, title, course_id, category_id) VALUES (?, ?, ?, ?);
+
+-- name: CreateLesson :exec
+INSERT INTO lesson (lesson_id, title, html, "order", course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: DeleteAllCourses :exec
+DELETE FROM course;
+
+-- name: DeleteAllCategories :exec
+DELETE FROM category;
+
+-- name: DeleteAllSections :exec
+DELETE FROM section;
+
+-- name: DeleteAllLessons :exec
+DELETE FROM lesson;

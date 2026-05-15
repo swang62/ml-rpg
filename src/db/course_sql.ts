@@ -164,3 +164,95 @@ export async function getAllLessons(database: Database): Promise<GetAllLessonsRo
     return result as GetAllLessonsRow[];
 }
 
+export const createCourseQuery = `-- name: CreateCourse :exec
+INSERT INTO course (course_id, title) VALUES (?, ?)`;
+
+export interface CreateCourseArgs {
+    courseId: any;
+    title: any;
+}
+
+export async function createCourse(database: Database, args: CreateCourseArgs): Promise<void> {
+    const stmt = database.prepare(createCourseQuery);
+    await stmt.run(args.courseId, args.title);
+}
+
+export const createCategoryQuery = `-- name: CreateCategory :exec
+INSERT INTO category (category_id, title, course_id) VALUES (?, ?, ?)`;
+
+export interface CreateCategoryArgs {
+    categoryId: any;
+    title: any;
+    courseId: any;
+}
+
+export async function createCategory(database: Database, args: CreateCategoryArgs): Promise<void> {
+    const stmt = database.prepare(createCategoryQuery);
+    await stmt.run(args.categoryId, args.title, args.courseId);
+}
+
+export const createSectionQuery = `-- name: CreateSection :exec
+INSERT INTO section (section_id, title, course_id, category_id) VALUES (?, ?, ?, ?)`;
+
+export interface CreateSectionArgs {
+    sectionId: any;
+    title: any;
+    courseId: any;
+    categoryId: any;
+}
+
+export async function createSection(database: Database, args: CreateSectionArgs): Promise<void> {
+    const stmt = database.prepare(createSectionQuery);
+    await stmt.run(args.sectionId, args.title, args.courseId, args.categoryId);
+}
+
+export const createLessonQuery = `-- name: CreateLesson :exec
+INSERT INTO lesson (lesson_id, title, html, "order", course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+export interface CreateLessonArgs {
+    lessonId: any;
+    title: any;
+    html: any;
+    order: any;
+    courseId: any;
+    categoryId: any;
+    sectionId: any;
+}
+
+export async function createLesson(database: Database, args: CreateLessonArgs): Promise<void> {
+    const stmt = database.prepare(createLessonQuery);
+    await stmt.run(args.lessonId, args.title, args.html, args.order, args.courseId, args.categoryId, args.sectionId);
+}
+
+export const deleteAllCoursesQuery = `-- name: DeleteAllCourses :exec
+DELETE FROM course`;
+
+export async function deleteAllCourses(database: Database): Promise<void> {
+    const stmt = database.prepare(deleteAllCoursesQuery);
+    await stmt.run();
+}
+
+export const deleteAllCategoriesQuery = `-- name: DeleteAllCategories :exec
+DELETE FROM category`;
+
+export async function deleteAllCategories(database: Database): Promise<void> {
+    const stmt = database.prepare(deleteAllCategoriesQuery);
+    await stmt.run();
+}
+
+export const deleteAllSectionsQuery = `-- name: DeleteAllSections :exec
+DELETE FROM section`;
+
+export async function deleteAllSections(database: Database): Promise<void> {
+    const stmt = database.prepare(deleteAllSectionsQuery);
+    await stmt.run();
+}
+
+export const deleteAllLessonsQuery = `-- name: DeleteAllLessons :exec
+DELETE FROM lesson`;
+
+export async function deleteAllLessons(database: Database): Promise<void> {
+    const stmt = database.prepare(deleteAllLessonsQuery);
+    await stmt.run();
+}
+

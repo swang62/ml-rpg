@@ -37,4 +37,3 @@ Thumbs.db
 
 # sqlc
 sqlc-gen-typescript.wasm
-src/db/*_sql.ts

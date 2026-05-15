@@ -106,6 +106,14 @@ export async function getReadCountsByCourse(database: Database, args: GetReadCou
     return result as GetReadCountsByCourseRow[];
 }
 
+export const deleteAllProgressQuery = `-- name: DeleteAllProgress :exec
+DELETE FROM progress`;
+
+export async function deleteAllProgress(database: Database): Promise<void> {
+    const stmt = database.prepare(deleteAllProgressQuery);
+    await stmt.run();
+}
+
 export const getAllReadLessonsQuery = `-- name: GetAllReadLessons :many
 SELECT progress.lesson_id FROM progress WHERE progress.user_id = ?`;
 

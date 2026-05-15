@@ -16,5 +16,8 @@ DELETE FROM progress WHERE progress.user_id = ? AND progress.lesson_id IN (SELEC
 -- name: GetReadCountsByCourse :many
 SELECT lesson.section_id, COUNT(*) AS read_count FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.lesson_id WHERE progress.user_id = ? AND lesson.course_id = ? GROUP BY lesson.section_id;
 
+-- name: DeleteAllProgress :exec
+DELETE FROM progress;
+
 -- name: GetAllReadLessons :many
 SELECT progress.lesson_id FROM progress WHERE progress.user_id = ?;
