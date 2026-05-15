@@ -6,8 +6,8 @@ export function onCardMove(e: MouseEvent) {
   const mouseX = (e.clientX - centerX) / (rect.width / 2);
   const mouseY = (e.clientY - centerY) / (rect.height / 2);
 
-  el.style.setProperty("--tilt-x", `${mouseX * 5}deg`);
-  el.style.setProperty("--tilt-y", `${-mouseY * 5}deg`);
+  el.style.setProperty("--tilt-x", `${mouseX * 6}deg`);
+  el.style.setProperty("--tilt-y", `${-mouseY * 6}deg`);
   el.style.setProperty("--tilt-duration", "0s");
 }
 

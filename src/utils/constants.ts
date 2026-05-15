@@ -16,6 +16,9 @@ export const SEARCH_MIN_QUERY_LENGTH = 3;
 
 export const SITE_NAME = "System Overflow";
 
+// Derived ENV vars
+export const IS_PROD = process.env.NODE_ENV === "production";
+
 export const COURSES: Record<string, Course> = {
   "ml-system-design": mlSysDesign,
   "data-engineering": de,
@@ -87,5 +90,4 @@ export const AVATAR_TIERS: AvatarTier[] = [
     borderColor: "var(--accent)",
     glow: "0 0 4px var(--accent-glow)",
   },
-  { minLevel: 0, borderColor: "var(--border)", glow: "none" },
 ];

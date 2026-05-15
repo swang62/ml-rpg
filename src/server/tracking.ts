@@ -1,8 +1,8 @@
 "use server";
 
 import { removeSectionXp } from "~/server/xp";
-import type { Category, Subsection } from "~/utils/types";
-import { getStorage, type Prefix } from "./storage";
+import type { Category, Prefix, Subsection } from "~/utils/types";
+import { getStorage } from "./storage";
 
 const PREFIX: Prefix = "tracking";
 

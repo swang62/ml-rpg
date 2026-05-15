@@ -1,6 +1,7 @@
 "use server";
 
-import { getStorage, type Prefix } from "./storage";
+import type { Prefix } from "~/utils/types";
+import { getStorage } from "./storage";
 
 const PREFIX: Prefix = "xp";
 

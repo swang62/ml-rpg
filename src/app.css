@@ -1420,16 +1420,20 @@ main {
   color: var(--text);
   font-size: 0.9rem;
   min-width: 0;
+  transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+    rotateY(var(--tilt-x, 0deg));
   transition:
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    transform var(--tilt-duration, 0.2s) ease;
 }
 
 .lesson-nav__link:hover {
   border-color: var(--level-section);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-glow-section);
+    0 0 0 1px var(--border-glow-section),
+    0 0 24px var(--glow-section);
 }
 
 .lesson-nav__link--next {
@@ -1598,7 +1602,7 @@ main {
 @keyframes badge-slide-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;

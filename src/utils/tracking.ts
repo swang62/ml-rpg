@@ -18,16 +18,20 @@ export function useLessonReadStatus(
     const lesson = getLesson?.();
     if (!lesson) return;
 
-    setIsRead(false);
     let cancelled = false;
-
     const check = async () => {
       if (cancelled) return;
-      const read = await isLessonRead(course, subsection, lesson);
-      if (!cancelled && read) {
+      const oldRead = isRead();
+      const newRead = await isLessonRead(course, subsection, lesson);
+      if (newRead && !oldRead) {
         setIsRead(true);
-        clearInterval(timer);
+      } else if (!newRead && oldRead) {
+        setIsRead(false);
       }
+
+      // Always kill polling if current lesson is read
+      if (newRead) clearInterval(timer);
+      return;
     };
 
     check();
