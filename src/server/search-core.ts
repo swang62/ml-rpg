@@ -2,111 +2,88 @@
 
 import MiniSearch from "minisearch";
 import { getDb } from "~/utils/storage";
+import { getAllCourses, getAllCategories, getAllSections } from "~/db/course_sql";
+import { getSearchLessons } from "~/db/lesson_sql";
 
-const STOP_WORDS = new Set([
-  "a", "an", "are", "as", "at", "be", "but", "by", "can", "for", "from",
-  "had", "has", "have", "if", "in", "is", "it", "its", "may", "not", "of",
-  "on", "or", "so", "that", "the", "their", "there", "these", "they",
-  "this", "to", "was", "were", "what", "when", "where", "which", "who",
-  "will", "with", "would",
-]);
-
-function stripHtml(html: string): string {
+function plainText(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&[a-z]+;/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .toLowerCase();
 }
 
 let _engine: MiniSearch | null = null;
-let _meta: Map<string, { title: string; categoryTitle: string; sectionTitle: string; courseSlug: string; categorySlug: string; sectionSlug: string }> | null = null;
+let _docs: { id: string; title: string; courseSlug: string; categorySlug: string; sectionSlug: string; lessonSlug: string; text: string }[] | null = null;
 
-function buildIndex() {
-  if (_engine && _meta) return { engine: _engine, meta: _meta };
+async function buildIndex() {
+  if (_engine && _docs) return;
 
   const start = performance.now();
   const db = getDb();
 
-  // Load all entity maps in bulk
-  const courses = new Map(
-    (db.prepare("SELECT id, slug, title FROM course").all() as { id: number; slug: string; title: string }[])
-      .map((r) => [r.id, r]),
-  );
-  const categories = new Map(
-    (db.prepare("SELECT id, slug, title, course_id AS courseId FROM category").all() as { id: number; slug: string; title: string; courseId: number }[])
-      .map((r) => [r.id, r]),
-  );
-  const sections = new Map(
-    (db.prepare("SELECT id, slug, title, category_id AS categoryId, course_id AS courseId FROM section").all() as { id: number; slug: string; title: string; categoryId: number; courseId: number }[])
-      .map((r) => [r.id, r]),
-  );
+  const courseRows = await getAllCourses(db);
+  const categoryRows = await getAllCategories(db);
+  const sectionRows = await getAllSections(db);
+  const lessonRows = await getSearchLessons(db);
 
-  // Load all lessons with HTML
-  const lessons = db
-    .prepare("SELECT id, slug, title, section_id AS sectionId, html FROM lesson WHERE html != ''")
-    .all() as { id: number; slug: string; title: string; sectionId: number; html: string }[];
+  const courses = new Map(courseRows.map((r) => [r.id, r]));
+  const categories = new Map(categoryRows.map((r) => [r.id, r]));
+  const sections = new Map(sectionRows.map((r) => [r.id, r]));
 
-  const docs: { id: string; title: string; text: string }[] = [];
-  const meta = new Map<string, { title: string; categoryTitle: string; sectionTitle: string; courseSlug: string; categorySlug: string; sectionSlug: string }>();
+  const docs: typeof _docs = [];
 
-  for (const lesson of lessons) {
-    const sec = sections.get(lesson.sectionId);
+  for (const lesson of lessonRows) {
+    const sec = sections.get(lesson.sectionid);
     if (!sec) continue;
 
-    const cat = categories.get(sec.categoryId);
-    const course = courses.get(sec.courseId);
-    if (!cat || !course) continue;
+    const cat = categories.get(sec.categoryid);
+    if (!cat) continue;
 
-    const text = stripHtml(lesson.html);
+    const course = courses.get(cat.courseid);
+    if (!course) continue;
+
+    const text = plainText(lesson.html);
     if (!text) continue;
 
-    const docId = `${course.slug}/${sec.slug}/${lesson.slug}`;
-    docs.push({ id: docId, title: lesson.title, text });
-    meta.set(docId, {
-      title: lesson.title,
-      categoryTitle: cat.title,
-      sectionTitle: sec.title,
+    docs.push({
+      id: `${course.slug}/${sec.slug}/${lesson.slug}`,
+      title: lesson.title.toLowerCase(),
+      text,
       courseSlug: course.slug,
       categorySlug: cat.slug,
       sectionSlug: sec.slug,
+      lessonSlug: lesson.slug,
     });
   }
 
   const engine = new MiniSearch({
     fields: ["title", "text"],
     storeFields: [],
-    searchOptions: {
-      boost: { title: 1.5 },
-      fuzzy: 0.2,
-      prefix: true,
-      combineWith: "or",
-    },
     processTerm: (term) => {
       const t = term.toLowerCase();
-      if (STOP_WORDS.has(t)) return null;
+      if (t.length < 3 || /^[0-9\s]+$/.test(t)) return null;
       return t;
     },
   });
   engine.addAll(docs);
 
-  console.log(
-    `[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`,
-  );
+  console.log(`[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`);
   _engine = engine;
-  _meta = meta;
-  return { engine, meta };
+  _docs = docs;
 }
 
-export function searchLessons(searchQuery: string): {
+export async function searchLessons(searchQuery: string): Promise<{
   articleTitle: string;
   categoryTitle: string;
   subsectionTitle: string;
   url: string;
-}[] {
-  const { engine, meta } = buildIndex();
-  const m = meta!;
-  const raw = engine.search(searchQuery, { prefix: true, fuzzy: 0.2 });
+}[]> {
+  await buildIndex();
+
+  const raw = _engine!.search(searchQuery, { prefix: true, fuzzy: 0.2 });
+  const lookup = new Map(_docs!.map((d) => [d.id, d]));
   const results: {
     articleTitle: string;
     categoryTitle: string;
@@ -115,13 +92,13 @@ export function searchLessons(searchQuery: string): {
   }[] = [];
 
   for (const r of raw.slice(0, 6)) {
-    const docMeta = m.get(r.id);
-    if (!docMeta) continue;
+    const d = lookup.get(r.id);
+    if (!d) continue;
     results.push({
-      articleTitle: docMeta.title,
-      categoryTitle: docMeta.categoryTitle,
-      subsectionTitle: docMeta.sectionTitle,
-      url: `/${docMeta.courseSlug}/${docMeta.categorySlug}/${docMeta.sectionSlug}/${r.id.split("/").pop()}`,
+      articleTitle: d.title,
+      categoryTitle: d.categorySlug,
+      subsectionTitle: d.sectionSlug,
+      url: `/${d.courseSlug}/${d.categorySlug}/${d.sectionSlug}/${d.lessonSlug}`,
     });
   }
   return results;
