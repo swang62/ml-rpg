@@ -3,7 +3,7 @@ import type { Component } from "solid-js";
 import { renderToString } from "solid-js/web";
 import { USER_ID, XP_VALUE } from "~/utils/constants";
 import type { Category, Subsection } from "~/utils/types";
-import { getStorage } from "./storage";
+import { getStorage } from "../utils/storage";
 
 const lessonComponents = import.meta.glob<Component>(
   "~/data/lessons/**/*.tsx",
