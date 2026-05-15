@@ -1395,9 +1395,16 @@ main {
   line-height: 1.4;
   text-transform: uppercase;
   font-family: var(--font-pixel);
-  transition: color 0.3s ease;
+  transition:
+    color 0.3s ease,
+    transform 0.2s ease,
+    text-shadow 0.2s ease;
   color: var(--text-muted);
-  text-decoration: none;
+}
+
+.lesson-title:not(.lesson-title--read):hover {
+  transform: scale(1.2);
+  text-shadow: 0 0 8px var(--level-section);
 }
 
 .lesson-title--read {
