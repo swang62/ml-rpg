@@ -73,6 +73,13 @@ export default function LessonPage() {
 
         <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
           <span>Objective {nav()?.currentLesson?.order}</span>
+          <span
+            class="article-xp-badge"
+            classList={{ "article-xp-badge--read": isRead() }}
+          >
+            {(nav()?.currentLesson?.order ?? 0) * 25}
+            <span class="article-xp-badge__label">XP</span>
+          </span>
           <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
             <ExternalLink size={14} color="grey" />
           </a>
