@@ -5,6 +5,7 @@ import ProgressBar from "~/components/ProgressBar";
 import { fetchReadCounts } from "~/server/tracking";
 import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
+import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export default function CategoryPage() {
   const params = useParams();
@@ -40,6 +41,8 @@ export default function CategoryPage() {
             <A
               href={`/${params.course}/${category?.category}/${section.subsection}`}
               class="card card--subsection"
+              onMouseMove={onCardMove}
+              onMouseLeave={onCardLeave}
             >
               <h2>{section.title}</h2>
               {section.lessons.length > 0 && (

@@ -754,14 +754,43 @@ a {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 20px;
+  transform-style: preserve-3d;
+  transition: 0.3s ease;
 }
 
 .card--article:hover {
   border-color: var(--level-section);
+  scale: 1.01;
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 8px 32px rgba(0, 0, 0, 0.5),
     0 0 0 1px var(--border-glow-section),
-    0 0 24px var(--glow-section);
+    0 0 32px var(--glow-section);
+}
+
+.article-xp-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  flex-shrink: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  color: var(--level-section);
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.article-xp-badge--read {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.article-xp-badge__label {
+  font-size: 0.6rem;
+}
+
+.card--article:hover .article-xp-badge {
+  transform: scale(1.05) translateZ(8px);
 }
 
 .card--article .article-title {
@@ -801,26 +830,6 @@ a {
 .card--article--read {
   color: var(--text-muted);
   background: rgba(0, 0, 0, 0.6);
-}
-
-.article-xp-badge {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 1px;
-  flex-shrink: 0;
-  font-family: var(--font-pixel);
-  font-size: 0.7rem;
-  color: var(--level-section);
-  transition: color 0.2s ease;
-}
-
-.article-xp-badge--read {
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
-.article-xp-badge__label {
-  font-size: 0.6rem;
 }
 
 /* ===== Game icons base style ===== */

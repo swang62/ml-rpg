@@ -4,26 +4,7 @@ import { For } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { COURSE_INDEX } from "~/data/course-index";
 import { SITE_NAME } from "~/utils/constants";
-
-function onCardMove(e: MouseEvent) {
-  const el = e.currentTarget as HTMLElement;
-  const rect = el.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const mouseX = (e.clientX - centerX) / (rect.width / 2);
-  const mouseY = (e.clientY - centerY) / (rect.height / 2);
-
-  el.style.setProperty("--tilt-x", `${mouseX * 5}deg`);
-  el.style.setProperty("--tilt-y", `${-mouseY * 5}deg`);
-  el.style.setProperty("--tilt-duration", "0s");
-}
-
-function onCardLeave(e: MouseEvent) {
-  const el = e.currentTarget as HTMLElement;
-  el.style.removeProperty("--tilt-x");
-  el.style.removeProperty("--tilt-y");
-  el.style.removeProperty("--tilt-duration");
-}
+import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export default function HomePage() {
   return (

@@ -5,6 +5,7 @@ import ProgressBar from "~/components/ProgressBar";
 import { fetchSectionReadStatus } from "~/server/tracking";
 import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
+import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export default function CourseIndexPage() {
   const params = useParams();
@@ -38,6 +39,8 @@ export default function CourseIndexPage() {
             <A
               href={`/${params.course}/${category.category}`}
               class="card card--category"
+              onMouseMove={onCardMove}
+              onMouseLeave={onCardLeave}
             >
               <h2>{category.title}</h2>
               {subsectionStatuses.length > 0 && (
