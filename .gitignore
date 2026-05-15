@@ -34,3 +34,7 @@ gitignore
 .DS_Store
 Thumbs.db
 .fallow/
+
+# sqlc
+sqlc-gen-typescript.wasm
+src/db/*_sql.ts

@@ -1,0 +1,16 @@
+version: "2"
+plugins:
+- name: ts
+  wasm:
+    url: file://sqlc-gen-typescript.wasm
+    sha256: 8d7a37d2656d1fa833c59f656775c9e253639175fdb4b4646c91108feaf10a98
+sql:
+- schema: "src/db/schema.sql"
+  queries: "src/db/queries/"
+  engine: sqlite
+  codegen:
+  - out: src/db
+    plugin: ts
+    options:
+      runtime: node
+      driver: better-sqlite3
