@@ -1,7 +1,7 @@
 import { A, createAsync, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
-import ExternalLink from "lucide-solid/icons/external-link";
+
 import { Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
@@ -71,7 +71,12 @@ export default function LessonPage() {
           subsection={params.subsection as string}
         />
 
-        <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
+        <a
+          href={lessonURL()}
+          target="_blank"
+          rel="noopener noreferrer"
+          class={`lesson-title ${isRead() && "lesson-title--read"}`}
+        >
           <span>Objective {nav()?.currentLesson?.order}</span>
           <span
             class="article-xp-badge"
@@ -80,10 +85,7 @@ export default function LessonPage() {
             {(nav()?.currentLesson?.order ?? 0) * 25}
             <span class="article-xp-badge__label">XP</span>
           </span>
-          <a href={lessonURL()} target="_blank" rel="noopener noreferrer">
-            <ExternalLink size={14} color="grey" />
-          </a>
-        </div>
+        </a>
         <div innerHTML={lessonHtml()} />
         <LessonTracker
           course={params.course}
