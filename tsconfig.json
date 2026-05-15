@@ -13,6 +13,7 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": ["vinxi/types/client", "node"],
     "isolatedModules": true,
     "paths": {

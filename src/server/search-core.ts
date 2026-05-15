@@ -1,53 +1,17 @@
 "use server";
 
 import MiniSearch from "minisearch";
-import { COURSES } from "~/utils/constants";
+import { getDb } from "~/utils/storage";
+import { getCourseBySlug } from "~/db/course_sql";
+import { getCategoriesByCourse } from "~/db/course_sql";
+import { getSectionsByCategory } from "~/db/course_sql";
 
 const STOP_WORDS = new Set([
-  "a",
-  "an",
-  "and",
-  "are",
-  "as",
-  "at",
-  "be",
-  "but",
-  "by",
-  "can",
-  "for",
-  "from",
-  "had",
-  "has",
-  "have",
-  "if",
-  "in",
-  "is",
-  "it",
-  "its",
-  "may",
-  "not",
-  "of",
-  "on",
-  "or",
-  "so",
-  "that",
-  "the",
-  "their",
-  "there",
-  "these",
-  "they",
-  "this",
-  "to",
-  "was",
-  "were",
-  "what",
-  "when",
-  "where",
-  "which",
-  "who",
-  "will",
-  "with",
-  "would",
+  "a", "an", "are", "as", "at", "be", "but", "by", "can", "for", "from",
+  "had", "has", "have", "if", "in", "is", "it", "its", "may", "not", "of",
+  "on", "or", "so", "that", "the", "their", "there", "these", "they",
+  "this", "to", "was", "were", "what", "when", "where", "which", "who",
+  "will", "with", "would",
 ]);
 
 function extractTitle(content: string): string {
@@ -108,42 +72,62 @@ function extractText(content: string): string {
   return extractCardContentArea(content);
 }
 
+const lessonContents = import.meta.glob<string>(
+  "./.data/raw/lessons/**/*.tsx",
+  {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  },
+);
+
+let _engine: MiniSearch | null = null;
+let _docs: { id: string; title: string; text: string; categoryTitle: string; sectionTitle: string; courseSlug: string; categorySlug: string; sectionSlug: string; lessonSlug: string }[] | null = null;
+
+let _courseRows: { id: number; slug: string; title: string }[] = [];
+let _categoryRows: { id: number; slug: string; title: string; courseId: number }[] = [];
+let _sectionRows: { id: number; slug: string; title: string; categoryId: number; courseId: number }[] = [];
+
+function loadCache() {
+  const db = getDb();
+  _courseRows = db.prepare("SELECT id, slug, title FROM course").all() as typeof _courseRows;
+  _categoryRows = db.prepare("SELECT id, slug, title, course_id AS courseId FROM category").all() as typeof _categoryRows;
+  _sectionRows = db.prepare("SELECT id, slug, title, category_id AS categoryId, course_id AS courseId FROM section").all() as typeof _sectionRows;
+}
+
 function lookupMeta(
-  courseKey: string,
-  subsectionKey: string,
-  lessonKey: string,
-) {
-  const course = COURSES[courseKey];
+  courseSlug: string,
+  sectionSlug: string,
+  lessonSlug: string,
+): { categoryTitle: string; sectionTitle: string; courseSlug: string; categorySlug: string; sectionSlug: string; lessonSlug: string } | null {
+  const course = _courseRows.find((c) => c.slug === courseSlug);
   if (!course) return null;
-  for (const category of course.categories) {
-    for (const subsection of category.subsections) {
-      if (subsection.subsection !== subsectionKey) continue;
-      const lesson = subsection.lessons.find((l) => l.lesson === lessonKey);
-      if (!lesson) continue;
+
+  const cats = _categoryRows.filter((c) => c.courseId === course.id);
+  for (const cat of cats) {
+    const secs = _sectionRows.filter((s) => s.categoryId === cat.id);
+    const sec = secs.find((s) => s.slug === sectionSlug);
+    if (sec) {
       return {
-        articleTitle: lesson.title,
-        categoryTitle: category.title,
-        subsectionTitle: subsection.title,
-        url: `/${courseKey}/${category.category}/${subsection.subsection}/${lesson.lesson}`,
+        categoryTitle: cat.title,
+        sectionTitle: sec.title,
+        courseSlug,
+        categorySlug: cat.slug,
+        sectionSlug: sec.slug,
+        lessonSlug,
       };
     }
   }
   return null;
 }
 
-const lessonContents = import.meta.glob<string>("~/data/lessons/**/*.tsx", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
-
-let _engine: MiniSearch | null = null;
-
-function getEngine(): MiniSearch {
-  if (_engine) return _engine;
+function getEngine(): { engine: MiniSearch; docs: typeof _docs } {
+  if (_engine && _docs) return { engine: _engine, docs: _docs };
 
   const start = performance.now();
-  const docs: { id: string; title: string; text: string }[] = [];
+  loadCache();
+
+  const docs: typeof _docs = [];
 
   for (const [filePath, content] of Object.entries(lessonContents)) {
     const title = extractTitle(content);
@@ -157,23 +141,18 @@ function getEngine(): MiniSearch {
     const srcIdx = parts.lastIndexOf("lessons");
     if (srcIdx === -1 || parts.length < srcIdx + 3) continue;
 
-    const courseKey = parts[srcIdx + 1];
+    const courseSlug = parts[srcIdx + 1];
     const rest = parts.slice(srcIdx + 2).join("/");
     const delimIdx = rest.indexOf("__");
     if (delimIdx === -1) continue;
 
-    const meta = lookupMeta(
-      courseKey,
-      rest.slice(0, delimIdx),
-      rest.slice(delimIdx + 2),
-    );
+    const sectionSlug = rest.slice(0, delimIdx);
+    const lessonSlug = rest.slice(delimIdx + 2);
+
+    const meta = lookupMeta(courseSlug, sectionSlug, lessonSlug);
     if (!meta) continue;
 
-    docs.push({
-      id: `${courseKey}/${rest.slice(0, delimIdx)}/${rest.slice(delimIdx + 2)}`,
-      title,
-      text,
-    });
+    docs.push({ id: `${courseSlug}/${sectionSlug}/${lessonSlug}`, title, text, ...meta });
   }
 
   const engine = new MiniSearch({
@@ -197,7 +176,8 @@ function getEngine(): MiniSearch {
     `[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`,
   );
   _engine = engine;
-  return engine;
+  _docs = docs;
+  return { engine, docs };
 }
 
 export function searchLessons(searchQuery: string): {
@@ -206,8 +186,10 @@ export function searchLessons(searchQuery: string): {
   subsectionTitle: string;
   url: string;
 }[] {
-  const engine = getEngine();
+  const { engine, docs } = getEngine();
   const raw = engine.search(searchQuery, { prefix: true, fuzzy: 0.2 });
+  const docMap = new Map(docs?.map((d) => [d.id, d]) ?? []);
+
   const results: {
     articleTitle: string;
     categoryTitle: string;
@@ -216,12 +198,14 @@ export function searchLessons(searchQuery: string): {
   }[] = [];
 
   for (const r of raw.slice(0, 6)) {
-    const meta = lookupMeta(
-      r.id.split("/")[0],
-      r.id.split("/")[1],
-      r.id.split("/")[2],
-    );
-    if (meta) results.push(meta);
+    const doc = docMap.get(r.id);
+    if (!doc) continue;
+    results.push({
+      articleTitle: doc.title,
+      categoryTitle: doc.categoryTitle,
+      subsectionTitle: doc.sectionTitle,
+      url: `/${doc.courseSlug}/${doc.categorySlug}/${doc.sectionSlug}/${doc.lessonSlug}`,
+    });
   }
   return results;
 }

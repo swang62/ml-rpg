@@ -1,7 +1,3 @@
-import de from "~/data/courses/data-engineering";
-import mlSysDesign from "~/data/courses/ml-system-design";
-import type { Course } from "~/utils/types";
-
 export const BASE_URL = "https://www.systemoverflow.com/learn";
 export const NOT_FOUND_PATH = "/404";
 
@@ -16,13 +12,7 @@ export const SEARCH_MIN_QUERY_LENGTH = 2;
 
 export const SITE_NAME = "System Overflow";
 
-// Derived ENV vars
 export const IS_PROD = process.env.NODE_ENV === "production";
-
-export const COURSES: Record<string, Course> = {
-  "ml-system-design": mlSysDesign,
-  "data-engineering": de,
-};
 
 export interface LevelDef {
   level: number;

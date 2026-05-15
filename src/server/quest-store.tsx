@@ -1,31 +1,31 @@
 import { action, query } from "@solidjs/router";
 import type { Component } from "solid-js";
 import { renderToString } from "solid-js/web";
+import { USER_ID, XP_VALUE } from "~/utils/constants";
+import { getDb } from "~/utils/storage";
 import {
+  getCourseBySlug,
   getCategoriesByCourse,
   getCategoryBySlug,
-  getCourseBySlug,
-  getLessonBySlug,
-  getLessonsBySection,
-  getSectionBySlug,
   getSectionsByCategory,
+  getSectionBySlug,
+  getLessonsBySection,
+  getLessonBySlug,
 } from "~/db/course_sql";
 import { getLessonHtml, updateLessonHtml } from "~/db/lesson_sql";
+import { getUserBySlug } from "~/db/user_sql";
 import {
-  getAllReadLessons,
-  getReadCountsByCourse,
-  getReadLessonsBySection,
   getTotalXp as getTotalXpDb,
+  getReadLessonsBySection,
   isLessonRead as isLessonReadDb,
   markLessonRead,
   resetSectionProgress,
+  getReadCountsByCourse,
+  getAllReadLessons,
 } from "~/db/progress_sql";
-import { getUserBySlug } from "~/db/user_sql";
-import { USER_ID, XP_VALUE } from "~/utils/constants";
-import { getDb } from "~/utils/storage";
 
 const lessonComponents = import.meta.glob<Component>(
-  "~/data/lessons/**/*.tsx",
+  "./.data/raw/lessons/**/*.tsx",
   { import: "default" },
 );
 
@@ -164,34 +164,37 @@ export const isLessonReadQuery = query(
   "lesson-read",
 );
 
-export const getSectionReadStatusesQuery = query(async (courseSlug: string) => {
-  "use server";
-  const db = getDb();
-  const user = await getUserBySlug(db, { slug: USER_ID });
-  if (!user) return {};
+export const getSectionReadStatusesQuery = query(
+  async (courseSlug: string) => {
+    "use server";
+    const db = getDb();
+    const user = await getUserBySlug(db, { slug: USER_ID });
+    if (!user) return {};
 
-  const course = await getCourseBySlug(db, { slug: courseSlug });
-  if (!course) return {};
+    const course = await getCourseBySlug(db, { slug: courseSlug });
+    if (!course) return {};
 
-  const allRead = await getAllReadLessons(db, { userId: user.id });
-  const readSet = new Set(allRead.map((r) => r.lessonid));
+    const allRead = await getAllReadLessons(db, { userId: user.id });
+    const readSet = new Set(allRead.map((r) => r.lessonid));
 
-  const categories = await getCategoriesByCourse(db, { courseId: course.id });
-  const result: Record<string, boolean[]> = {};
+    const categories = await getCategoriesByCourse(db, { courseId: course.id });
+    const result: Record<string, boolean[]> = {};
 
-  for (const cat of categories) {
-    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
-    const statuses = await Promise.all(
-      sections.map(async (sec) => {
-        const lessons = await getLessonsBySection(db, { sectionId: sec.id });
-        return lessons.every((l) => readSet.has(l.id));
-      }),
-    );
-    result[cat.slug] = statuses;
-  }
+    for (const cat of categories) {
+      const sections = await getSectionsByCategory(db, { categoryId: cat.id });
+      const statuses = await Promise.all(
+        sections.map(async (sec) => {
+          const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+          return lessons.every((l) => readSet.has(l.id));
+        }),
+      );
+      result[cat.slug] = statuses;
+    }
 
-  return result;
-}, "section-statuses");
+    return result;
+  },
+  "section-statuses",
+);
 
 export const getReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
@@ -251,7 +254,8 @@ export const getLessonNavQuery = query(
     return {
       currentLesson: mapLesson(lessons[idx]),
       prevLesson: idx > 0 ? mapLesson(lessons[idx - 1]) : null,
-      nextLesson: idx < lessons.length - 1 ? mapLesson(lessons[idx + 1]) : null,
+      nextLesson:
+        idx < lessons.length - 1 ? mapLesson(lessons[idx + 1]) : null,
     };
   },
   "lesson-nav",
@@ -273,21 +277,23 @@ export const getLessonHTMLQuery = query(
     const htmlRow = await getLessonHtml(db, { id: lesson.id });
     if (htmlRow?.html) return htmlRow.html;
 
+    // Lazy render from TSX source and cache in DB
     const key = Object.keys(lessonComponents).find((k) =>
       k.endsWith(`/${courseSlug}/${subsectionSlug}__${lessonSlug}.tsx`),
     );
-    if (!key) return "";
+    if (key) {
+      const Comp = await lessonComponents[key]();
+      const html = renderToString(() => <Comp />);
+      const cleaned = html
+        .replace(/&lt;code[^&]*?&gt;/g, (m) =>
+          m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+        )
+        .replaceAll("&lt;/code&gt;", "</code>");
+      updateLessonHtml(db, { html: cleaned, id: lesson.id });
+      return cleaned;
+    }
 
-    const Comp = await lessonComponents[key]();
-    const html = renderToString(() => <Comp />);
-    const cleaned = html
-      .replace(/&lt;code[^&]*?&gt;/g, (m) =>
-        m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
-      )
-      .replaceAll("&lt;/code&gt;", "</code>");
-
-    await updateLessonHtml(db, { html: cleaned, id: lesson.id });
-    return cleaned;
+    return "";
   },
   "lesson-html",
 );
@@ -331,41 +337,6 @@ export const resetSectionAction = action(
   },
   "reset-section",
 );
-
-async function findSectionBySlugInCourse(
-  db: import("better-sqlite3").Database,
-  courseSlug: string,
-  sectionSlug: string,
-) {
-  const course = await getCourseBySlug(db, { slug: courseSlug });
-  if (!course) return null;
-
-  const categories = await getCategoriesByCourse(db, { courseId: course.id });
-  for (const cat of categories) {
-    const sec = await getSectionBySlug(db, {
-      slug: sectionSlug,
-      categoryId: cat.id,
-    });
-    if (sec) return sec;
-  }
-  return null;
-}
-
-async function findLessonByPath(
-  db: import("better-sqlite3").Database,
-  courseSlug: string,
-  subsectionSlug: string,
-  lessonSlug: string,
-) {
-  const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
-  if (!sec) return null;
-
-  const lesson = await getLessonBySlug(db, {
-    slug: lessonSlug,
-    sectionId: sec.id,
-  });
-  return lesson ?? null;
-}
 
 export const getBreadcrumbsQuery = query(
   async (
@@ -412,3 +383,76 @@ export const getBreadcrumbsQuery = query(
   },
   "breadcrumbs",
 );
+
+/** Cache all lessons. Call via createAsync or from a startup hook. */
+export const cacheAllLessonsQuery = query(async () => {
+  "use server";
+  const db = getDb();
+
+  for (const [filePath, loader] of Object.entries(lessonComponents)) {
+    const normalized = filePath.replace(/\\/g, "/");
+    const parts = normalized.replace(/\.tsx$/, "").split("/");
+    const srcIdx = parts.lastIndexOf("lessons");
+    if (srcIdx === -1) continue;
+
+    const courseSlug = parts[srcIdx + 1];
+    const rest = parts.slice(srcIdx + 2).join("/");
+    const delimIdx = rest.indexOf("__");
+    if (delimIdx === -1) continue;
+
+    const subsectionSlug = rest.slice(0, delimIdx);
+    const lessonSlug = rest.slice(delimIdx + 2);
+
+    try {
+      const lesson = await findLessonByPath(db, courseSlug, subsectionSlug, lessonSlug);
+      if (!lesson) continue;
+
+      const Comp = await loader();
+      const html = renderToString(() => <Comp />);
+      const cleaned = html
+        .replace(/&lt;code[^&]*?&gt;/g, (m) =>
+          m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+        )
+        .replaceAll("&lt;/code&gt;", "</code>");
+
+      updateLessonHtml(db, { html: cleaned, id: lesson.id });
+    } catch (err) {
+      console.error(`Failed to cache HTML for ${filePath}: ${err}`);
+    }
+  }
+}, "cache-html");
+
+async function findSectionBySlugInCourse(
+  db: import("better-sqlite3").Database,
+  courseSlug: string,
+  sectionSlug: string,
+) {
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return null;
+
+  const categories = await getCategoriesByCourse(db, { courseId: course.id });
+  for (const cat of categories) {
+    const sec = await getSectionBySlug(db, {
+      slug: sectionSlug,
+      categoryId: cat.id,
+    });
+    if (sec) return sec;
+  }
+  return null;
+}
+
+async function findLessonByPath(
+  db: import("better-sqlite3").Database,
+  courseSlug: string,
+  subsectionSlug: string,
+  lessonSlug: string,
+) {
+  const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+  if (!sec) return null;
+
+  const lesson = await getLessonBySlug(db, {
+    slug: lessonSlug,
+    sectionId: sec.id,
+  });
+  return lesson ?? null;
+}
