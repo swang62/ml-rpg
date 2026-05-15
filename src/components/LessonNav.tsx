@@ -7,9 +7,9 @@ import type { Lesson } from "~/utils/types";
 interface LessonNavProps {
   prevLesson: Lesson | null;
   nextLesson: Lesson | null;
-  course: string | undefined;
-  category: string | undefined;
-  subsection: string | undefined;
+  course: string;
+  category: string;
+  subsection: string;
 }
 
 export default function LessonNav(props: LessonNavProps) {

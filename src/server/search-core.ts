@@ -1,3 +1,5 @@
+"use server";
+
 import MiniSearch from "minisearch";
 import { COURSES } from "~/utils/constants";
 
@@ -47,13 +49,6 @@ const STOP_WORDS = new Set([
   "with",
   "would",
 ]);
-
-interface SearchResult {
-  articleTitle: string;
-  categoryTitle: string;
-  subsectionTitle: string;
-  url: string;
-}
 
 function extractTitle(content: string): string {
   const match = content.match(/<h1[^>]*>([^<]+)<\/h1>/);
@@ -113,20 +108,18 @@ function extractText(content: string): string {
   return extractCardContentArea(content);
 }
 
-function lookupLessonMeta(
+function lookupMeta(
   courseKey: string,
   subsectionKey: string,
   lessonKey: string,
 ) {
   const course = COURSES[courseKey];
   if (!course) return null;
-
   for (const category of course.categories) {
     for (const subsection of category.subsections) {
       if (subsection.subsection !== subsectionKey) continue;
       const lesson = subsection.lessons.find((l) => l.lesson === lessonKey);
       if (!lesson) continue;
-
       return {
         articleTitle: lesson.title,
         categoryTitle: category.title,
@@ -135,9 +128,14 @@ function lookupLessonMeta(
       };
     }
   }
-
   return null;
 }
+
+const lessonContents = import.meta.glob<string>("~/data/lessons/**/*.tsx", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
 
 let _engine: MiniSearch | null = null;
 
@@ -145,28 +143,14 @@ function getEngine(): MiniSearch {
   if (_engine) return _engine;
 
   const start = performance.now();
-  const lessonPaths = import.meta.glob<string>("~/data/lessons/**/*.tsx", {
-    query: "?raw",
-    import: "default",
-    eager: true,
-  });
-
   const docs: { id: string; title: string; text: string }[] = [];
-  let noTitle = 0;
-  let noText = 0;
 
-  for (const [filePath, content] of Object.entries(lessonPaths)) {
+  for (const [filePath, content] of Object.entries(lessonContents)) {
     const title = extractTitle(content);
-    if (!title) {
-      noTitle++;
-      continue;
-    }
+    if (!title) continue;
 
     const text = extractText(content);
-    if (!text) {
-      noText++;
-      continue;
-    }
+    if (!text) continue;
 
     const normalized = filePath.replace(/\\/g, "/");
     const parts = normalized.replace(/\.tsx$/, "").split("/");
@@ -178,14 +162,15 @@ function getEngine(): MiniSearch {
     const delimIdx = rest.indexOf("__");
     if (delimIdx === -1) continue;
 
-    const subsectionKey = rest.slice(0, delimIdx);
-    const lessonKey = rest.slice(delimIdx + 2);
-
-    const meta = lookupLessonMeta(courseKey, subsectionKey, lessonKey);
+    const meta = lookupMeta(
+      courseKey,
+      rest.slice(0, delimIdx),
+      rest.slice(delimIdx + 2),
+    );
     if (!meta) continue;
 
     docs.push({
-      id: `${courseKey}/${subsectionKey}/${lessonKey}`,
+      id: `${courseKey}/${rest.slice(0, delimIdx)}/${rest.slice(delimIdx + 2)}`,
       title,
       text,
     });
@@ -206,43 +191,37 @@ function getEngine(): MiniSearch {
       return t;
     },
   });
-
   engine.addAll(docs);
+
+  console.log(
+    `[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`,
+  );
   _engine = engine;
-
-  const elapsed = ((performance.now() - start) / 1000).toFixed(2);
-  console.log(`[search] indexed ${docs.length} lessons in ${elapsed}s`);
-  if (noTitle) console.log(`[search] skipped (no title): ${noTitle}`);
-  if (noText) console.log(`[search] skipped (no text): ${noText}`);
-
   return engine;
 }
 
-export async function searchLessons(
-  searchQuery: string,
-): Promise<SearchResult[]> {
-  "use server";
+export function searchLessons(searchQuery: string): {
+  articleTitle: string;
+  categoryTitle: string;
+  subsectionTitle: string;
+  url: string;
+}[] {
   const engine = getEngine();
   const raw = engine.search(searchQuery, { prefix: true, fuzzy: 0.2 });
-  const maxResults = 6;
+  const results: {
+    articleTitle: string;
+    categoryTitle: string;
+    subsectionTitle: string;
+    url: string;
+  }[] = [];
 
-  const results: SearchResult[] = [];
-
-  for (const r of raw.slice(0, maxResults)) {
-    const meta = lookupLessonMeta(
+  for (const r of raw.slice(0, 6)) {
+    const meta = lookupMeta(
       r.id.split("/")[0],
       r.id.split("/")[1],
       r.id.split("/")[2],
     );
-    if (meta) {
-      results.push({
-        articleTitle: meta.articleTitle,
-        categoryTitle: meta.categoryTitle,
-        subsectionTitle: meta.subsectionTitle,
-        url: meta.url,
-      });
-    }
+    if (meta) results.push(meta);
   }
-
   return results;
 }

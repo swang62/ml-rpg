@@ -66,9 +66,9 @@ export default function LessonPage() {
         <LessonNav
           prevLesson={nav()?.prevLesson ?? null}
           nextLesson={nav()?.nextLesson ?? null}
-          course={params.course}
-          category={params.category}
-          subsection={params.subsection}
+          course={params.course as string}
+          category={params.category as string}
+          subsection={params.subsection as string}
         />
 
         <div class={`lesson-title ${isRead() && "lesson-title--read"}`}>
@@ -87,9 +87,9 @@ export default function LessonPage() {
         <LessonNav
           prevLesson={nav()?.prevLesson ?? null}
           nextLesson={nav()?.nextLesson ?? null}
-          course={params.course}
-          category={params.category}
-          subsection={params.subsection}
+          course={params.course as string}
+          category={params.category as string}
+          subsection={params.subsection as string}
         />
 
         <Show when={isRead()}>
