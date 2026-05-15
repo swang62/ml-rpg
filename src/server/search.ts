@@ -1,4 +1,3 @@
-import { query } from "@solidjs/router";
 import MiniSearch from "minisearch";
 import { COURSES } from "~/utils/constants";
 
@@ -49,10 +48,7 @@ const STOP_WORDS = new Set([
   "would",
 ]);
 
-interface LessonDoc {
-  id: string;
-  title: string;
-  text: string;
+interface SearchResult {
   articleTitle: string;
   categoryTitle: string;
   subsectionTitle: string;
@@ -143,7 +139,11 @@ function lookupLessonMeta(
   return null;
 }
 
-function buildIndex(): string {
+let _engine: MiniSearch | null = null;
+
+function getEngine(): MiniSearch {
+  if (_engine) return _engine;
+
   const start = performance.now();
   const lessonPaths = import.meta.glob<string>("~/data/lessons/**/*.tsx", {
     query: "?raw",
@@ -151,10 +151,9 @@ function buildIndex(): string {
     eager: true,
   });
 
-  const docs: LessonDoc[] = [];
+  const docs: { id: string; title: string; text: string }[] = [];
   let noTitle = 0;
   let noText = 0;
-  let missingMeta = 0;
 
   for (const [filePath, content] of Object.entries(lessonPaths)) {
     const title = extractTitle(content);
@@ -183,25 +182,18 @@ function buildIndex(): string {
     const lessonKey = rest.slice(delimIdx + 2);
 
     const meta = lookupLessonMeta(courseKey, subsectionKey, lessonKey);
-    if (!meta) {
-      missingMeta++;
-      continue;
-    }
+    if (!meta) continue;
 
     docs.push({
       id: `${courseKey}/${subsectionKey}/${lessonKey}`,
       title,
       text,
-      articleTitle: meta.articleTitle,
-      categoryTitle: meta.categoryTitle,
-      subsectionTitle: meta.subsectionTitle,
-      url: meta.url,
     });
   }
 
-  const miniSearch = new MiniSearch({
+  const engine = new MiniSearch({
     fields: ["title", "text"],
-    storeFields: ["articleTitle", "categoryTitle", "subsectionTitle", "url"],
+    storeFields: [],
     searchOptions: {
       boost: { title: 1.5 },
       fuzzy: 0.2,
@@ -215,22 +207,42 @@ function buildIndex(): string {
     },
   });
 
-  miniSearch.addAll(docs);
+  engine.addAll(docs);
+  _engine = engine;
 
   const elapsed = ((performance.now() - start) / 1000).toFixed(2);
   console.log(`[search] indexed ${docs.length} lessons in ${elapsed}s`);
   if (noTitle) console.log(`[search] skipped (no title): ${noTitle}`);
   if (noText) console.log(`[search] skipped (no text): ${noText}`);
-  if (missingMeta) console.log(`[search] skipped (no meta): ${missingMeta}`);
 
-  return JSON.stringify(miniSearch);
+  return engine;
 }
 
-let cached: string | null = null;
-export const getSearchIndexQuery = query(async () => {
+export async function searchLessons(
+  searchQuery: string,
+): Promise<SearchResult[]> {
   "use server";
-  if (!cached) {
-    cached = buildIndex();
+  const engine = getEngine();
+  const raw = engine.search(searchQuery, { prefix: true, fuzzy: 0.2 });
+  const maxResults = 6;
+
+  const results: SearchResult[] = [];
+
+  for (const r of raw.slice(0, maxResults)) {
+    const meta = lookupLessonMeta(
+      r.id.split("/")[0],
+      r.id.split("/")[1],
+      r.id.split("/")[2],
+    );
+    if (meta) {
+      results.push({
+        articleTitle: meta.articleTitle,
+        categoryTitle: meta.categoryTitle,
+        subsectionTitle: meta.subsectionTitle,
+        url: meta.url,
+      });
+    }
   }
-  return cached;
-}, "search-index");
+
+  return results;
+}

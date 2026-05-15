@@ -1,32 +1,21 @@
-import { createAsync, useNavigate } from "@solidjs/router";
+import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
-import { getSearchIndexQuery } from "~/server/search";
+import { searchLessons } from "~/server/search";
 import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
 } from "~/utils/constants";
-import { initSearchIndex, searchSiteData } from "~/utils/search";
+import type { SearchResult } from "~/utils/search";
 
 export default function Search() {
   const navigate = useNavigate();
   const [query, setQuery] = createSignal("");
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal(-1);
-  const [results, setResults] = createSignal<
-    {
-      articleTitle: string;
-      categoryTitle: string;
-      subsectionTitle: string;
-      url: string;
-    }[]
-  >([]);
+  const [results, setResults] = createSignal<SearchResult[]>([]);
   let inputRef: HTMLInputElement | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-
-  const searchIndexJson = createAsync(() => getSearchIndexQuery(), {
-    initialValue: null,
-  });
 
   onMount(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -51,12 +40,7 @@ export default function Search() {
         setResults([]);
         return;
       }
-
-      const json = searchIndexJson();
-      if (json) {
-        initSearchIndex(json);
-        setResults(searchSiteData(trimmed));
-      }
+      setResults(await searchLessons(trimmed));
     }, SEARCH_DEBOUNCE_MS);
   };
 
