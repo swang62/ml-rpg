@@ -1,15 +1,34 @@
-import { A, useParams } from "@solidjs/router";
+import { A, createAsync, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createMemo, createResource, Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
-import { getLessonHTML } from "~/server/lesson-data";
+import {
+  getLessonHTMLQuery,
+  getTotalXpQuery,
+  isLessonReadQuery,
+} from "~/server/quest-store";
 import { BASE_URL, COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
-import { useLessonReadStatus } from "~/utils/tracking";
+
+export const route = {
+  preload: ({ params }: { params: Record<string, string> }) => {
+    getTotalXpQuery();
+    isLessonReadQuery(
+      params.course as string,
+      params.subsection as string,
+      params.lesson as string,
+    );
+    getLessonHTMLQuery(
+      params.course as string,
+      params.subsection as string,
+      params.lesson as string,
+    );
+  },
+};
 
 export default function LessonPage() {
   const params = useParams();
@@ -46,15 +65,23 @@ export default function LessonPage() {
       `${BASE_URL}/${category?.category}/${subsection?.subsection}/${currentLesson()?.lesson}`,
   );
 
-  const [lessonHTML] = createResource(
-    () => params.lesson,
-    async () => getLessonHTML(params.course, params.subsection, params.lesson),
+  const isRead = createAsync(
+    () =>
+      isLessonReadQuery(
+        params.course as string,
+        params.subsection as string,
+        params.lesson as string,
+      ),
+    { initialValue: false },
   );
-
-  const isRead = useLessonReadStatus(
-    params.course,
-    params.subsection,
-    () => params.lesson,
+  const lessonHtml = createAsync(
+    () =>
+      getLessonHTMLQuery(
+        params.course as string,
+        params.subsection as string,
+        params.lesson as string,
+      ),
+    { initialValue: "" },
   );
 
   return (
@@ -87,7 +114,7 @@ export default function LessonPage() {
             <ExternalLink size={14} color="grey" />
           </a>
         </div>
-        <div innerHTML={lessonHTML()} />
+        <div innerHTML={lessonHtml()} />
         <LessonTracker
           course={params.course}
           subsection={params.subsection}

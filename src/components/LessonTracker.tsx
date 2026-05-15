@@ -1,6 +1,6 @@
+import { useAction } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
-import { markLessonRead } from "~/server/tracking";
-import { addLessonXp } from "~/server/xp";
+import { markLessonReadAction } from "~/server/quest-store";
 import { LESSON_READ_DELAY_MS } from "~/utils/constants";
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
 }
 
 export default function LessonTracker(props: Props) {
+  const markRead = useAction(markLessonReadAction);
   let sentinelRef: HTMLDivElement | undefined;
 
   createEffect(() => {
@@ -29,10 +30,7 @@ export default function LessonTracker(props: Props) {
       if (done) return;
       if (scrolled && timedOut) {
         done = true;
-        markLessonRead(course, subsection, lesson);
-        if (order) {
-          addLessonXp(course, subsection, lesson, order * 25);
-        }
+        markRead(course, subsection, lesson, order ?? 0);
         cleanup();
       }
     };
