@@ -606,11 +606,13 @@ a {
   border: 3px solid var(--border);
   border-radius: 4px;
   box-shadow: var(--shadow-card);
+  transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+    rotateY(var(--tilt-x, 0deg));
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    transform 0.2s ease;
+    transform var(--tilt-duration, 0.2s) ease;
 }
 
 /* Subtle inner top highlight for a raised/3D look */
@@ -654,11 +656,9 @@ a {
   flex-direction: column;
   gap: 8px;
   padding: 24px;
-  transform: translateY(0);
 }
 
 .card--category:hover {
-  transform: translateY(-3px);
   border-color: var(--level-course);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
@@ -930,7 +930,8 @@ a {
   border-color: var(--accent);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-glow-course);
+    0 0 0 1px var(--border-glow-course),
+    0 0 32px var(--glow-course);
 }
 
 .hero-course-card__info h2 {
@@ -959,10 +960,6 @@ a {
   transition:
     background 0.2s ease,
     transform 0.2s ease;
-}
-
-.hero-course-card:hover .hero-course-card__arrow {
-  transform: translateX(4px);
 }
 
 /* ===== Search ===== */
@@ -1202,11 +1199,11 @@ a {
 @keyframes slide-up {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    translate: 0 8px;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    translate: 0 0;
   }
 }
 
