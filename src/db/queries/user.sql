@@ -1,5 +1,8 @@
--- name: GetUser :one
-SELECT "user".user_id, "user".name FROM "user" WHERE "user".user_id = ?;
+-- name: GetUserBySlug :one
+SELECT "user".id, "user".slug, "user".name FROM "user" WHERE "user".slug = ?;
 
--- name: UpsertUser :exec
-INSERT INTO "user" (user_id, name) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET name = excluded.name;
+-- name: GetUserById :one
+SELECT "user".id, "user".slug, "user".name FROM "user" WHERE "user".id = ?;
+
+-- name: UpsertUser :one
+INSERT INTO "user" (slug, name) VALUES (?, ?) ON CONFLICT(slug) DO UPDATE SET name = excluded.name RETURNING id;

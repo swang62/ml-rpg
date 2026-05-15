@@ -3,14 +3,14 @@
 import { Database } from "better-sqlite3";
 
 export const getTotalXpQuery = `-- name: GetTotalXp :one
-SELECT COALESCE(SUM(lesson."order"), 0) AS total_order FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.lesson_id WHERE progress.user_id = ?`;
+SELECT COALESCE(SUM(lesson."order"), 0) AS totalorder FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
 
 export interface GetTotalXpArgs {
     userId: any;
 }
 
 export interface GetTotalXpRow {
-    totalOrder: any | null;
+    totalorder: any | null;
 }
 
 export async function getTotalXp(database: Database, args: GetTotalXpArgs): Promise<GetTotalXpRow | null> {
@@ -23,7 +23,7 @@ export async function getTotalXp(database: Database, args: GetTotalXpArgs): Prom
 }
 
 export const getReadLessonsBySectionQuery = `-- name: GetReadLessonsBySection :many
-SELECT lesson.lesson_id FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.lesson_id WHERE progress.user_id = ? AND lesson.section_id = ?`;
+SELECT lesson.id FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.section_id = ?`;
 
 export interface GetReadLessonsBySectionArgs {
     userId: any;
@@ -31,7 +31,7 @@ export interface GetReadLessonsBySectionArgs {
 }
 
 export interface GetReadLessonsBySectionRow {
-    lessonId: any;
+    id: any;
 }
 
 export async function getReadLessonsBySection(database: Database, args: GetReadLessonsBySectionArgs): Promise<GetReadLessonsBySectionRow[]> {
@@ -41,7 +41,7 @@ export async function getReadLessonsBySection(database: Database, args: GetReadL
 }
 
 export const isLessonReadQuery = `-- name: IsLessonRead :one
-SELECT COUNT(*) AS read_count FROM progress WHERE progress.lesson_id = ? AND progress.user_id = ?`;
+SELECT COUNT(*) AS readcount FROM progress WHERE progress.lesson_id = ? AND progress.user_id = ?`;
 
 export interface IsLessonReadArgs {
     lessonId: any;
@@ -49,7 +49,7 @@ export interface IsLessonReadArgs {
 }
 
 export interface IsLessonReadRow {
-    readCount: number;
+    readcount: number;
 }
 
 export async function isLessonRead(database: Database, args: IsLessonReadArgs): Promise<IsLessonReadRow | null> {
@@ -75,7 +75,7 @@ export async function markLessonRead(database: Database, args: MarkLessonReadArg
 }
 
 export const resetSectionProgressQuery = `-- name: ResetSectionProgress :exec
-DELETE FROM progress WHERE progress.user_id = ? AND progress.lesson_id IN (SELECT lesson.lesson_id FROM lesson WHERE lesson.section_id = ?)`;
+DELETE FROM progress WHERE progress.user_id = ? AND progress.lesson_id IN (SELECT lesson.id FROM lesson WHERE lesson.section_id = ?)`;
 
 export interface ResetSectionProgressArgs {
     userId: any;
@@ -88,7 +88,7 @@ export async function resetSectionProgress(database: Database, args: ResetSectio
 }
 
 export const getReadCountsByCourseQuery = `-- name: GetReadCountsByCourse :many
-SELECT lesson.section_id, COUNT(*) AS read_count FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.lesson_id WHERE progress.user_id = ? AND lesson.course_id = ? GROUP BY lesson.section_id`;
+SELECT lesson.section_id AS sectionid, COUNT(*) AS readcount FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.course_id = ? GROUP BY lesson.section_id`;
 
 export interface GetReadCountsByCourseArgs {
     userId: any;
@@ -96,8 +96,8 @@ export interface GetReadCountsByCourseArgs {
 }
 
 export interface GetReadCountsByCourseRow {
-    sectionId: any;
-    readCount: number;
+    sectionid: any;
+    readcount: number;
 }
 
 export async function getReadCountsByCourse(database: Database, args: GetReadCountsByCourseArgs): Promise<GetReadCountsByCourseRow[]> {
@@ -115,14 +115,14 @@ export async function deleteAllProgress(database: Database): Promise<void> {
 }
 
 export const getAllReadLessonsQuery = `-- name: GetAllReadLessons :many
-SELECT progress.lesson_id FROM progress WHERE progress.user_id = ?`;
+SELECT progress.lesson_id AS lessonid FROM progress WHERE progress.user_id = ?`;
 
 export interface GetAllReadLessonsArgs {
     userId: any;
 }
 
 export interface GetAllReadLessonsRow {
-    lessonId: any;
+    lessonid: any;
 }
 
 export async function getAllReadLessons(database: Database, args: GetAllReadLessonsArgs): Promise<GetAllReadLessonsRow[]> {
