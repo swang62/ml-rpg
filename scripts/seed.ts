@@ -66,9 +66,7 @@ async function main() {
 
   await seedData(db);
 
-  const dbCount = (
-    (await getLessonCount(db))!
-  ).lessoncount;
+  const dbCount = (await getLessonCount(db))!.lessoncount;
   if (dbCount !== lessonFiles) {
     throw new Error(
       `Lesson count mismatch: seeded ${dbCount}, expected ${lessonFiles}`,
@@ -77,9 +75,7 @@ async function main() {
 
   await upsertUser(db, { slug: USER_ID, name: "Player" });
 
-  console.log(
-    `  Lessons:    ${(await getLessonCount(db))!.lessoncount}`,
-  );
+  console.log(`  Lessons:    ${(await getLessonCount(db))!.lessoncount}`);
 
   db.close();
   console.log("\nSeed complete.");
