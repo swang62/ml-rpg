@@ -1,7 +1,7 @@
-import { useParams } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
-import { getTotalXp } from "~/server/xp";
-import { AVATAR_TIERS, POLL_INTERVAL } from "~/utils/constants";
+import { createAsync } from "@solidjs/router";
+import { createEffect, createMemo, createSignal } from "solid-js";
+import { getTotalXpQuery } from "~/server/quest-store";
+import { AVATAR_TIERS } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 function fmtXp(n: number): string {
@@ -21,45 +21,21 @@ function getAvatarStyle(level: number) {
 }
 
 export default function PlayerHUD() {
-  const params = useParams();
-  const [xp, setXp] = createSignal<number>(0);
+  const xp = createAsync(() => getTotalXpQuery(), { initialValue: 0 });
   const [levelUp, setLevelUp] = createSignal(false);
-
-  createEffect(async () => {
-    let interval: NodeJS.Timeout;
-    let cancelled = false;
-
-    const fetchIt = async () => {
-      if (cancelled) return;
-      const val = await getTotalXp();
-      setXp(val);
-    };
-    fetchIt();
-
-    // Start polling only on section/lesson routes
-    if (params.subsection || params.lesson) {
-      interval = setInterval(fetchIt, POLL_INTERVAL);
-    }
-    onCleanup(() => {
-      cancelled = true;
-      clearInterval(interval);
-    });
-  });
 
   const level = createMemo(() => getLevel(xp()));
   const progress = createMemo(() => xpToNextLevel(xp()));
   const avatarStyle = createMemo(() => getAvatarStyle(level().level));
 
-  let prevLevel = 0;
-  let initialized = false;
+  let prevLevel = -1;
   createEffect(() => {
     const currentLevel = level().level;
-    if (initialized && currentLevel > prevLevel) {
+    if (prevLevel >= 0 && currentLevel > prevLevel) {
       setLevelUp(true);
       setTimeout(() => setLevelUp(false), 800);
     }
     prevLevel = currentLevel;
-    initialized = true;
   });
 
   return (

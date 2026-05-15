@@ -1,11 +1,23 @@
-import { A, useParams } from "@solidjs/router";
-import { createResource } from "solid-js";
+import { A, createAsync, useParams } from "@solidjs/router";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import { fetchSectionReadStatus } from "~/server/tracking";
+import {
+  getSectionReadStatusesQuery,
+  getTotalXpQuery,
+} from "~/server/quest-store";
 import { COURSES } from "~/utils/constants";
 import { useNotFound } from "~/utils/not-found";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
+
+export const route = {
+  preload: ({ params }: { params: Record<string, string> }) => {
+    getTotalXpQuery();
+    const course = COURSES[params.course as string];
+    if (course) {
+      getSectionReadStatusesQuery(params.course as string, course.categories);
+    }
+  },
+};
 
 export default function CourseIndexPage() {
   const params = useParams();
@@ -13,11 +25,8 @@ export default function CourseIndexPage() {
   useNotFound(!course);
 
   const categories = course?.categories ?? [];
-
-  const [sectionReadStatus] = createResource(
-    () => ({ course: params.course, categories }),
-    async ({ course, categories }) =>
-      fetchSectionReadStatus(course, categories),
+  const sectionReadStatus = createAsync(() =>
+    getSectionReadStatusesQuery(params.course as string, categories),
   );
 
   return (
