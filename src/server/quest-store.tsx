@@ -366,3 +366,49 @@ async function findLessonByPath(
   });
   return lesson ?? null;
 }
+
+export const getBreadcrumbsQuery = query(
+  async (
+    courseSlug: string,
+    categorySlug?: string,
+    subsectionSlug?: string,
+  ) => {
+    "use server";
+    const db = getDb();
+    const crumbs: { label: string; href: string }[] = [];
+
+    const course = await getCourseBySlug(db, { slug: courseSlug });
+    if (!course) return crumbs;
+
+    crumbs.push({ label: course.title, href: `/${courseSlug}` });
+
+    if (!categorySlug) return crumbs;
+
+    const cat = await getCategoryBySlug(db, {
+      slug: categorySlug,
+      courseId: course.id,
+    });
+    if (!cat) return crumbs;
+
+    crumbs.push({
+      label: cat.title,
+      href: `/${courseSlug}/${categorySlug}`,
+    });
+
+    if (!subsectionSlug) return crumbs;
+
+    const sec = await getSectionBySlug(db, {
+      slug: subsectionSlug,
+      categoryId: cat.id,
+    });
+    if (!sec) return crumbs;
+
+    crumbs.push({
+      label: sec.title,
+      href: `/${courseSlug}/${categorySlug}/${subsectionSlug}`,
+    });
+
+    return crumbs;
+  },
+  "breadcrumbs",
+);
