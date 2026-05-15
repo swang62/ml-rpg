@@ -29,7 +29,7 @@ Each objective awards XP (order * 25) when read. Players level up through 20 ran
 │   ├── assets/
 │   │   ├── avatars/            # 21 level icons
 │   │   ├── bg/                 # Hierarchy-specific background images
-│   └── search/                 # Pre-built minisearch index (generated at build-time)
+│   └── search/                 # Minisearch index (built server-side at startup)
 ├── src/
 │   ├── components/             # Reusable UI components
 │   ├── data/
@@ -46,7 +46,6 @@ Each objective awards XP (order * 25) when read. Players level up through 20 ran
 pnpm dev            # Dev server (HMR enabled)
 pnpm build          # Production build → .output/
 pnpm preview        # Serve built app via .output/server/index.mjs
-pnpm build:index   # Rebuild search index from lesson TSX files
 pnpm lint           # biome check --write . && pnpm typecheck && fallow audit
 ```
 

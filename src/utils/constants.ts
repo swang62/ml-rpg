@@ -11,7 +11,6 @@ export const LESSON_READ_DELAY_MS = 1000;
 
 export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;
-export const SEARCH_INDEX_PATH = "/search/index.json";
 export const SEARCH_MAX_RESULTS = 6;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
 
