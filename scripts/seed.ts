@@ -1,7 +1,7 @@
 import { globSync } from "node:fs";
 import Database from "better-sqlite3";
-import de from "../src/data/courses/data-engineering";
-import mlSysDesign from "../src/data/courses/ml-system-design";
+import de from "../.data/raw/courses/data-engineering.ts";
+import mlSysDesign from "../.data/raw/courses/ml-system-design.ts";
 import {
   createCategory,
   createCourse,
@@ -11,7 +11,6 @@ import {
   deleteAllCourses,
   deleteAllLessons,
   deleteAllSections,
-  getLessonCount,
 } from "../src/db/course_sql";
 import { deleteAllProgress } from "../src/db/progress_sql";
 import {
@@ -66,7 +65,11 @@ async function main() {
 
   await seedData(db);
 
-  const dbCount = (await getLessonCount(db))!.lessoncount;
+  const dbCount = (
+    db.prepare("SELECT COUNT(*) AS lessoncount FROM lesson").get() as {
+      lessoncount: number;
+    }
+  ).lessoncount;
   if (dbCount !== lessonFiles) {
     throw new Error(
       `Lesson count mismatch: seeded ${dbCount}, expected ${lessonFiles}`,
@@ -75,14 +78,13 @@ async function main() {
 
   await upsertUser(db, { slug: USER_ID, name: "Player" });
 
-  console.log(`  Lessons:    ${(await getLessonCount(db))!.lessoncount}`);
-
+  console.log(`  Lessons:    ${dbCount} (HTML rendered lazily on first access)`);
   db.close();
   console.log("\nSeed complete.");
 }
 
 function countLessonFiles(): number {
-  return globSync("src/data/lessons/**/*.tsx").length;
+  return globSync(".data/raw/lessons/**/*.tsx").length;
 }
 
 async function createTables(db: Database.Database) {
