@@ -2,40 +2,16 @@ import { A, createAsync, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
-import { createEffect, Show } from "solid-js";
+import { Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
 import {
   getLessonHTMLQuery,
   getLessonNavQuery,
-  getTotalXpQuery,
   isLessonReadQuery,
 } from "~/server/quest-store";
 import { BASE_URL } from "~/utils/constants";
-import { useNotFound } from "~/utils/not-found";
-
-export const route = {
-  preload: ({ params }: { params: Record<string, string> }) => {
-    getTotalXpQuery();
-    getLessonNavQuery(
-      params.course as string,
-      params.category as string,
-      params.subsection as string,
-      params.lesson as string,
-    );
-    isLessonReadQuery(
-      params.course as string,
-      params.subsection as string,
-      params.lesson as string,
-    );
-    getLessonHTMLQuery(
-      params.course as string,
-      params.subsection as string,
-      params.lesson as string,
-    );
-  },
-};
 
 export default function LessonPage() {
   const params = useParams();
@@ -49,14 +25,6 @@ export default function LessonPage() {
       params.lesson as string,
     ),
   );
-
-  createEffect(() => {
-    if (nav() !== undefined) useNotFound(!nav());
-  });
-
-  const lessonURL = () =>
-    `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.lesson}`;
-
   const isRead = createAsync(
     () =>
       isLessonReadQuery(
@@ -75,6 +43,9 @@ export default function LessonPage() {
       ),
     { initialValue: "" },
   );
+
+  const lessonURL = () =>
+    `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.lesson}`;
 
   return (
     <main class="container container-narrow page-level--lesson">

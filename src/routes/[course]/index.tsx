@@ -1,36 +1,21 @@
 import { A, createAsync, useParams } from "@solidjs/router";
-import { createEffect } from "solid-js";
+import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import {
-  getCourseStructureQuery,
+  getCourseMetaQuery,
   getSectionReadStatusesQuery,
-  getTotalXpQuery,
 } from "~/server/quest-store";
-import { useNotFound } from "~/utils/not-found";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
-
-export const route = {
-  preload: ({ params }: { params: Record<string, string> }) => {
-    getTotalXpQuery();
-    getCourseStructureQuery(params.course as string);
-    getSectionReadStatusesQuery(params.course as string);
-  },
-};
 
 export default function CourseIndexPage() {
   const params = useParams();
-  const course = createAsync(() =>
-    getCourseStructureQuery(params.course as string),
-  );
-  createEffect(() => {
-    if (course() !== undefined) useNotFound(!course());
-  });
-
-  const categories = course()?.categories ?? [];
+  const course = createAsync(() => getCourseMetaQuery(params.course as string));
   const sectionReadStatus = createAsync(() =>
     getSectionReadStatusesQuery(params.course as string),
   );
+
+  const categories = createMemo(() => course()?.categories ?? []);
 
   return (
     <CoursePageShell
@@ -43,7 +28,7 @@ export default function CourseIndexPage() {
       backLabel="Worlds"
     >
       <section class="categories-grid">
-        {categories.map((category) => {
+        {categories().map((category) => {
           const subsectionStatuses =
             sectionReadStatus()?.[category.category] ?? [];
           const completed = subsectionStatuses.filter(Boolean).length;
