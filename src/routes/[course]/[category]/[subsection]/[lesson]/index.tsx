@@ -1,6 +1,7 @@
 import { A, createAsync, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
+import ExternalLink from "lucide-solid/icons/external-link";
 
 import { Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
@@ -85,6 +86,7 @@ export default function LessonPage() {
             ({(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
             <span class="article-xp-badge__label">XP)</span>
           </span>
+          <ExternalLink size={14} class="lesson-title__ext-link" />
         </a>
         <div innerHTML={lessonHtml()} />
         <LessonTracker

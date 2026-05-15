@@ -7,6 +7,7 @@ import { Link, MetaProvider, Title } from "@solidjs/meta";
 import { Router, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { onCleanup, onMount, Suspense } from "solid-js";
+import ParallaxBackground from "~/components/ParallaxBackground";
 import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
 import { SITE_NAME } from "./utils/constants";
@@ -53,6 +54,7 @@ export default function App() {
           <Link rel="icon" type="image/svg+xml" href="/favicon.svg" />
           <Link rel="alternate icon" href="/favicon.ico" sizes="any" />
           <GlobalBackspaceHandler />
+          <ParallaxBackground />
           <div class="app-layout">
             <header class="app-header">
               <div class="app-header__inner">
