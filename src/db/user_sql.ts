@@ -2,37 +2,68 @@
 
 import { Database } from "better-sqlite3";
 
-export const getUserQuery = `-- name: GetUser :one
-SELECT "user".user_id, "user".name FROM "user" WHERE "user".user_id = ?`;
+export const getUserBySlugQuery = `-- name: GetUserBySlug :one
+SELECT "user".id, "user".slug, "user".name FROM "user" WHERE "user".slug = ?`;
 
-export interface GetUserArgs {
-    userId: any;
+export interface GetUserBySlugArgs {
+    slug: any;
 }
 
-export interface GetUserRow {
-    userId: any;
+export interface GetUserBySlugRow {
+    id: any;
+    slug: any;
     name: any;
 }
 
-export async function getUser(database: Database, args: GetUserArgs): Promise<GetUserRow | null> {
-    const stmt = database.prepare(getUserQuery);
-    const result = await stmt.get(args.userId);
+export async function getUserBySlug(database: Database, args: GetUserBySlugArgs): Promise<GetUserBySlugRow | null> {
+    const stmt = database.prepare(getUserBySlugQuery);
+    const result = await stmt.get(args.slug);
     if (result == undefined) {
         return null;
     }
-    return result as GetUserRow;
+    return result as GetUserBySlugRow;
 }
 
-export const upsertUserQuery = `-- name: UpsertUser :exec
-INSERT INTO "user" (user_id, name) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET name = excluded.name`;
+export const getUserByIdQuery = `-- name: GetUserById :one
+SELECT "user".id, "user".slug, "user".name FROM "user" WHERE "user".id = ?`;
 
-export interface UpsertUserArgs {
-    userId: any;
+export interface GetUserByIdArgs {
+    id: any;
+}
+
+export interface GetUserByIdRow {
+    id: any;
+    slug: any;
     name: any;
 }
 
-export async function upsertUser(database: Database, args: UpsertUserArgs): Promise<void> {
+export async function getUserById(database: Database, args: GetUserByIdArgs): Promise<GetUserByIdRow | null> {
+    const stmt = database.prepare(getUserByIdQuery);
+    const result = await stmt.get(args.id);
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetUserByIdRow;
+}
+
+export const upsertUserQuery = `-- name: UpsertUser :one
+INSERT INTO "user" (slug, name) VALUES (?, ?) ON CONFLICT(slug) DO UPDATE SET name = excluded.name RETURNING id`;
+
+export interface UpsertUserArgs {
+    slug: any;
+    name: any;
+}
+
+export interface UpsertUserRow {
+    id: any;
+}
+
+export async function upsertUser(database: Database, args: UpsertUserArgs): Promise<UpsertUserRow | null> {
     const stmt = database.prepare(upsertUserQuery);
-    await stmt.run(args.userId, args.name);
+    const result = await stmt.get(args.slug, args.name);
+    if (result == undefined) {
+        return null;
+    }
+    return result as UpsertUserRow;
 }
 

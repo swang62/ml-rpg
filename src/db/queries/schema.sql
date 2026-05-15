@@ -1,49 +1,50 @@
 -- name: EnsureCourseTable :exec
 CREATE TABLE IF NOT EXISTS course (
-  course_id TEXT NOT NULL PRIMARY KEY,
-  slug TEXT NOT NULL,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL
 );
 
 -- name: EnsureCategoryTable :exec
 CREATE TABLE IF NOT EXISTS category (
-  category_id TEXT NOT NULL PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
-  course_id TEXT NOT NULL REFERENCES course(course_id)
+  course_id INTEGER NOT NULL REFERENCES course(id)
 );
 
 -- name: EnsureSectionTable :exec
 CREATE TABLE IF NOT EXISTS section (
-  section_id TEXT NOT NULL PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
-  course_id TEXT NOT NULL REFERENCES course(course_id),
-  category_id TEXT NOT NULL REFERENCES category(category_id)
+  course_id INTEGER NOT NULL REFERENCES course(id),
+  category_id INTEGER NOT NULL REFERENCES category(id)
 );
 
 -- name: EnsureLessonTable :exec
 CREATE TABLE IF NOT EXISTS lesson (
-  lesson_id TEXT NOT NULL PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   html TEXT NOT NULL DEFAULT '',
   "order" INTEGER NOT NULL,
-  course_id TEXT NOT NULL REFERENCES course(course_id),
-  category_id TEXT NOT NULL REFERENCES category(category_id),
-  section_id TEXT NOT NULL REFERENCES section(section_id)
+  course_id INTEGER NOT NULL REFERENCES course(id),
+  category_id INTEGER NOT NULL REFERENCES category(id),
+  section_id INTEGER NOT NULL REFERENCES section(id)
 );
 
 -- name: EnsureUserTable :exec
 CREATE TABLE IF NOT EXISTS "user" (
-  user_id TEXT NOT NULL PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL
 );
 
 -- name: EnsureProgressTable :exec
 CREATE TABLE IF NOT EXISTS progress (
-  lesson_id TEXT NOT NULL REFERENCES lesson(lesson_id),
-  user_id TEXT NOT NULL REFERENCES "user"(user_id),
+  lesson_id INTEGER NOT NULL REFERENCES lesson(id),
+  user_id INTEGER NOT NULL REFERENCES "user"(id),
   read_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (lesson_id, user_id)
 );

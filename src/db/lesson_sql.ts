@@ -3,10 +3,10 @@
 import { Database } from "better-sqlite3";
 
 export const getLessonHtmlQuery = `-- name: GetLessonHtml :one
-SELECT lesson.html FROM lesson WHERE lesson.lesson_id = ?`;
+SELECT lesson.html FROM lesson WHERE lesson.id = ?`;
 
 export interface GetLessonHtmlArgs {
-    lessonId: any;
+    id: any;
 }
 
 export interface GetLessonHtmlRow {
@@ -15,7 +15,7 @@ export interface GetLessonHtmlRow {
 
 export async function getLessonHtml(database: Database, args: GetLessonHtmlArgs): Promise<GetLessonHtmlRow | null> {
     const stmt = database.prepare(getLessonHtmlQuery);
-    const result = await stmt.get(args.lessonId);
+    const result = await stmt.get(args.id);
     if (result == undefined) {
         return null;
     }
@@ -23,15 +23,15 @@ export async function getLessonHtml(database: Database, args: GetLessonHtmlArgs)
 }
 
 export const updateLessonHtmlQuery = `-- name: UpdateLessonHtml :exec
-UPDATE lesson SET html = ? WHERE lesson.lesson_id = ?`;
+UPDATE lesson SET html = ? WHERE lesson.id = ?`;
 
 export interface UpdateLessonHtmlArgs {
     html: any;
-    lessonId: any;
+    id: any;
 }
 
 export async function updateLessonHtml(database: Database, args: UpdateLessonHtmlArgs): Promise<void> {
     const stmt = database.prepare(updateLessonHtmlQuery);
-    await stmt.run(args.html, args.lessonId);
+    await stmt.run(args.html, args.id);
 }
 

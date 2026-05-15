@@ -1,41 +1,50 @@
--- name: GetCourse :one
-SELECT course.course_id, course.slug, course.title FROM course WHERE course.course_id = ?;
+-- name: GetCourseById :one
+SELECT course.id, course.slug, course.title FROM course WHERE course.id = ?;
 
 -- name: GetCourseBySlug :one
-SELECT course.course_id, course.slug, course.title FROM course WHERE course.slug = ?;
+SELECT course.id, course.slug, course.title FROM course WHERE course.slug = ?;
 
 -- name: GetCategoriesByCourse :many
-SELECT category.category_id, category.slug, category.title FROM category WHERE category.course_id = ?;
+SELECT category.id, category.slug, category.title FROM category WHERE category.course_id = ?;
 
--- name: GetCategory :one
-SELECT category.title FROM category WHERE category.category_id = ? AND category.course_id = ?;
+-- name: GetCategoryById :one
+SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category WHERE category.id = ?;
+
+-- name: GetCategoryBySlug :one
+SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category WHERE category.slug = ? AND category.course_id = ?;
 
 -- name: GetSectionsByCategory :many
-SELECT section.section_id, section.slug, section.title FROM section WHERE section.category_id = ?;
+SELECT section.id, section.slug, section.title FROM section WHERE section.category_id = ?;
 
--- name: GetSection :one
-SELECT section.title FROM section WHERE section.section_id = ? AND section.category_id = ? AND section.course_id = ?;
+-- name: GetSectionById :one
+SELECT section.id, section.slug, section.title, section.course_id AS courseid, section.category_id AS categoryid FROM section WHERE section.id = ?;
+
+-- name: GetSectionBySlug :one
+SELECT section.id, section.slug, section.title, section.course_id AS courseid, section.category_id AS categoryid FROM section WHERE section.slug = ? AND section.category_id = ?;
 
 -- name: GetLessonsBySection :many
-SELECT lesson.lesson_id, lesson.slug, lesson.title, lesson."order" FROM lesson WHERE lesson.section_id = ? ORDER BY lesson."order";
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order" FROM lesson WHERE lesson.section_id = ? ORDER BY lesson."order";
 
 -- name: GetLessonById :one
-SELECT lesson.lesson_id, lesson.slug, lesson.title, lesson."order", lesson.section_id, lesson.category_id, lesson.course_id FROM lesson WHERE lesson.lesson_id = ?;
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order", lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.id = ?;
+
+-- name: GetLessonBySlug :one
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order", lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.slug = ? AND lesson.section_id = ?;
 
 -- name: GetAllLessons :many
-SELECT lesson.lesson_id, lesson.slug, lesson.title, lesson."order", lesson.section_id, lesson.category_id, lesson.course_id FROM lesson;
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order", lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson;
 
--- name: CreateCourse :exec
-INSERT INTO course (course_id, slug, title) VALUES (?, ?, ?);
+-- name: CreateCourse :one
+INSERT INTO course (slug, title) VALUES (?, ?) RETURNING id;
 
--- name: CreateCategory :exec
-INSERT INTO category (category_id, slug, title, course_id) VALUES (?, ?, ?, ?);
+-- name: CreateCategory :one
+INSERT INTO category (slug, title, course_id) VALUES (?, ?, ?) RETURNING id;
 
--- name: CreateSection :exec
-INSERT INTO section (section_id, slug, title, course_id, category_id) VALUES (?, ?, ?, ?, ?);
+-- name: CreateSection :one
+INSERT INTO section (slug, title, course_id, category_id) VALUES (?, ?, ?, ?) RETURNING id;
 
--- name: CreateLesson :exec
-INSERT INTO lesson (lesson_id, slug, title, html, "order", course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+-- name: CreateLesson :one
+INSERT INTO lesson (slug, title, html, "order", course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id;
 
 -- name: DeleteAllCourses :exec
 DELETE FROM course;
@@ -50,4 +59,4 @@ DELETE FROM section;
 DELETE FROM lesson;
 
 -- name: GetLessonCount :one
-SELECT COUNT(*) AS lesson_count FROM lesson;
+SELECT COUNT(*) AS lessoncount FROM lesson;

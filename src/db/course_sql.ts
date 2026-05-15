@@ -2,37 +2,37 @@
 
 import { Database } from "better-sqlite3";
 
-export const getCourseQuery = `-- name: GetCourse :one
-SELECT course.course_id, course.slug, course.title FROM course WHERE course.course_id = ?`;
+export const getCourseByIdQuery = `-- name: GetCourseById :one
+SELECT course.id, course.slug, course.title FROM course WHERE course.id = ?`;
 
-export interface GetCourseArgs {
-    courseId: any;
+export interface GetCourseByIdArgs {
+    id: any;
 }
 
-export interface GetCourseRow {
-    courseId: any;
+export interface GetCourseByIdRow {
+    id: any;
     slug: any;
     title: any;
 }
 
-export async function getCourse(database: Database, args: GetCourseArgs): Promise<GetCourseRow | null> {
-    const stmt = database.prepare(getCourseQuery);
-    const result = await stmt.get(args.courseId);
+export async function getCourseById(database: Database, args: GetCourseByIdArgs): Promise<GetCourseByIdRow | null> {
+    const stmt = database.prepare(getCourseByIdQuery);
+    const result = await stmt.get(args.id);
     if (result == undefined) {
         return null;
     }
-    return result as GetCourseRow;
+    return result as GetCourseByIdRow;
 }
 
 export const getCourseBySlugQuery = `-- name: GetCourseBySlug :one
-SELECT course.course_id, course.slug, course.title FROM course WHERE course.slug = ?`;
+SELECT course.id, course.slug, course.title FROM course WHERE course.slug = ?`;
 
 export interface GetCourseBySlugArgs {
     slug: any;
 }
 
 export interface GetCourseBySlugRow {
-    courseId: any;
+    id: any;
     slug: any;
     title: any;
 }
@@ -47,14 +47,14 @@ export async function getCourseBySlug(database: Database, args: GetCourseBySlugA
 }
 
 export const getCategoriesByCourseQuery = `-- name: GetCategoriesByCourse :many
-SELECT category.category_id, category.slug, category.title FROM category WHERE category.course_id = ?`;
+SELECT category.id, category.slug, category.title FROM category WHERE category.course_id = ?`;
 
 export interface GetCategoriesByCourseArgs {
     courseId: any;
 }
 
 export interface GetCategoriesByCourseRow {
-    categoryId: any;
+    id: any;
     slug: any;
     title: any;
 }
@@ -65,36 +65,62 @@ export async function getCategoriesByCourse(database: Database, args: GetCategor
     return result as GetCategoriesByCourseRow[];
 }
 
-export const getCategoryQuery = `-- name: GetCategory :one
-SELECT category.title FROM category WHERE category.category_id = ? AND category.course_id = ?`;
+export const getCategoryByIdQuery = `-- name: GetCategoryById :one
+SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category WHERE category.id = ?`;
 
-export interface GetCategoryArgs {
-    categoryId: any;
-    courseId: any;
+export interface GetCategoryByIdArgs {
+    id: any;
 }
 
-export interface GetCategoryRow {
+export interface GetCategoryByIdRow {
+    id: any;
+    slug: any;
     title: any;
+    courseid: any;
 }
 
-export async function getCategory(database: Database, args: GetCategoryArgs): Promise<GetCategoryRow | null> {
-    const stmt = database.prepare(getCategoryQuery);
-    const result = await stmt.get(args.categoryId, args.courseId);
+export async function getCategoryById(database: Database, args: GetCategoryByIdArgs): Promise<GetCategoryByIdRow | null> {
+    const stmt = database.prepare(getCategoryByIdQuery);
+    const result = await stmt.get(args.id);
     if (result == undefined) {
         return null;
     }
-    return result as GetCategoryRow;
+    return result as GetCategoryByIdRow;
+}
+
+export const getCategoryBySlugQuery = `-- name: GetCategoryBySlug :one
+SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category WHERE category.slug = ? AND category.course_id = ?`;
+
+export interface GetCategoryBySlugArgs {
+    slug: any;
+    courseId: any;
+}
+
+export interface GetCategoryBySlugRow {
+    id: any;
+    slug: any;
+    title: any;
+    courseid: any;
+}
+
+export async function getCategoryBySlug(database: Database, args: GetCategoryBySlugArgs): Promise<GetCategoryBySlugRow | null> {
+    const stmt = database.prepare(getCategoryBySlugQuery);
+    const result = await stmt.get(args.slug, args.courseId);
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetCategoryBySlugRow;
 }
 
 export const getSectionsByCategoryQuery = `-- name: GetSectionsByCategory :many
-SELECT section.section_id, section.slug, section.title FROM section WHERE section.category_id = ?`;
+SELECT section.id, section.slug, section.title FROM section WHERE section.category_id = ?`;
 
 export interface GetSectionsByCategoryArgs {
     categoryId: any;
 }
 
 export interface GetSectionsByCategoryRow {
-    sectionId: any;
+    id: any;
     slug: any;
     title: any;
 }
@@ -105,37 +131,64 @@ export async function getSectionsByCategory(database: Database, args: GetSection
     return result as GetSectionsByCategoryRow[];
 }
 
-export const getSectionQuery = `-- name: GetSection :one
-SELECT section.title FROM section WHERE section.section_id = ? AND section.category_id = ? AND section.course_id = ?`;
+export const getSectionByIdQuery = `-- name: GetSectionById :one
+SELECT section.id, section.slug, section.title, section.course_id AS courseid, section.category_id AS categoryid FROM section WHERE section.id = ?`;
 
-export interface GetSectionArgs {
-    sectionId: any;
-    categoryId: any;
-    courseId: any;
+export interface GetSectionByIdArgs {
+    id: any;
 }
 
-export interface GetSectionRow {
+export interface GetSectionByIdRow {
+    id: any;
+    slug: any;
     title: any;
+    courseid: any;
+    categoryid: any;
 }
 
-export async function getSection(database: Database, args: GetSectionArgs): Promise<GetSectionRow | null> {
-    const stmt = database.prepare(getSectionQuery);
-    const result = await stmt.get(args.sectionId, args.categoryId, args.courseId);
+export async function getSectionById(database: Database, args: GetSectionByIdArgs): Promise<GetSectionByIdRow | null> {
+    const stmt = database.prepare(getSectionByIdQuery);
+    const result = await stmt.get(args.id);
     if (result == undefined) {
         return null;
     }
-    return result as GetSectionRow;
+    return result as GetSectionByIdRow;
+}
+
+export const getSectionBySlugQuery = `-- name: GetSectionBySlug :one
+SELECT section.id, section.slug, section.title, section.course_id AS courseid, section.category_id AS categoryid FROM section WHERE section.slug = ? AND section.category_id = ?`;
+
+export interface GetSectionBySlugArgs {
+    slug: any;
+    categoryId: any;
+}
+
+export interface GetSectionBySlugRow {
+    id: any;
+    slug: any;
+    title: any;
+    courseid: any;
+    categoryid: any;
+}
+
+export async function getSectionBySlug(database: Database, args: GetSectionBySlugArgs): Promise<GetSectionBySlugRow | null> {
+    const stmt = database.prepare(getSectionBySlugQuery);
+    const result = await stmt.get(args.slug, args.categoryId);
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetSectionBySlugRow;
 }
 
 export const getLessonsBySectionQuery = `-- name: GetLessonsBySection :many
-SELECT lesson.lesson_id, lesson.slug, lesson.title, lesson."order" FROM lesson WHERE lesson.section_id = ? ORDER BY lesson."order"`;
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order" FROM lesson WHERE lesson.section_id = ? ORDER BY lesson."order"`;
 
 export interface GetLessonsBySectionArgs {
     sectionId: any;
 }
 
 export interface GetLessonsBySectionRow {
-    lessonId: any;
+    id: any;
     slug: any;
     title: any;
     order: any;
@@ -148,42 +201,69 @@ export async function getLessonsBySection(database: Database, args: GetLessonsBy
 }
 
 export const getLessonByIdQuery = `-- name: GetLessonById :one
-SELECT lesson.lesson_id, lesson.slug, lesson.title, lesson."order", lesson.section_id, lesson.category_id, lesson.course_id FROM lesson WHERE lesson.lesson_id = ?`;
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order", lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.id = ?`;
 
 export interface GetLessonByIdArgs {
-    lessonId: any;
+    id: any;
 }
 
 export interface GetLessonByIdRow {
-    lessonId: any;
+    id: any;
     slug: any;
     title: any;
     order: any;
-    sectionId: any;
-    categoryId: any;
-    courseId: any;
+    sectionid: any;
+    categoryid: any;
+    courseid: any;
 }
 
 export async function getLessonById(database: Database, args: GetLessonByIdArgs): Promise<GetLessonByIdRow | null> {
     const stmt = database.prepare(getLessonByIdQuery);
-    const result = await stmt.get(args.lessonId);
+    const result = await stmt.get(args.id);
     if (result == undefined) {
         return null;
     }
     return result as GetLessonByIdRow;
 }
 
-export const getAllLessonsQuery = `-- name: GetAllLessons :many
-SELECT lesson.lesson_id, lesson.slug, lesson.title, lesson."order", lesson.section_id, lesson.category_id, lesson.course_id FROM lesson`;
+export const getLessonBySlugQuery = `-- name: GetLessonBySlug :one
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order", lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.slug = ? AND lesson.section_id = ?`;
 
-export interface GetAllLessonsRow {
-    lessonId: any;
+export interface GetLessonBySlugArgs {
+    slug: any;
+    sectionId: any;
+}
+
+export interface GetLessonBySlugRow {
+    id: any;
     slug: any;
     title: any;
     order: any;
-    sectionId: any;
-    categoryId: any;
-    courseId: any;
+    sectionid: any;
+    categoryid: any;
+    courseid: any;
+}
+
+export async function getLessonBySlug(database: Database, args: GetLessonBySlugArgs): Promise<GetLessonBySlugRow | null> {
+    const stmt = database.prepare(getLessonBySlugQuery);
+    const result = await stmt.get(args.slug, args.sectionId);
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetLessonBySlugRow;
+}
+
+export const getAllLessonsQuery = `-- name: GetAllLessons :many
+SELECT lesson.id, lesson.slug, lesson.title, lesson."order", lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson`;
+
+export interface GetAllLessonsRow {
+    id: any;
+    slug: any;
+    title: any;
+    order: any;
+    sectionid: any;
+    categoryid: any;
+    courseid: any;
 }
 
 export async function getAllLessons(database: Database): Promise<GetAllLessonsRow[]> {
@@ -192,56 +272,76 @@ export async function getAllLessons(database: Database): Promise<GetAllLessonsRo
     return result as GetAllLessonsRow[];
 }
 
-export const createCourseQuery = `-- name: CreateCourse :exec
-INSERT INTO course (course_id, slug, title) VALUES (?, ?, ?)`;
+export const createCourseQuery = `-- name: CreateCourse :one
+INSERT INTO course (slug, title) VALUES (?, ?) RETURNING id`;
 
 export interface CreateCourseArgs {
-    courseId: any;
     slug: any;
     title: any;
 }
 
-export async function createCourse(database: Database, args: CreateCourseArgs): Promise<void> {
-    const stmt = database.prepare(createCourseQuery);
-    await stmt.run(args.courseId, args.slug, args.title);
+export interface CreateCourseRow {
+    id: any;
 }
 
-export const createCategoryQuery = `-- name: CreateCategory :exec
-INSERT INTO category (category_id, slug, title, course_id) VALUES (?, ?, ?, ?)`;
+export async function createCourse(database: Database, args: CreateCourseArgs): Promise<CreateCourseRow | null> {
+    const stmt = database.prepare(createCourseQuery);
+    const result = await stmt.get(args.slug, args.title);
+    if (result == undefined) {
+        return null;
+    }
+    return result as CreateCourseRow;
+}
+
+export const createCategoryQuery = `-- name: CreateCategory :one
+INSERT INTO category (slug, title, course_id) VALUES (?, ?, ?) RETURNING id`;
 
 export interface CreateCategoryArgs {
-    categoryId: any;
     slug: any;
     title: any;
     courseId: any;
 }
 
-export async function createCategory(database: Database, args: CreateCategoryArgs): Promise<void> {
-    const stmt = database.prepare(createCategoryQuery);
-    await stmt.run(args.categoryId, args.slug, args.title, args.courseId);
+export interface CreateCategoryRow {
+    id: any;
 }
 
-export const createSectionQuery = `-- name: CreateSection :exec
-INSERT INTO section (section_id, slug, title, course_id, category_id) VALUES (?, ?, ?, ?, ?)`;
+export async function createCategory(database: Database, args: CreateCategoryArgs): Promise<CreateCategoryRow | null> {
+    const stmt = database.prepare(createCategoryQuery);
+    const result = await stmt.get(args.slug, args.title, args.courseId);
+    if (result == undefined) {
+        return null;
+    }
+    return result as CreateCategoryRow;
+}
+
+export const createSectionQuery = `-- name: CreateSection :one
+INSERT INTO section (slug, title, course_id, category_id) VALUES (?, ?, ?, ?) RETURNING id`;
 
 export interface CreateSectionArgs {
-    sectionId: any;
     slug: any;
     title: any;
     courseId: any;
     categoryId: any;
 }
 
-export async function createSection(database: Database, args: CreateSectionArgs): Promise<void> {
-    const stmt = database.prepare(createSectionQuery);
-    await stmt.run(args.sectionId, args.slug, args.title, args.courseId, args.categoryId);
+export interface CreateSectionRow {
+    id: any;
 }
 
-export const createLessonQuery = `-- name: CreateLesson :exec
-INSERT INTO lesson (lesson_id, slug, title, html, "order", course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+export async function createSection(database: Database, args: CreateSectionArgs): Promise<CreateSectionRow | null> {
+    const stmt = database.prepare(createSectionQuery);
+    const result = await stmt.get(args.slug, args.title, args.courseId, args.categoryId);
+    if (result == undefined) {
+        return null;
+    }
+    return result as CreateSectionRow;
+}
+
+export const createLessonQuery = `-- name: CreateLesson :one
+INSERT INTO lesson (slug, title, html, "order", course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`;
 
 export interface CreateLessonArgs {
-    lessonId: any;
     slug: any;
     title: any;
     html: any;
@@ -251,9 +351,17 @@ export interface CreateLessonArgs {
     sectionId: any;
 }
 
-export async function createLesson(database: Database, args: CreateLessonArgs): Promise<void> {
+export interface CreateLessonRow {
+    id: any;
+}
+
+export async function createLesson(database: Database, args: CreateLessonArgs): Promise<CreateLessonRow | null> {
     const stmt = database.prepare(createLessonQuery);
-    await stmt.run(args.lessonId, args.slug, args.title, args.html, args.order, args.courseId, args.categoryId, args.sectionId);
+    const result = await stmt.get(args.slug, args.title, args.html, args.order, args.courseId, args.categoryId, args.sectionId);
+    if (result == undefined) {
+        return null;
+    }
+    return result as CreateLessonRow;
 }
 
 export const deleteAllCoursesQuery = `-- name: DeleteAllCourses :exec
@@ -289,10 +397,10 @@ export async function deleteAllLessons(database: Database): Promise<void> {
 }
 
 export const getLessonCountQuery = `-- name: GetLessonCount :one
-SELECT COUNT(*) AS lesson_count FROM lesson`;
+SELECT COUNT(*) AS lessoncount FROM lesson`;
 
 export interface GetLessonCountRow {
-    lessonCount: number;
+    lessoncount: number;
 }
 
 export async function getLessonCount(database: Database): Promise<GetLessonCountRow | null> {
