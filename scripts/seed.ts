@@ -1,4 +1,4 @@
-import { globSync, readFileSync } from "node:fs";
+import { copyFileSync, globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import de from "../.data/scraped/courses/data-engineering.ts";
 import mlSysDesign from "../.data/scraped/courses/ml-system-design.ts";
@@ -85,6 +85,9 @@ async function main() {
   ).c;
   console.log(`  Lessons:    ${dbCount} (${htmlCount} containing valid HTML)`);
   db.close();
+
+  copyFileSync(".data/dev.db", ".data/prod.db");
+  console.log("  Prod DB:    copied to .data/prod.db");
   console.log("\nSeed complete.");
 }
 

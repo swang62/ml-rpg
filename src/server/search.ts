@@ -7,7 +7,7 @@ import {
   getAllSections,
 } from "~/db/course_sql";
 import { getSearchLessons } from "~/db/lesson_sql";
-import type { SearchResult } from "~/utils/constants";
+import { SEARCH_MAX_RESULTS, type SearchResult } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
 function plainText(html: string): string {
@@ -19,21 +19,19 @@ function plainText(html: string): string {
     .toLowerCase();
 }
 
+interface Document {
+  id: string;
+  lessonTitle: string;
+  lessonContent: string;
+  categoryTitle: string;
+  sectionTitle: string;
+  url: string;
+}
 let _engine: MiniSearch | null = null;
-let _docs:
-  | {
-      id: string;
-      title: string;
-      courseSlug: string;
-      categorySlug: string;
-      sectionSlug: string;
-      lessonSlug: string;
-      text: string;
-    }[]
-  | null = null;
+const _ready: boolean = false;
 
 async function buildIndex() {
-  if (_engine && _docs) return;
+  if (_engine) return true;
 
   const start = performance.now();
   const db = getDb();
@@ -47,7 +45,7 @@ async function buildIndex() {
   const categories = new Map(categoryRows.map((r) => [r.id, r]));
   const sections = new Map(sectionRows.map((r) => [r.id, r]));
 
-  const docs: typeof _docs = [];
+  const docs: Document[] = [];
 
   for (const lesson of lessonRows) {
     const sec = sections.get(lesson.sectionid);
@@ -59,26 +57,133 @@ async function buildIndex() {
     const course = courses.get(cat.courseid);
     if (!course) continue;
 
-    const text = plainText(lesson.html);
-    if (!text) continue;
+    const lessonContent = plainText(lesson.html);
+    if (!lessonContent) continue;
 
     docs.push({
       id: `${course.slug}/${sec.slug}/${lesson.slug}`,
-      title: lesson.title.toLowerCase(),
-      text,
-      courseSlug: course.slug,
-      categorySlug: cat.slug,
-      sectionSlug: sec.slug,
-      lessonSlug: lesson.slug,
+      lessonTitle: lesson.title,
+      lessonContent,
+      categoryTitle: cat.title,
+      sectionTitle: sec.title,
+      url: `/${course.slug}/${cat.slug}/${sec.slug}/${lesson.slug}`,
     });
   }
 
+  const STOP_WORDS = new Set([
+    "a",
+    "an",
+    "the",
+    "and",
+    "or",
+    "but",
+    "nor",
+    "not",
+    "if",
+    "so",
+    "in",
+    "on",
+    "at",
+    "to",
+    "for",
+    "of",
+    "by",
+    "with",
+    "up",
+    "as",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "can",
+    "could",
+    "shall",
+    "should",
+    "may",
+    "might",
+    "must",
+    "this",
+    "that",
+    "these",
+    "those",
+    "it",
+    "its",
+    "they",
+    "them",
+    "their",
+    "we",
+    "us",
+    "our",
+    "you",
+    "your",
+    "he",
+    "she",
+    "him",
+    "her",
+    "his",
+    "my",
+    "me",
+    "no",
+    "nor",
+    "also",
+    "than",
+    "all",
+    "any",
+    "each",
+    "few",
+    "some",
+    "every",
+    "about",
+    "above",
+    "after",
+    "again",
+    "before",
+    "between",
+    "both",
+    "because",
+    "into",
+    "more",
+    "most",
+    "much",
+    "now",
+    "only",
+    "other",
+    "own",
+    "over",
+    "same",
+    "such",
+    "through",
+    "until",
+    "very",
+    "just",
+    "what",
+    "when",
+    "where",
+    "which",
+    "while",
+    "who",
+    "why",
+    "how",
+  ]);
+
   const engine = new MiniSearch({
-    fields: ["title", "text"],
-    storeFields: [],
+    fields: ["lessonTitle", "lessonContent"],
+    storeFields: ["lessonTitle", "categoryTitle", "sectionTitle", "url"],
     processTerm: (term) => {
       const t = term.toLowerCase();
       if (t.length < 3 || /^[0-9\s]+$/.test(t)) return null;
+      if (STOP_WORDS.has(t)) return null;
       return t;
     },
   });
@@ -88,28 +193,29 @@ async function buildIndex() {
     `[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`,
   );
   _engine = engine;
-  _docs = docs;
+  return true;
 }
-
 export async function searchLessons(
   searchQuery: string,
 ): Promise<SearchResult[]> {
   await buildIndex();
 
-  const raw = _engine?.search(searchQuery, { prefix: true, fuzzy: 0.2 });
-  const lookup = new Map(_docs?.map((d) => [d.id, d]));
+  const raw = _engine?.search(searchQuery, {
+    prefix: true,
+    fuzzy: 0.2,
+    boost: {
+      lessonTitle: 1.5,
+    },
+  });
   const results: SearchResult[] = [];
+  if (!raw?.length) return results;
 
-  if (!raw) return results;
-
-  for (const r of raw.slice(0, 6)) {
-    const d = lookup.get(r.id);
-    if (!d) continue;
+  for (const r of raw.slice(0, SEARCH_MAX_RESULTS)) {
     results.push({
-      lessonTitle: d.title,
-      categoryTitle: d.categorySlug,
-      subsectionTitle: d.sectionSlug,
-      url: `/${d.courseSlug}/${d.categorySlug}/${d.sectionSlug}/${d.lessonSlug}`,
+      lessonTitle: r.lessonTitle,
+      categoryTitle: r.categoryTitle,
+      subsectionTitle: `${r.sectionTitle} Score:${r.score}`,
+      url: r.url,
     });
   }
   return results;
