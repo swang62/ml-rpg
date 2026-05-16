@@ -1,9 +1,14 @@
-import { A, createAsync, useParams } from "@solidjs/router";
+import {
+  A,
+  createAsync,
+  type RouteDefinition,
+  useParams,
+} from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
 
-import { createEffect, createSignal, Show } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
@@ -13,6 +18,16 @@ import {
   isLessonReadQuery,
 } from "~/server/quest-store";
 import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
+
+export const route = {
+  preload: ({ params }) => {
+    isLessonReadQuery(
+      params.course as string,
+      params.subsection as string,
+      params.lesson as string,
+    );
+  },
+} satisfies RouteDefinition;
 
 export default function LessonPage() {
   const params = useParams();
@@ -37,31 +52,21 @@ export default function LessonPage() {
     { initialValue: "" },
   );
 
-  const [isRead, setIsRead] = createSignal(false);
-  const [readKey, setReadKey] = createSignal("");
-
-  // Fetch once per lesson — keyed by slug to re-fetch on navigation, no polling
-  createEffect(() => {
-    const key = `${params.course}/${params.subsection}/${params.lesson}`;
-    if (key !== readKey()) {
-      setReadKey(key);
-      setIsRead(false);
-      isLessonReadQuery(
-        params.course as string,
-        params.subsection as string,
-        params.lesson as string,
-      ).then(setIsRead);
-    }
-  });
+  // Preloaded via route.preload, auto-invalidated by markLessonReadAction via
+  // single-flight mutation — no manual refetching needed
+  const isRead = createAsync(() =>
+    isLessonReadQuery(
+      params.course as string,
+      params.subsection as string,
+      params.lesson as string,
+    ),
+  );
 
   const [toastVisible, setToastVisible] = createSignal(false);
 
   const handleRead = () => {
-    if (!isRead()) {
-      setIsRead(true);
-      setToastVisible(true);
-      setTimeout(() => setToastVisible(false), TOAST_TIMEOUT);
-    }
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), TOAST_TIMEOUT);
   };
 
   const lessonURL = () =>
@@ -102,8 +107,15 @@ export default function LessonPage() {
             class="article-xp-badge"
             classList={{ "article-xp-badge--read": isRead() }}
           >
-            {(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
-            <span class="article-xp-badge__label">XP)</span>
+            {isRead() ? (
+              "(Completed)"
+            ) : (
+              <>
+                {"("}
+                {(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
+                <span class="article-xp-badge__label">XP)</span>
+              </>
+            )}
           </span>
           <ExternalLink size={14} class="lesson-title__ext-link" />
         </a>
@@ -113,6 +125,7 @@ export default function LessonPage() {
           subsection={params.subsection}
           lesson={nav()?.currentLesson?.lesson}
           order={nav()?.currentLesson?.order}
+          alreadyRead={isRead()}
           onRead={handleRead}
         />
         <LessonNav

@@ -11,6 +11,7 @@ interface Props {
   subsection?: string;
   lesson?: string;
   order?: number;
+  alreadyRead?: boolean;
   onRead?: () => void;
 }
 
@@ -26,6 +27,10 @@ export default function LessonTracker(props: Props) {
     if (!course || !subsection || !lesson) return;
 
     const key = `${course}/${subsection}/${lesson}`;
+
+    // Already read on the server — no need to observe or re-mark
+    if (props.alreadyRead) return;
+    // Already marked in this session
     if (lessonReadState.has(key)) return;
 
     const observer = new IntersectionObserver(

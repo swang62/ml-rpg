@@ -31,7 +31,7 @@ export default function PlayerHUD() {
   let prevLevel = -1;
   createEffect(() => {
     const currentLevel = level().level;
-    if (prevLevel >= 0 && currentLevel > prevLevel) {
+    if (prevLevel >= 0 && currentLevel !== prevLevel) {
       setLevelUp(true);
       setTimeout(() => setLevelUp(false), 800);
     }
