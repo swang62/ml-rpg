@@ -20,7 +20,7 @@ import {
   markLessonRead,
   resetSectionProgress,
 } from "~/db/progress_sql";
-import { getUserBySlug } from "~/db/user_sql";
+import { getUserById } from "~/db/user_sql";
 import { USER_ID, XP_VALUE } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
@@ -109,7 +109,7 @@ export const getSubsectionMetaQuery = query(
 export const getTotalXpQuery = query(async () => {
   "use server";
   const db = getDb();
-  const user = await getUserBySlug(db, { slug: USER_ID });
+  const user = await getUserById(db, { id: USER_ID });
   if (!user) return 0;
 
   const result = await getTotalXpDb(db, { userId: user.id });
@@ -120,7 +120,7 @@ export const getReadLessonsQuery = query(
   async (courseSlug: string, subsectionSlug: string) => {
     "use server";
     const db = getDb();
-    const user = await getUserBySlug(db, { slug: USER_ID });
+    const user = await getUserById(db, { id: USER_ID });
     if (!user) return [];
 
     const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
@@ -139,7 +139,7 @@ export const isLessonReadQuery = query(
   async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
     "use server";
     const db = getDb();
-    const user = await getUserBySlug(db, { slug: USER_ID });
+    const user = await getUserById(db, { id: USER_ID });
     if (!user) return false;
 
     const lesson = await findLessonByPath(
@@ -162,7 +162,7 @@ export const isLessonReadQuery = query(
 export const getSectionReadStatusesQuery = query(async (courseSlug: string) => {
   "use server";
   const db = getDb();
-  const user = await getUserBySlug(db, { slug: USER_ID });
+  const user = await getUserById(db, { id: USER_ID });
   if (!user) return {};
 
   const course = await getCourseBySlug(db, { slug: courseSlug });
@@ -191,7 +191,7 @@ export const getSectionReadStatusesQuery = query(async (courseSlug: string) => {
 export const getReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
   const db = getDb();
-  const user = await getUserBySlug(db, { slug: USER_ID });
+  const user = await getUserById(db, { id: USER_ID });
   if (!user) return {};
 
   const course = await getCourseBySlug(db, { slug: courseSlug });
@@ -292,7 +292,7 @@ export const markLessonReadAction = action(
   ) => {
     "use server";
     const db = getDb();
-    const user = await getUserBySlug(db, { slug: USER_ID });
+    const user = await getUserById(db, { id: USER_ID });
     if (!user) return;
 
     const lesson = await findLessonByPath(
@@ -312,7 +312,7 @@ export const resetSectionAction = action(
   async (courseSlug: string, subsectionSlug: string) => {
     "use server";
     const db = getDb();
-    const user = await getUserBySlug(db, { slug: USER_ID });
+    const user = await getUserById(db, { id: USER_ID });
     if (!user) return;
 
     const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);

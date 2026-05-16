@@ -1,12 +1,18 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
-import { searchLessons } from "~/server/search-core";
+import { searchLessons } from "~/server/search";
 import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
 } from "~/utils/constants";
-import type { SearchResult } from "~/utils/search";
+
+export interface SearchResult {
+  articleTitle: string;
+  categoryTitle: string;
+  subsectionTitle: string;
+  url: string;
+}
 
 export default function Search() {
   const navigate = useNavigate();
@@ -105,6 +111,7 @@ export default function Search() {
   return (
     <div class="search" classList={{ "search--mobile-open": mobileOpen() }}>
       <button
+        type="button"
         class="search__toggle"
         onClick={toggleMobileSearch}
         aria-label={mobileOpen() ? "Close search" : "Open search"}
@@ -118,14 +125,12 @@ export default function Search() {
           aria-hidden="true"
         >
           {mobileOpen() ? (
-            <>
-              <path
-                d="M4 4l8 8M12 4l-8 8"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </>
+            <path
+              d="M4 4l8 8M12 4l-8 8"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
           ) : (
             <path
               d="M7.5 13a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11ZM15 15l-3.5-3.5"
