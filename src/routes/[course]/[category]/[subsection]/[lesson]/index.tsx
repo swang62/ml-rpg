@@ -1,14 +1,9 @@
-import {
-  A,
-  createAsync,
-  type RouteDefinition,
-  useParams,
-} from "@solidjs/router";
+import { A, createAsync, type RouteDefinition, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
-import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
 
 import { createSignal, Show } from "solid-js";
+import BackToQuest from "~/components/BackToQuest";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
@@ -76,16 +71,10 @@ export default function LessonPage() {
     <main class="container container-narrow page-level--lesson">
       <PageTitle segment={nav()?.currentLesson?.title} />
 
-      <A
+      <BackToQuest
         href={`/${params.course}/${params.category}/${params.subsection}`}
-        classList={{
-          "lesson-back-link": true,
-          "lesson-back-link--unread": !isRead(),
-        }}
-      >
-        <ChevronLeft size={16} />
-        {isRead() ? "Back to Quest" : "Run Away..."}
-      </A>
+        isRead={!!isRead()}
+      />
 
       <div class="lesson-card">
         <LessonNav
@@ -133,6 +122,13 @@ export default function LessonPage() {
           category={params.category as string}
           subsection={params.subsection as string}
         />
+
+        <div class="lesson-back-link-bottom">
+          <BackToQuest
+            href={`/${params.course}/${params.category}/${params.subsection}`}
+            isRead={!!isRead()}
+          />
+        </div>
 
         <Show when={toastVisible()}>
           <div class="lesson-read-toast">

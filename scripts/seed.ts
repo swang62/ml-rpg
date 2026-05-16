@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <explanation> */
 import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import de from "../.data/raw/courses/data-engineering.ts";

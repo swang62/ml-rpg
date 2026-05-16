@@ -1,4 +1,5 @@
 import { action, query } from "@solidjs/router";
+import type { Database } from "better-sqlite3";
 import {
   getAllCourses,
   getCategoriesByCourse,
@@ -376,7 +377,7 @@ export const getCoursesQuery = query(async () => {
 }, "courses");
 
 async function findSectionBySlugInCourse(
-  db: import("better-sqlite3").Database,
+  db: Database,
   courseSlug: string,
   sectionSlug: string,
 ) {
@@ -395,7 +396,7 @@ async function findSectionBySlugInCourse(
 }
 
 async function findLessonByPath(
-  db: import("better-sqlite3").Database,
+  db: Database,
   courseSlug: string,
   subsectionSlug: string,
   lessonSlug: string,
