@@ -5,14 +5,8 @@ import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
+  type SearchResult,
 } from "~/utils/constants";
-
-export interface SearchResult {
-  articleTitle: string;
-  categoryTitle: string;
-  subsectionTitle: string;
-  url: string;
-}
 
 export default function Search() {
   const navigate = useNavigate();
@@ -195,7 +189,7 @@ export default function Search() {
                   setMobileOpen(false);
                 }}
               >
-                <span class="search__result-title">{result.articleTitle}</span>
+                <span class="search__result-title">{result.lessonTitle}</span>
                 <span class="search__result-meta">
                   <span>{result.categoryTitle}</span>
                   <span>{result.subsectionTitle}</span>

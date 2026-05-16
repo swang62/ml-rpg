@@ -3,11 +3,9 @@ import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
-import {
-  getReadLessonsQuery,
-  getSubsectionMetaQuery,
-  resetSectionAction,
-} from "~/server/quest-store";
+import { resetSectionAction } from "~/server/actions";
+import { getSubsectionMetaQuery } from "~/server/course";
+import { getSectionReadCountsQuery } from "~/server/progress";
 import { XP_VALUE } from "~/utils/constants";
 
 export default function SubsectionPage() {
@@ -23,7 +21,10 @@ export default function SubsectionPage() {
   );
   const readLessons = createAsync(
     () =>
-      getReadLessonsQuery(params.course as string, params.subsection as string),
+      getSectionReadCountsQuery(
+        params.course as string,
+        params.subsection as string,
+      ),
     { initialValue: [] },
   );
   const reset = useAction(resetSectionAction);
@@ -58,20 +59,20 @@ export default function SubsectionPage() {
       }
     >
       <section class="articles-list">
-        {sortedLessons().map((article) => {
-          const isRead = readLessons().includes(article.lesson);
+        {sortedLessons().map((lesson) => {
+          const isRead = readLessons().includes(lesson.slug);
           return (
             <A
-              href={`/${params.course}/${params.category}/${params.subsection}/${article.lesson}`}
+              href={`/${params.course}/${params.category}/${params.subsection}/${lesson.slug}`}
               class={`card card--article${isRead ? " card--article--read" : ""}`}
             >
-              <span class="article-order">{article.order}</span>
-              <span class="article-title">{article.title}</span>
+              <span class="article-order">{lesson.order}</span>
+              <span class="article-title">{lesson.title}</span>
               <span
                 class="article-xp-badge"
                 classList={{ "article-xp-badge--read": isRead }}
               >
-                {article.order * XP_VALUE}{" "}
+                {lesson.order * XP_VALUE}{" "}
                 <span class="article-xp-badge__label">XP</span>
               </span>
             </A>

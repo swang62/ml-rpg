@@ -7,16 +7,14 @@ import BackToQuest from "~/components/BackToQuest";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
-import {
-  getLessonHTMLQuery,
-  getLessonNavQuery,
-  isLessonReadQuery,
-} from "~/server/quest-store";
+import { getLessonNavQuery } from "~/server/course";
+import { getLessonHTMLQuery } from "~/server/lesson";
+import { getLessonReadStatusQuery } from "~/server/progress";
 import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export const route = {
   preload: ({ params }) => {
-    isLessonReadQuery(
+    getLessonReadStatusQuery(
       params.course as string,
       params.subsection as string,
       params.lesson as string,
@@ -50,7 +48,7 @@ export default function LessonPage() {
   // Preloaded via route.preload, auto-invalidated by markLessonReadAction via
   // single-flight mutation — no manual refetching needed
   const isRead = createAsync(() =>
-    isLessonReadQuery(
+    getLessonReadStatusQuery(
       params.course as string,
       params.subsection as string,
       params.lesson as string,
@@ -65,7 +63,7 @@ export default function LessonPage() {
   };
 
   const lessonURL = () =>
-    `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.lesson}`;
+    `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.slug}`;
 
   return (
     <main class="container container-narrow page-level--lesson">
@@ -110,7 +108,7 @@ export default function LessonPage() {
         <LessonTracker
           course={params.course}
           subsection={params.subsection}
-          lesson={nav()?.currentLesson?.lesson}
+          lesson={nav()?.currentLesson?.slug}
           order={nav()?.currentLesson?.order}
           alreadyRead={isRead()}
           onRead={handleRead}

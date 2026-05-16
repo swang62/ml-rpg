@@ -14,6 +14,13 @@ export const SITE_NAME = "System Overflow";
 
 export const IS_PROD = process.env.NODE_ENV === "production";
 
+export interface SearchResult {
+  lessonTitle: string;
+  categoryTitle: string;
+  subsectionTitle: string;
+  url: string;
+}
+
 export interface LevelDef {
   level: number;
   title: string;
