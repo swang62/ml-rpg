@@ -143,7 +143,7 @@ a {
 .app-layout:has(.page-level--world) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.5)),
-    url("/assets/bg/world-bg.jpg") center / 120% fixed no-repeat;
+    url("/assets/bg/world-bg.jpg") center / 130% fixed no-repeat;
   background-position-x: var(--parallax-x, 50%);
   background-position-y: var(--parallax-y, 50%);
 }
@@ -151,7 +151,7 @@ a {
 .app-layout:has(.page-level--course) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.8)),
-    url("/assets/bg/course-bg.jpg") center / 120% fixed no-repeat;
+    url("/assets/bg/course-bg.jpg") center / 130% fixed no-repeat;
   background-position-x: var(--parallax-x, 50%);
   background-position-y: var(--parallax-y, 50%);
 }
@@ -159,7 +159,7 @@ a {
 .app-layout:has(.page-level--category) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.82), rgba(13, 15, 20, 0.8)),
-    url("/assets/bg/category-bg.jpg") center / 120% fixed no-repeat;
+    url("/assets/bg/category-bg.jpg") center / 130% fixed no-repeat;
   background-position-x: var(--parallax-x, 50%);
   background-position-y: var(--parallax-y, 50%);
 }
@@ -167,7 +167,7 @@ a {
 .app-layout:has(.page-level--section) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.8)),
-    url("/assets/bg/section-bg.jpg") center / 120% fixed no-repeat;
+    url("/assets/bg/section-bg.jpg") center / 130% fixed no-repeat;
   background-position-x: var(--parallax-x, 50%);
   background-position-y: var(--parallax-y, 50%);
 }
@@ -175,7 +175,7 @@ a {
 .app-layout:has(.page-level--lesson) {
   background:
     linear-gradient(rgba(24, 26, 36, 0.9), rgba(24, 26, 36, 0.7)),
-    url("/assets/bg/lesson-bg.jpg") center / 120% fixed no-repeat;
+    url("/assets/bg/lesson-bg.jpg") center / 130% fixed no-repeat;
 }
 
 /* Ensure page content extends to full viewport height on non-homepage pages
@@ -1703,6 +1703,20 @@ main {
   transition:
     opacity 0.3s ease,
     filter 0.3s ease;
+}
+
+/* Bottom back-to-quest link (static position inside the lesson card) */
+.lesson-back-link-bottom {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding-top: 24px;
+}
+
+.lesson-back-link-bottom .lesson-back-link {
+  position: static;
+  top: auto;
+  left: auto;
 }
 
 /* ===== Read status toast ===== */
