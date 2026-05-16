@@ -61,7 +61,6 @@ export async function ensureLessonTable(database: Database): Promise<void> {
 export const ensureUserTableQuery = `-- name: EnsureUserTable :exec
 CREATE TABLE IF NOT EXISTS "user" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL
 )`;
 

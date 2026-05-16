@@ -2,7 +2,7 @@ export const BASE_URL = "https://www.systemoverflow.com/learn";
 export const NOT_FOUND_PATH = "/404";
 
 export const XP_VALUE = 25;
-export const USER_ID = "default";
+export const USER_ID = 1;
 
 export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;

@@ -100,14 +100,16 @@ export async function searchLessons(searchQuery: string): Promise<
 > {
   await buildIndex();
 
-  const raw = _engine!.search(searchQuery, { prefix: true, fuzzy: 0.2 });
-  const lookup = new Map(_docs!.map((d) => [d.id, d]));
+  const raw = _engine?.search(searchQuery, { prefix: true, fuzzy: 0.2 });
+  const lookup = new Map(_docs?.map((d) => [d.id, d]));
   const results: {
     articleTitle: string;
     categoryTitle: string;
     subsectionTitle: string;
     url: string;
   }[] = [];
+
+  if (!raw) return results;
 
   for (const r of raw.slice(0, 6)) {
     const d = lookup.get(r.id);

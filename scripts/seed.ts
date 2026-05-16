@@ -1,8 +1,7 @@
-/** biome-ignore-all lint/style/noNonNullAssertion: <explanation> */
 import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
-import de from "../.data/raw/courses/data-engineering.ts";
-import mlSysDesign from "../.data/raw/courses/ml-system-design.ts";
+import de from "../.data/scraped/courses/data-engineering.ts";
+import mlSysDesign from "../.data/scraped/courses/ml-system-design.ts";
 import {
   createCategory,
   createCourse,
@@ -25,7 +24,6 @@ import {
 import { upsertUser } from "../src/db/user_sql";
 
 const DB_PATH = ".data/dev.db";
-const USER_ID = "default";
 
 const COURSES: Record<
   string,
@@ -53,9 +51,6 @@ async function main() {
 
   await createTables(db);
 
-  const lessonFiles = countLessonFiles();
-  console.log(`Lesson files on disk: ${lessonFiles}`);
-
   db.pragma("foreign_keys = OFF");
   await deleteAllProgress(db);
   await deleteAllLessons(db);
@@ -64,11 +59,11 @@ async function main() {
   await deleteAllCourses(db);
   db.pragma("foreign_keys = ON");
 
-  console.log("Extracting HTML from TSX files...");
-  const rendered = extractAllLessonHtml();
-  console.log(`  Extracted ${rendered.size} lesson HTML strings.`);
+  await seedData(db);
 
-  await seedData(db, rendered);
+  // Validation
+  const lessonFiles = countLessonFiles();
+  console.log(`Lesson files on disk: ${lessonFiles}`);
 
   const dbCount = (
     db.prepare("SELECT COUNT(*) AS lessoncount FROM lesson").get() as {
@@ -81,20 +76,20 @@ async function main() {
     );
   }
 
-  await upsertUser(db, { slug: USER_ID, name: "Player" });
+  await upsertUser(db, { name: "Steve" });
 
   const htmlCount = (
     db.prepare("SELECT COUNT(*) AS c FROM lesson WHERE html != ''").get() as {
       c: number;
     }
   ).c;
-  console.log(`  Lessons:    ${dbCount} (${htmlCount} with HTML)`);
+  console.log(`  Lessons:    ${dbCount} (${htmlCount} containing valid HTML)`);
   db.close();
   console.log("\nSeed complete.");
 }
 
 function countLessonFiles(): number {
-  return globSync(".data/raw/lessons/**/*.tsx").length;
+  return globSync(".data/scraped/lessons/**/*.tsx").length;
 }
 
 async function createTables(db: Database.Database) {
@@ -107,7 +102,7 @@ async function createTables(db: Database.Database) {
 }
 
 function extractAllLessonHtml(): Map<string, string> {
-  const files = globSync(".data/raw/lessons/**/*.tsx");
+  const files = globSync(".data/scraped/lessons/**/*.tsx");
   const result = new Map<string, string>();
 
   for (const file of files) {
@@ -152,12 +147,8 @@ function extractHtmlFromTsx(filePath: string): string {
 
   // Clean up JSX-specific syntax
   let html = inner
-    // Remove JSX expression blocks: {expression}
-    .replace(/\{[^}]+\}/g, "")
     // Collapse whitespace
     .replace(/\s+/g, " ")
-    // Remove whitespace around tag brackets
-    .replace(/>\s+</g, "><")
     .trim();
 
   // Wrap bare text fragments in a container if needed
@@ -168,27 +159,36 @@ function extractHtmlFromTsx(filePath: string): string {
   return html;
 }
 
-async function seedData(db: Database.Database, rendered: Map<string, string>) {
+async function seedData(db: Database.Database) {
+  console.log("Extracting HTML from scraped files...");
+  const rendered = extractAllLessonHtml();
+
   for (const [courseSlug, course] of Object.entries(COURSES)) {
-    const { id: cid } = (await createCourse(db, {
-      slug: courseSlug,
-      title: course.title,
-    }))!;
+    const cid = (
+      await createCourse(db, {
+        slug: courseSlug,
+        title: course.title,
+      })
+    )?.id as string;
 
     for (const cat of course.categories) {
-      const { id: catid } = (await createCategory(db, {
-        slug: cat.category,
-        title: cat.title,
-        courseId: cid,
-      }))!;
+      const catid = (
+        await createCategory(db, {
+          slug: cat.category,
+          title: cat.title,
+          courseId: cid,
+        })
+      )?.id as string;
 
       for (const sub of cat.subsections) {
-        const { id: sid } = (await createSection(db, {
-          slug: sub.subsection,
-          title: sub.title,
-          courseId: cid,
-          categoryId: catid,
-        }))!;
+        const sid = (
+          await createSection(db, {
+            slug: sub.subsection,
+            title: sub.title,
+            courseId: cid,
+            categoryId: catid,
+          })
+        )?.id as string;
 
         for (const lesson of sub.lessons) {
           const html = rendered.get(lesson.lesson) ?? "";

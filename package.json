@@ -5,8 +5,8 @@
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
-    "gen:db": "sqlc generate",
-    "lint": "biome check --write . && pnpm typecheck",
+    "generate:types": "sqlc generate",
+    "lint": "biome check --write --unsafe . && pnpm typecheck",
     "preview": "vinxi start",
     "prepare": "husky || true",
     "typecheck": "pnpm tsc --noEmit"

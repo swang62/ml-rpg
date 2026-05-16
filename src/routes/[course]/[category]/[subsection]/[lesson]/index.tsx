@@ -1,9 +1,4 @@
-import {
-  A,
-  createAsync,
-  type RouteDefinition,
-  useParams,
-} from "@solidjs/router";
+import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ExternalLink from "lucide-solid/icons/external-link";
 

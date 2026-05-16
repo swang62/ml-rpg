@@ -1,23 +1,31 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "files": {
-    "includes": ["**", "!!**/dist", "!!public/search"],
-    "maxSize": 5242880
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    },
+    "enabled": true
   },
   "css": {
     "parser": {
       "tailwindDirectives": true
     }
   },
+  "files": {
+    "includes": ["**", "!!**/dist", "!!src/db"],
+    "maxSize": 5242880
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
   },
   "linter": {
     "enabled": true,
@@ -25,17 +33,9 @@
       "recommended": true
     }
   },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double"
-    }
-  },
-  "assist": {
+  "vcs": {
+    "clientKind": "git",
     "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
+    "useIgnoreFile": true
   }
 }
