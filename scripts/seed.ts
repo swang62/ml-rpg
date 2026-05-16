@@ -3,6 +3,14 @@ import Database from "better-sqlite3";
 import de from "../.data/scraped/courses/data-engineering.ts";
 import mlSysDesign from "../.data/scraped/courses/ml-system-design.ts";
 import {
+  ensureCategoryTable,
+  ensureCourseTable,
+  ensureLessonTable,
+  ensureProgressTable,
+  ensureSectionTable,
+  ensureUserTable,
+} from "../src/db/base_sql";
+import {
   createCategory,
   createCourse,
   createLesson,
@@ -13,14 +21,6 @@ import {
   deleteAllSections,
 } from "../src/db/course_sql";
 import { deleteAllProgress } from "../src/db/progress_sql";
-import {
-  ensureCategoryTable,
-  ensureCourseTable,
-  ensureLessonTable,
-  ensureProgressTable,
-  ensureSectionTable,
-  ensureUserTable,
-} from "../src/db/schema_sql";
 import { upsertUser } from "../src/db/user_sql";
 
 const DB_PATH = ".data/dev.db";
