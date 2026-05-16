@@ -7,6 +7,7 @@ import {
   getAllSections,
 } from "~/db/course_sql";
 import { getSearchLessons } from "~/db/lesson_sql";
+import type { SearchResult } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
 function plainText(html: string): string {
@@ -90,24 +91,14 @@ async function buildIndex() {
   _docs = docs;
 }
 
-export async function searchLessons(searchQuery: string): Promise<
-  {
-    articleTitle: string;
-    categoryTitle: string;
-    subsectionTitle: string;
-    url: string;
-  }[]
-> {
+export async function searchLessons(
+  searchQuery: string,
+): Promise<SearchResult[]> {
   await buildIndex();
 
   const raw = _engine?.search(searchQuery, { prefix: true, fuzzy: 0.2 });
   const lookup = new Map(_docs?.map((d) => [d.id, d]));
-  const results: {
-    articleTitle: string;
-    categoryTitle: string;
-    subsectionTitle: string;
-    url: string;
-  }[] = [];
+  const results: SearchResult[] = [];
 
   if (!raw) return results;
 
@@ -115,7 +106,7 @@ export async function searchLessons(searchQuery: string): Promise<
     const d = lookup.get(r.id);
     if (!d) continue;
     results.push({
-      articleTitle: d.title,
+      lessonTitle: d.title,
       categoryTitle: d.categorySlug,
       subsectionTitle: d.sectionSlug,
       url: `/${d.courseSlug}/${d.categorySlug}/${d.sectionSlug}/${d.lessonSlug}`,

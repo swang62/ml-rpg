@@ -1,7 +1,9 @@
 import { createAsync } from "@solidjs/router";
 import { createEffect, createMemo, createSignal } from "solid-js";
-import { getTotalXpQuery } from "~/server/quest-store";
-import { AVATAR_TIERS } from "~/utils/constants";
+import { getUserById } from "~/db/user_sql";
+import { getTotalXpQuery } from "~/server/progress";
+import { getUser } from "~/server/user";
+import { AVATAR_TIERS, USER_ID } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 function fmtXp(n: number): string {
@@ -21,6 +23,7 @@ function getAvatarStyle(level: number) {
 }
 
 export default function PlayerHUD() {
+  const user = createAsync(() => getUser());
   const xp = createAsync(() => getTotalXpQuery(), { initialValue: 0 });
   const [levelUp, setLevelUp] = createSignal(false);
 
@@ -54,7 +57,7 @@ export default function PlayerHUD() {
       </div>
       <div class="player-hud__info">
         <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-          {level().title}
+          {user()?.name} the {level().title}
         </span>
         <div class="player-hud__xp-bar">
           <div

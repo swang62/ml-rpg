@@ -2,7 +2,7 @@ import { A, createAsync } from "@solidjs/router";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import { createMemo } from "solid-js";
 import PageTitle from "~/components/PageTitle";
-import { getCoursesQuery } from "~/server/quest-store";
+import { getCoursesQuery } from "~/server/course";
 import { SITE_NAME } from "~/utils/constants";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
 

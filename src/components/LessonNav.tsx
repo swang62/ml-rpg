@@ -1,12 +1,12 @@
 import { A } from "@solidjs/router";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ChevronRight from "lucide-solid/icons/chevron-right";
+import type { GetLessonsBySectionRow } from "~/db/course_sql";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
-import type { Lesson } from "~/utils/types";
 
 interface LessonNavProps {
-  prevLesson: Lesson | null;
-  nextLesson: Lesson | null;
+  prevLesson: GetLessonsBySectionRow | null;
+  nextLesson: GetLessonsBySectionRow | null;
   course: string;
   category: string;
   subsection: string;
@@ -17,7 +17,7 @@ export default function LessonNav(props: LessonNavProps) {
     <nav class="lesson-nav">
       {props.prevLesson ? (
         <A
-          href={`/${props.course}/${props.category}/${props.subsection}/${props.prevLesson?.lesson}`}
+          href={`/${props.course}/${props.category}/${props.subsection}/${props.prevLesson?.slug}`}
           class="lesson-nav__link lesson-nav__link--prev"
           onMouseMove={onCardMove}
           onMouseLeave={onCardLeave}
@@ -31,7 +31,7 @@ export default function LessonNav(props: LessonNavProps) {
       )}
       {props.nextLesson ? (
         <A
-          href={`/${props.course}/${props.category}/${props.subsection}/${props.nextLesson?.lesson}`}
+          href={`/${props.course}/${props.category}/${props.subsection}/${props.nextLesson?.slug}`}
           class="lesson-nav__link lesson-nav__link--next"
           onMouseMove={onCardMove}
           onMouseLeave={onCardLeave}

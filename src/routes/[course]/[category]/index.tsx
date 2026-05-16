@@ -2,7 +2,8 @@ import { A, createAsync, useParams } from "@solidjs/router";
 import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import { getCategoryMetaQuery, getReadCountsQuery } from "~/server/quest-store";
+import { getCategoryMetaQuery } from "~/server/course";
+import { getCategoryReadCountsQuery } from "~/server/progress";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export default function CategoryPage() {
@@ -13,7 +14,7 @@ export default function CategoryPage() {
     getCategoryMetaQuery(params.course as string, params.category as string),
   );
   const readCounts = createAsync(() =>
-    getReadCountsQuery(params.course as string),
+    getCategoryReadCountsQuery(params.course as string),
   );
 
   const subsections = createMemo(() => category()?.subsections ?? []);

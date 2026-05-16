@@ -3,7 +3,7 @@ import { onCleanup, onMount } from "solid-js";
 export default function ParallaxBackground() {
   onMount(() => {
     let rafId: number | null = null;
-    const DEPTH_X = 0.01;
+    const DEPTH_X = 0.005;
     const DEPTH_Y = DEPTH_X * 4;
 
     const handleMouseMove = (e: MouseEvent) => {
