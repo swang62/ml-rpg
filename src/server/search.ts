@@ -214,7 +214,7 @@ export async function searchLessons(
     results.push({
       lessonTitle: r.lessonTitle,
       categoryTitle: r.categoryTitle,
-      subsectionTitle: `${r.sectionTitle} Score:${r.score}`,
+      subsectionTitle: `${r.sectionTitle}`,
       url: r.url,
     });
   }

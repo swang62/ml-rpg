@@ -1,5 +1,6 @@
 import { createAsync } from "@solidjs/router";
 import { createEffect, createMemo, createSignal } from "solid-js";
+import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
 import { getUser } from "~/server/user";
 import { AVATAR_TIERS } from "~/utils/constants";
@@ -25,6 +26,7 @@ export default function PlayerHUD() {
   const user = createAsync(() => getUser());
   const xp = createAsync(() => getTotalXpQuery(), { initialValue: 0 });
   const [levelUp, setLevelUp] = createSignal(false);
+  const [showSheet, setShowSheet] = createSignal(false);
 
   const level = createMemo(() => getLevel(xp()));
   const progress = createMemo(() => xpToNextLevel(xp()));
@@ -41,43 +43,56 @@ export default function PlayerHUD() {
   });
 
   return (
-    <div class="player-hud">
-      <div
-        class="player-hud__avatar"
-        classList={{ "level-up": levelUp() }}
-        style={avatarStyle()}
+    <>
+      <button
+        type="button"
+        class="player-hud"
+        onClick={() => setShowSheet(true)}
       >
-        <img
-          src={`/assets/avatars/lvl${level().level}.svg`}
-          alt={level().title}
-          width="28"
-          height="28"
-        />
-      </div>
-      <div class="player-hud__info">
-        <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-          {user()?.name} the {level().title}
-        </span>
-        <div class="player-hud__xp-bar">
-          <div
-            class="player-hud__xp-fill"
-            style={{ width: `${progress().pct}%` }}
+        <div
+          class="player-hud__avatar"
+          classList={{ "level-up": levelUp() }}
+          style={avatarStyle()}
+        >
+          <img
+            src={`/assets/avatars/lvl${level().level}.svg`}
+            alt={level().title}
+            width="28"
+            height="28"
           />
         </div>
-        <div class="player-hud__stats">
-          <span class="player-hud__lvl" classList={{ "level-up": levelUp() }}>
-            Lv.{level().level}
+        <div class="player-hud__info">
+          <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
+            {user()?.name} the {level().title}
           </span>
-          <span
-            class="player-hud__xp-count"
-            classList={{ "level-up": levelUp() }}
-          >
-            {progress().xpNeeded > 0
-              ? `${progress().currentXp}/${fmtXp(progress().xpNeeded)} XP`
-              : `${fmtXp(xp())} XP (MAX)`}
-          </span>
+          <div class="player-hud__xp-bar">
+            <div
+              class="player-hud__xp-fill"
+              style={{ width: `${progress().pct}%` }}
+            />
+          </div>
+          <div class="player-hud__stats">
+            <span class="player-hud__lvl" classList={{ "level-up": levelUp() }}>
+              Lv.{level().level}
+            </span>
+            <span
+              class="player-hud__xp-count"
+              classList={{ "level-up": levelUp() }}
+            >
+              {progress().xpNeeded > 0
+                ? `${progress().currentXp}/${fmtXp(progress().xpNeeded)} XP`
+                : `${fmtXp(xp())} XP (MAX)`}
+            </span>
+          </div>
         </div>
-      </div>
-    </div>
+      </button>
+
+      <PlayerSheet
+        open={showSheet()}
+        userName={user()?.name}
+        totalXp={xp()}
+        onClose={() => setShowSheet(false)}
+      />
+    </>
   );
 }
