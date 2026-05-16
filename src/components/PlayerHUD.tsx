@@ -1,9 +1,8 @@
 import { createAsync } from "@solidjs/router";
 import { createEffect, createMemo, createSignal } from "solid-js";
-import { getUserById } from "~/db/user_sql";
 import { getTotalXpQuery } from "~/server/progress";
 import { getUser } from "~/server/user";
-import { AVATAR_TIERS, USER_ID } from "~/utils/constants";
+import { AVATAR_TIERS } from "~/utils/constants";
 import { getLevel, xpToNextLevel } from "~/utils/xp";
 
 function fmtXp(n: number): string {
