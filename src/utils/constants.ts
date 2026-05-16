@@ -65,7 +65,7 @@ export const AVATAR_TIERS: AvatarTier[] = [
   {
     minLevel: 20,
     borderColor: "#fbbf24",
-    glow: "0 0 12px rgba(251,191,36,0.7), 0 0 24px rgba(251,191,36,0.3)",
+    glow: "0 0 12px rgba(251,191,36,0.6), 0 0 24px rgba(251,191,36,0.3)",
   },
   {
     minLevel: 15,
@@ -84,7 +84,7 @@ export const AVATAR_TIERS: AvatarTier[] = [
   },
   {
     minLevel: 0,
-    borderColor: "var(--accent)",
+    borderColor: "var(--text-muted)",
     glow: "0 0 4px var(--accent-glow)",
   },
 ];

@@ -1,6 +1,6 @@
 import { action, query } from "@solidjs/router";
 
-import { getUserById } from "~/db/user_sql";
+import { getUserById, updateUserName } from "~/db/user_sql";
 import { USER_ID } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
@@ -16,5 +16,5 @@ export const getUser = query(async () => {
 export const updateUserNameAction = action(async (name: string) => {
   "use server";
   const db = getDb();
-  db.prepare('UPDATE "user" SET name = ? WHERE id = ?').run(name, USER_ID);
+  await updateUserName(db, { name, id: USER_ID });
 }, "update-user-name");

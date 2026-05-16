@@ -1,4 +1,20 @@
-import { LEVELS, type LevelDef } from "./constants";
+import { AVATAR_TIERS, LEVELS, type LevelDef } from "./constants";
+
+export function formatXP(n: number): string {
+  return n >= 1000
+    ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1).replace(/\.0$/, "")}k`
+    : `${n}`;
+}
+
+export function getAvatarStyle(level: number) {
+  const tier =
+    AVATAR_TIERS.find((t) => level >= t.minLevel) ??
+    AVATAR_TIERS[AVATAR_TIERS.length - 1];
+  return {
+    border: `2px solid ${tier.borderColor}`,
+    "box-shadow": tier.glow,
+  };
+}
 
 export function getLevel(xp: number): LevelDef {
   let current = LEVELS[0];

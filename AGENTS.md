@@ -31,6 +31,11 @@ No test framework is configured.
 - Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
 - `pnpm lint` includes Biome checks, TypeScript type checking, and a fallow audit (dead code, complexity, duplication) all in one command.
 
+### Database Queries
+
+- **All database queries MUST use sqlc.** Raw SQL in TypeScript files is forbidden. Add or modify queries in `src/db/raw/*.sql`, then run `pnpm generate:types` (`sqlc generate`) to produce typed functions in `src/db/*_sql.ts`.
+- The sqlc config is at `sqlc.yaml`: schema from `src/db/raw/base.sql`, queries from `src/db/raw/`, output to `src/db/`.
+
 ### Reactive Signals
 
 - Do NOT destructure reactive props or signals. Access them directly via `props.signal`, never `const { signal } = props`. Destructuring breaks reactivity by capturing the value at call time.

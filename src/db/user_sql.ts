@@ -43,3 +43,16 @@ export async function upsertUser(database: Database, args: UpsertUserArgs): Prom
     return result as UpsertUserRow;
 }
 
+export const updateUserNameQuery = `-- name: UpdateUserName :exec
+UPDATE "user" SET name = ? WHERE id = ?`;
+
+export interface UpdateUserNameArgs {
+    name: any;
+    id: any;
+}
+
+export async function updateUserName(database: Database, args: UpdateUserNameArgs): Promise<void> {
+    const stmt = database.prepare(updateUserNameQuery);
+    await stmt.run(args.name, args.id);
+}
+

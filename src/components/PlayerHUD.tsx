@@ -3,24 +3,7 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
 import { getUser } from "~/server/user";
-import { AVATAR_TIERS } from "~/utils/constants";
-import { getLevel, xpToNextLevel } from "~/utils/xp";
-
-function fmtXp(n: number): string {
-  return n >= 1000
-    ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1).replace(/\.0$/, "")}k`
-    : `${n}`;
-}
-
-function getAvatarStyle(level: number) {
-  const tier =
-    AVATAR_TIERS.find((t) => level >= t.minLevel) ??
-    AVATAR_TIERS[AVATAR_TIERS.length - 1];
-  return {
-    border: `2px solid ${tier.borderColor}`,
-    "box-shadow": tier.glow,
-  };
-}
+import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
   const user = createAsync(() => getUser());
@@ -63,7 +46,8 @@ export default function PlayerHUD() {
         </div>
         <div class="player-hud__info">
           <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-            {user()?.name} the {level().title}
+            {user()?.name}{" "}
+            <span class="text-level-section">the {level().title}</span>
           </span>
           <div class="player-hud__xp-bar">
             <div
@@ -80,8 +64,8 @@ export default function PlayerHUD() {
               classList={{ "level-up": levelUp() }}
             >
               {progress().xpNeeded > 0
-                ? `${progress().currentXp}/${fmtXp(progress().xpNeeded)} XP`
-                : `${fmtXp(xp())} XP (MAX)`}
+                ? `${progress().currentXp}/${formatXP(progress().xpNeeded)} XP`
+                : `${formatXP(xp())} XP (MAX)`}
             </span>
           </div>
         </div>
