@@ -173,7 +173,7 @@ export default function Search() {
       {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (
         <div class="search__dropdown" role="listbox">
           {results().length === 0 ? (
-            <div class="search__empty">No results found</div>
+            <div class="search__empty"></div>
           ) : (
             results().map((result, i) => (
               <a

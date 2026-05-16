@@ -4,7 +4,7 @@ export default function ParallaxBackground() {
   onMount(() => {
     let rafId: number | null = null;
     const DEPTH_X = 0.005;
-    const DEPTH_Y = DEPTH_X * 4;
+    const DEPTH_Y = DEPTH_X * 10;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId !== null) return;

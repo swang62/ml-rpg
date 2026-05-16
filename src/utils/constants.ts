@@ -7,7 +7,7 @@ export const USER_ID = 1;
 export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;
 export const SEARCH_MAX_RESULTS = 6;
-export const SEARCH_MIN_QUERY_LENGTH = 2;
+export const SEARCH_MIN_QUERY_LENGTH = 3;
 export const TOAST_TIMEOUT = 3000;
 
 export const SITE_NAME = "System Overflow";
