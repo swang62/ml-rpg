@@ -167,10 +167,7 @@ function extractHtmlFromTsx(filePath: string): string {
   return html;
 }
 
-async function seedData(
-  db: Database.Database,
-  rendered: Map<string, string>,
-) {
+async function seedData(db: Database.Database, rendered: Map<string, string>) {
   for (const [courseSlug, course] of Object.entries(COURSES)) {
     const { id: cid } = (await createCourse(db, {
       slug: courseSlug,

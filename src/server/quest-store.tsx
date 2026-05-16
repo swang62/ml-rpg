@@ -1,27 +1,27 @@
 import { action, query } from "@solidjs/router";
-import { USER_ID, XP_VALUE } from "~/utils/constants";
-import { getDb } from "~/utils/storage";
 import {
-  getCourseBySlug,
+  getAllCourses,
   getCategoriesByCourse,
   getCategoryBySlug,
-  getSectionsByCategory,
-  getSectionBySlug,
-  getLessonsBySection,
+  getCourseBySlug,
   getLessonBySlug,
-  getAllCourses,
+  getLessonsBySection,
+  getSectionBySlug,
+  getSectionsByCategory,
 } from "~/db/course_sql";
 import { getLessonHtml } from "~/db/lesson_sql";
-import { getUserBySlug } from "~/db/user_sql";
 import {
-  getTotalXp as getTotalXpDb,
+  getAllReadLessons,
+  getReadCountsByCourse,
   getReadLessonsBySection,
+  getTotalXp as getTotalXpDb,
   isLessonRead as isLessonReadDb,
   markLessonRead,
   resetSectionProgress,
-  getReadCountsByCourse,
-  getAllReadLessons,
 } from "~/db/progress_sql";
+import { getUserBySlug } from "~/db/user_sql";
+import { USER_ID, XP_VALUE } from "~/utils/constants";
+import { getDb } from "~/utils/storage";
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
   "use server";
@@ -158,37 +158,34 @@ export const isLessonReadQuery = query(
   "lesson-read",
 );
 
-export const getSectionReadStatusesQuery = query(
-  async (courseSlug: string) => {
-    "use server";
-    const db = getDb();
-    const user = await getUserBySlug(db, { slug: USER_ID });
-    if (!user) return {};
+export const getSectionReadStatusesQuery = query(async (courseSlug: string) => {
+  "use server";
+  const db = getDb();
+  const user = await getUserBySlug(db, { slug: USER_ID });
+  if (!user) return {};
 
-    const course = await getCourseBySlug(db, { slug: courseSlug });
-    if (!course) return {};
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return {};
 
-    const allRead = await getAllReadLessons(db, { userId: user.id });
-    const readSet = new Set(allRead.map((r) => r.lessonid));
+  const allRead = await getAllReadLessons(db, { userId: user.id });
+  const readSet = new Set(allRead.map((r) => r.lessonid));
 
-    const categories = await getCategoriesByCourse(db, { courseId: course.id });
-    const result: Record<string, boolean[]> = {};
+  const categories = await getCategoriesByCourse(db, { courseId: course.id });
+  const result: Record<string, boolean[]> = {};
 
-    for (const cat of categories) {
-      const sections = await getSectionsByCategory(db, { categoryId: cat.id });
-      const statuses = await Promise.all(
-        sections.map(async (sec) => {
-          const lessons = await getLessonsBySection(db, { sectionId: sec.id });
-          return lessons.every((l) => readSet.has(l.id));
-        }),
-      );
-      result[cat.slug] = statuses;
-    }
+  for (const cat of categories) {
+    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
+    const statuses = await Promise.all(
+      sections.map(async (sec) => {
+        const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+        return lessons.every((l) => readSet.has(l.id));
+      }),
+    );
+    result[cat.slug] = statuses;
+  }
 
-    return result;
-  },
-  "section-statuses",
-);
+  return result;
+}, "section-statuses");
 
 export const getReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
@@ -203,76 +200,87 @@ export const getReadCountsQuery = query(async (courseSlug: string) => {
     userId: user.id,
     courseId: course.id,
   });
+
+  // Build a map of sectionid -> slug for lookups
+  const categories = await getCategoriesByCourse(db, { courseId: course.id });
+  const sectionIdToSlug: Record<number, string> = {};
+  for (const cat of categories) {
+    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
+    for (const sec of sections) {
+      sectionIdToSlug[sec.id] = sec.slug;
+    }
+  }
+
   const result: Record<string, number> = {};
   for (const row of rows) {
-    result[String(row.sectionid)] = row.readcount;
+    const slug = sectionIdToSlug[Number(row.sectionid)];
+    if (slug) {
+      result[slug] = row.readcount;
+    }
   }
   return result;
 }, "read-counts");
 
-export const getLessonNavQuery = query(
-  async (
-    courseSlug: string,
-    categorySlug: string,
-    subsectionSlug: string,
-    lessonSlug: string,
-  ) => {
-    "use server";
-    const db = getDb();
+export async function getLessonNavQuery(
+  courseSlug: string,
+  categorySlug: string,
+  subsectionSlug: string,
+  lessonSlug: string,
+) {
+  "use server";
+  const db = getDb();
 
-    const course = await getCourseBySlug(db, { slug: courseSlug });
-    if (!course) return null;
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return null;
 
-    const cat = await getCategoryBySlug(db, {
-      slug: categorySlug,
-      courseId: course.id,
-    });
-    if (!cat) return null;
+  const cat = await getCategoryBySlug(db, {
+    slug: categorySlug,
+    courseId: course.id,
+  });
+  if (!cat) return null;
 
-    const sec = await getSectionBySlug(db, {
-      slug: subsectionSlug,
-      categoryId: cat.id,
-    });
-    if (!sec) return null;
+  const sec = await getSectionBySlug(db, {
+    slug: subsectionSlug,
+    categoryId: cat.id,
+  });
+  if (!sec) return null;
 
-    const lessons = await getLessonsBySection(db, { sectionId: sec.id });
-    const idx = lessons.findIndex((l) => l.slug === lessonSlug);
-    if (idx === -1) return null;
+  const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+  const idx = lessons.findIndex((l) => l.slug === lessonSlug);
+  if (idx === -1) return null;
 
-    const mapLesson = (l: (typeof lessons)[number]) => ({
-      lesson: l.slug,
-      title: l.title,
-      order: l.order,
-    });
+  const mapLesson = (l: (typeof lessons)[number]) => ({
+    lesson: l.slug,
+    title: l.title,
+    order: l.order,
+  });
 
-    return {
-      currentLesson: mapLesson(lessons[idx]),
-      prevLesson: idx > 0 ? mapLesson(lessons[idx - 1]) : null,
-      nextLesson:
-        idx < lessons.length - 1 ? mapLesson(lessons[idx + 1]) : null,
-    };
-  },
-  "lesson-nav",
-);
+  return {
+    currentLesson: mapLesson(lessons[idx]),
+    prevLesson: idx > 0 ? mapLesson(lessons[idx - 1]) : null,
+    nextLesson: idx < lessons.length - 1 ? mapLesson(lessons[idx + 1]) : null,
+  };
+}
 
-export const getLessonHTMLQuery = query(
-  async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
-    "use server";
-    const db = getDb();
+export async function getLessonHTMLQuery(
+  courseSlug: string,
+  subsectionSlug: string,
+  lessonSlug: string,
+) {
+  "use server";
+  const db = getDb();
 
-    const lesson = await findLessonByPath(
-      db,
-      courseSlug,
-      subsectionSlug,
-      lessonSlug,
-    );
-    if (!lesson) return "";
+  const lesson = await findLessonByPath(
+    db,
+    courseSlug,
+    subsectionSlug,
+    lessonSlug,
+  );
+  if (!lesson) return "";
 
-    const htmlRow = await getLessonHtml(db, { id: lesson.id });
-    return cleanLessonHtml(htmlRow?.html ?? "");
-  },
-  "lesson-html",
-);
+  const htmlRow = await getLessonHtml(db, { id: lesson.id });
+  return cleanLessonHtml(htmlRow?.html ?? "");
+}
 
 export const markLessonReadAction = action(
   async (

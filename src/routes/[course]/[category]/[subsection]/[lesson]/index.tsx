@@ -3,7 +3,7 @@ import Check from "lucide-solid/icons/check";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ExternalLink from "lucide-solid/icons/external-link";
 
-import { Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
@@ -12,7 +12,7 @@ import {
   getLessonNavQuery,
   isLessonReadQuery,
 } from "~/server/quest-store";
-import { BASE_URL, XP_VALUE } from "~/utils/constants";
+import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export default function LessonPage() {
   const params = useParams();
@@ -26,15 +26,7 @@ export default function LessonPage() {
       params.lesson as string,
     ),
   );
-  const isRead = createAsync(
-    () =>
-      isLessonReadQuery(
-        params.course as string,
-        params.subsection as string,
-        params.lesson as string,
-      ),
-    { initialValue: false },
-  );
+
   const lessonHtml = createAsync(
     () =>
       getLessonHTMLQuery(
@@ -44,6 +36,33 @@ export default function LessonPage() {
       ),
     { initialValue: "" },
   );
+
+  const [isRead, setIsRead] = createSignal(false);
+  const [readKey, setReadKey] = createSignal("");
+
+  // Fetch once per lesson — keyed by slug to re-fetch on navigation, no polling
+  createEffect(() => {
+    const key = `${params.course}/${params.subsection}/${params.lesson}`;
+    if (key !== readKey()) {
+      setReadKey(key);
+      setIsRead(false);
+      isLessonReadQuery(
+        params.course as string,
+        params.subsection as string,
+        params.lesson as string,
+      ).then(setIsRead);
+    }
+  });
+
+  const [toastVisible, setToastVisible] = createSignal(false);
+
+  const handleRead = () => {
+    if (!isRead()) {
+      setIsRead(true);
+      setToastVisible(true);
+      setTimeout(() => setToastVisible(false), TOAST_TIMEOUT);
+    }
+  };
 
   const lessonURL = () =>
     `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.lesson}`;
@@ -60,7 +79,7 @@ export default function LessonPage() {
         }}
       >
         <ChevronLeft size={16} />
-        Back to Quest
+        {isRead() ? "Back to Quest" : "Run Away..."}
       </A>
 
       <div class="lesson-card">
@@ -83,7 +102,7 @@ export default function LessonPage() {
             class="article-xp-badge"
             classList={{ "article-xp-badge--read": isRead() }}
           >
-            ({(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
+            {(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
             <span class="article-xp-badge__label">XP)</span>
           </span>
           <ExternalLink size={14} class="lesson-title__ext-link" />
@@ -94,6 +113,7 @@ export default function LessonPage() {
           subsection={params.subsection}
           lesson={nav()?.currentLesson?.lesson}
           order={nav()?.currentLesson?.order}
+          onRead={handleRead}
         />
         <LessonNav
           prevLesson={nav()?.prevLesson ?? null}
@@ -103,10 +123,10 @@ export default function LessonPage() {
           subsection={params.subsection as string}
         />
 
-        <Show when={isRead()}>
-          <div class="lesson-read-badge lesson-read-badge--enter">
+        <Show when={toastVisible()}>
+          <div class="lesson-read-toast">
             <Check size={14} />
-            <span>Completed</span>
+            <span>Objective Completed</span>
           </div>
         </Show>
       </div>

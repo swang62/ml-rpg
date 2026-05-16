@@ -1,13 +1,17 @@
 import { useAction } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { markLessonReadAction } from "~/server/quest-store";
-import { LESSON_READ_DELAY_MS } from "~/utils/constants";
+
+// Persists across component re-renders and effect re-runs so that
+// query invalidation from the action doesn't trigger an infinite loop
+const lessonReadState = new Map<string, boolean>();
 
 interface Props {
   course?: string;
   subsection?: string;
   lesson?: string;
   order?: number;
+  onRead?: () => void;
 }
 
 export default function LessonTracker(props: Props) {
@@ -18,33 +22,20 @@ export default function LessonTracker(props: Props) {
     const course = props.course;
     const subsection = props.subsection;
     const lesson = props.lesson;
-    const order = props.order;
 
     if (!course || !subsection || !lesson) return;
 
-    let scrolled = false;
-    let timedOut = false;
-    let done = false;
-
-    const tryMark = () => {
-      if (done) return;
-      if (scrolled && timedOut) {
-        done = true;
-        markRead(course, subsection, lesson, order ?? 0);
-        cleanup();
-      }
-    };
-
-    const timer = setTimeout(() => {
-      timedOut = true;
-      tryMark();
-    }, LESSON_READ_DELAY_MS);
+    const key = `${course}/${subsection}/${lesson}`;
+    if (lessonReadState.has(key)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          scrolled = true;
-          tryMark();
+          lessonReadState.set(key, true);
+          observer.disconnect();
+          markRead(course, subsection, lesson, props.order ?? 0).then(() => {
+            props.onRead?.();
+          });
         }
       },
       { threshold: 0 },
@@ -52,12 +43,9 @@ export default function LessonTracker(props: Props) {
 
     if (sentinelRef) observer.observe(sentinelRef);
 
-    const cleanup = () => {
-      clearTimeout(timer);
+    onCleanup(() => {
       observer.disconnect();
-    };
-
-    onCleanup(cleanup);
+    });
   });
 
   return <div ref={sentinelRef} aria-hidden="true" style={{ height: "1px" }} />;
