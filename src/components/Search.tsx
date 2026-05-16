@@ -14,6 +14,7 @@ export default function Search() {
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal(-1);
   const [results, setResults] = createSignal<SearchResult[]>([]);
+  const [mobileOpen, setMobileOpen] = createSignal(false);
   let inputRef: HTMLInputElement | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -51,6 +52,7 @@ export default function Search() {
         setIsOpen(false);
         setQuery("");
         setResults([]);
+        setMobileOpen(false);
         inputRef?.blur();
       },
       ArrowDown: () => {
@@ -75,13 +77,65 @@ export default function Search() {
   const handleFocus = () => setIsOpen(true);
 
   const handleBlur = () => {
-    setTimeout(() => setIsOpen(false), SEARCH_BLUR_CLOSE_MS);
+    setTimeout(() => {
+      setIsOpen(false);
+      if (!mobileOpen()) {
+        setQuery("");
+        setResults([]);
+      }
+    }, SEARCH_BLUR_CLOSE_MS);
+  };
+
+  const toggleMobileSearch = () => {
+    setMobileOpen((open) => {
+      const next = !open;
+      if (next) {
+        setTimeout(() => inputRef?.focus(), 100);
+      } else {
+        setQuery("");
+        setResults([]);
+        setIsOpen(false);
+      }
+      return next;
+    });
   };
 
   const isMac = navigator.platform.includes("Mac");
 
   return (
-    <div class="search">
+    <div class="search" classList={{ "search--mobile-open": mobileOpen() }}>
+      <button
+        class="search__toggle"
+        onClick={toggleMobileSearch}
+        aria-label={mobileOpen() ? "Close search" : "Open search"}
+        aria-expanded={mobileOpen()}
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          {mobileOpen() ? (
+            <>
+              <path
+                d="M4 4l8 8M12 4l-8 8"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </>
+          ) : (
+            <path
+              d="M7.5 13a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11ZM15 15l-3.5-3.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          )}
+        </svg>
+      </button>
       <div class="search__input-wrapper">
         <svg
           class="search__icon"
@@ -133,6 +187,7 @@ export default function Search() {
                   setIsOpen(false);
                   setQuery("");
                   setResults([]);
+                  setMobileOpen(false);
                 }}
               >
                 <span class="search__result-title">{result.articleTitle}</span>

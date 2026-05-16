@@ -3,6 +3,7 @@ import { onCleanup, onMount } from "solid-js";
 export default function ParallaxBackground() {
   onMount(() => {
     let rafId: number | null = null;
+    const PX = 0.03; // parallax intensity factor
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId !== null) return;
@@ -20,15 +21,11 @@ export default function ParallaxBackground() {
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
 
-        const nx = (e.clientX - cx) / cx;
-        const ny = (e.clientY - cy) / cy;
+        const nx = e.clientX - cx;
+        const ny = e.clientY - cy;
 
-        const applyCurve = (v: number) =>
-          v === 0 ? 0 : Math.sign(v) * Math.abs(v) ** 0.4;
-
-        const maxOffsetPct = 2;
-        const px = 50 - applyCurve(nx) * maxOffsetPct;
-        const py = 50 - applyCurve(ny) * maxOffsetPct;
+        const px = 50 - nx * PX;
+        const py = 50 - ny * PX;
 
         document.documentElement.style.setProperty("--parallax-x", `${px}%`);
         document.documentElement.style.setProperty("--parallax-y", `${py}%`);

@@ -38,10 +38,9 @@ No test framework is configured.
 
 ## Architecture
 
-- Lesson content is loaded server-side via `"use server"` functions and rendered to HTML via `renderToString`
-- Course data is loaded server-side via `"use server"` (statically imported, no `import.meta.glob`)
+- Lesson content and course metadata are loaded server-side via `"use server"` functions from a `better-sqlite3` database
 - Lessons use `innerHTML` for content — global CSS in `app.css` styles everything
-- No CMS or database — editing content means editing lesson TSX files in `src/data/lessons/`
+- Database is stored at `.data/dev.db` (dev) or `.data/prod.db` (prod)
 
 ### Data hierarchy
 
@@ -58,11 +57,12 @@ No test framework is configured.
 
 ### XP & tracking system
 
-- XP stored server-side in `.data/xp/{env}/` via unstorage/fs driver (one file per lesson key)
-- Read status stored in `.data/tracking/{env}/` via unstorage/fs driver
+- XP and read status stored server-side in a `better-sqlite3` database at `.data/{env}.db`
 - `"use server"` functions in `src/server/` handle all persistence
-- `NODE_ENV` determines dev vs prod data directories (via `src/server/data-path.ts`)
-- Dev server uses `.data/{store}/dev/`, production Docker mounts volumes at `.data/{store}/prod/`
+- `NODE_ENV` determines dev vs prod database (via `src/utils/constants.ts`)
+- Data is fetched once on page load — no polling for lesson content or read status
+- Read status is tracked via an `IntersectionObserver` sentinel in `LessonTracker`; when the sentinel scrolls into view, the lesson is immediately marked read
+- Toast notification ("Objective Completed") appears briefly at the bottom-center of the lesson page
 
 ## Path Alias
 

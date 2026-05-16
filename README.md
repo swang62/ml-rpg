@@ -11,13 +11,13 @@ System Overflow is a retro game-themed content-navigation site with an XP/leveli
 3. **Quest** (subsection) — a specific subject within a level (e.g., "Experiment Design")
 4. **Objective** (lesson) — an individual learning piece with its own page and external links
 
-Each objective awards XP (order * xp value) when read. Players level up through 20 ranks (Novice → Eternal) with a quadratic XP curve. Progress persists server-side via unstorage.
+Each objective awards XP (order * xp value) when read. Players level up through 20 ranks (Novice → Eternal) with a quadratic XP curve. Progress persists server-side via better-sqlite3.
 
 ## Tech Stack
 
 - **SolidStart** — meta-framework (SolidJS + file-system routing)
 - **Vinxi** — build tool and dev server (based on Nitro)
-- **unstorage** — persistence layer with fs driver
+- **better-sqlite3** — persistence layer
 - **Biome** — linting and formatting
 - **pnpm** — package manager
 
@@ -65,22 +65,23 @@ pnpm lint           # biome check --write . && pnpm typecheck && fallow audit
 - Each objective awards `order * XP_VALUE` XP (objective 1 = 25 XP, objective 6 = 150 XP)
 - 20 ranks from Novice (0) to Eternal (20), quadratic XP curve
 - Level 20 requires 60,000 XP (69% of ~87,000 total available XP)
-- Server-side persistence via unstorage + fs driver (`.data/xp/`)
-- Separate dev/prod stores based on `NODE_ENV`
+- Server-side persistence via better-sqlite3 (`.data/dev.db` or `.data/prod.db`)
+- Separate dev/prod databases based on `NODE_ENV`
 
 ### Player HUD
 
-- Rendered in the top nav bar, polls `getTotalXp()` every 3 seconds
+- Rendered in the top nav bar, fetches XP on page load
 - Shows: level title, XP progress bar, Lv.#, XP count (k-abbreviated)
 - Circular avatar with border glow that scales with level (gold at 20)
 - 21 unique avatar icons (`public/assets/avatars/lvl{n}.svg`)
 
 ### Read Tracking
 
-- Objectives are marked read after scrolling past a sentinel + delay
+- Objectives are marked read immediately when scrolled into view (IntersectionObserver sentinel)
 - Quest page shows read progress: completed objectives get muted cards and greyed XP badges
 - "Reset All" button clears read status for the current quest
-- Server-side persistence via unstorage + fs driver (`.data/tracking/`)
+- Completed toast appears briefly at bottom-center of the lesson page
+- Server-side persistence via better-sqlite3
 
 ### Visual Design
 
@@ -89,17 +90,4 @@ pnpm lint           # biome check --write . && pnpm typecheck && fallow audit
 - Display font (Plus Jakarta Sans) on navigation and body text
 - Card-based layout with 3px retro borders and hover glow effects
 - Hierarchy-specific background images with dark overlays
-
-## Data Persistence
-
-Runtime data is stored in `.data/` at the project root (gitignored, only `.gitkeep` files tracked):
-
-```
-.data/
-├── xp/
-│   ├── dev/         # Dev XP data (when NODE_ENV != production)
-│   └── prod/        # Prod XP data (Docker volume mount)
-└── tracking/
-    ├── dev/         # Dev read tracking
-    └── prod/        # Prod read tracking (Docker volume mount)
-```
+- Background parallax on mouse move (linear, opposite direction)

@@ -1,9 +1,13 @@
 "use server";
 
 import MiniSearch from "minisearch";
-import { getDb } from "~/utils/storage";
-import { getAllCourses, getAllCategories, getAllSections } from "~/db/course_sql";
+import {
+  getAllCategories,
+  getAllCourses,
+  getAllSections,
+} from "~/db/course_sql";
 import { getSearchLessons } from "~/db/lesson_sql";
+import { getDb } from "~/utils/storage";
 
 function plainText(html: string): string {
   return html
@@ -15,7 +19,17 @@ function plainText(html: string): string {
 }
 
 let _engine: MiniSearch | null = null;
-let _docs: { id: string; title: string; courseSlug: string; categorySlug: string; sectionSlug: string; lessonSlug: string; text: string }[] | null = null;
+let _docs:
+  | {
+      id: string;
+      title: string;
+      courseSlug: string;
+      categorySlug: string;
+      sectionSlug: string;
+      lessonSlug: string;
+      text: string;
+    }[]
+  | null = null;
 
 async function buildIndex() {
   if (_engine && _docs) return;
@@ -69,17 +83,21 @@ async function buildIndex() {
   });
   engine.addAll(docs);
 
-  console.log(`[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`);
+  console.log(
+    `[search] indexed ${docs.length} lessons in ${((performance.now() - start) / 1000).toFixed(2)}s`,
+  );
   _engine = engine;
   _docs = docs;
 }
 
-export async function searchLessons(searchQuery: string): Promise<{
-  articleTitle: string;
-  categoryTitle: string;
-  subsectionTitle: string;
-  url: string;
-}[]> {
+export async function searchLessons(searchQuery: string): Promise<
+  {
+    articleTitle: string;
+    categoryTitle: string;
+    subsectionTitle: string;
+    url: string;
+  }[]
+> {
   await buildIndex();
 
   const raw = _engine!.search(searchQuery, { prefix: true, fuzzy: 0.2 });
