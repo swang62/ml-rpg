@@ -3,7 +3,7 @@
 import { Database } from "better-sqlite3";
 
 export const ensureCourseTableQuery = `-- name: EnsureCourseTable :exec
-CREATE TABLE IF NOT EXISTS "course" (
+CREATE TABLE IF NOT EXISTS course (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL
@@ -15,11 +15,12 @@ export async function ensureCourseTable(database: Database): Promise<void> {
 }
 
 export const ensureCategoryTableQuery = `-- name: EnsureCategoryTable :exec
-CREATE TABLE IF NOT EXISTS "category" (
+CREATE TABLE IF NOT EXISTS category (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
-  course_id INTEGER NOT NULL REFERENCES course(id)
+  course_id INTEGER NOT NULL REFERENCES course(id),
+  UNIQUE(course_id, slug)
 )`;
 
 export async function ensureCategoryTable(database: Database): Promise<void> {
@@ -28,12 +29,13 @@ export async function ensureCategoryTable(database: Database): Promise<void> {
 }
 
 export const ensureSectionTableQuery = `-- name: EnsureSectionTable :exec
-CREATE TABLE IF NOT EXISTS "section" (
+CREATE TABLE IF NOT EXISTS section (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   course_id INTEGER NOT NULL REFERENCES course(id),
-  category_id INTEGER NOT NULL REFERENCES category(id)
+  category_id INTEGER NOT NULL REFERENCES category(id),
+  UNIQUE(course_id, category_id, slug)
 )`;
 
 export async function ensureSectionTable(database: Database): Promise<void> {
@@ -42,15 +44,16 @@ export async function ensureSectionTable(database: Database): Promise<void> {
 }
 
 export const ensureLessonTableQuery = `-- name: EnsureLessonTable :exec
-CREATE TABLE IF NOT EXISTS "lesson" (
+CREATE TABLE IF NOT EXISTS lesson (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   html TEXT NOT NULL DEFAULT '',
-  order INTEGER NOT NULL,
+  lesson_order INTEGER NOT NULL DEFAULT 0,
   course_id INTEGER NOT NULL REFERENCES course(id),
   category_id INTEGER NOT NULL REFERENCES category(id),
-  section_id INTEGER NOT NULL REFERENCES section(id)
+  section_id INTEGER NOT NULL REFERENCES section(id),
+  UNIQUE(course_id, category_id, section_id, slug)
 )`;
 
 export async function ensureLessonTable(database: Database): Promise<void> {
@@ -58,21 +61,23 @@ export async function ensureLessonTable(database: Database): Promise<void> {
     await stmt.run();
 }
 
-export const ensureUserTableQuery = `-- name: EnsureUserTable :exec
-CREATE TABLE IF NOT EXISTS "user" (
+export const ensureUsersTableQuery = `-- name: EnsureUsersTable :exec
+CREATE TABLE IF NOT EXISTS users (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL
+  username TEXT NOT NULL,
+  user_password TEXT NOT NULL,
+  display_name TEXT
 )`;
 
-export async function ensureUserTable(database: Database): Promise<void> {
-    const stmt = database.prepare(ensureUserTableQuery);
+export async function ensureUsersTable(database: Database): Promise<void> {
+    const stmt = database.prepare(ensureUsersTableQuery);
     await stmt.run();
 }
 
 export const ensureProgressTableQuery = `-- name: EnsureProgressTable :exec
-CREATE TABLE IF NOT EXISTS "progress" (
+CREATE TABLE IF NOT EXISTS progress (
   lesson_id INTEGER NOT NULL REFERENCES lesson(id),
-  user_id INTEGER NOT NULL REFERENCES "user"(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
   read_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (lesson_id, user_id)
 )`;

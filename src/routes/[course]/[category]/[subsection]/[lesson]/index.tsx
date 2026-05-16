@@ -89,7 +89,7 @@ export default function LessonPage() {
           rel="noopener noreferrer"
           class={`lesson-title ${isRead() && "lesson-title--read"}`}
         >
-          <span>Objective {nav()?.currentLesson?.order}</span>
+          <span>Objective {nav()?.currentLesson?.lessonorder}</span>
           <span
             class="article-xp-badge"
             classList={{ "article-xp-badge--read": isRead() }}
@@ -97,7 +97,7 @@ export default function LessonPage() {
             {!isRead() && (
               <>
                 {"("}
-                {(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
+                {(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE}
                 <span class="article-xp-badge__label">XP)</span>
               </>
             )}
@@ -109,7 +109,7 @@ export default function LessonPage() {
           course={params.course}
           subsection={params.subsection}
           lesson={nav()?.currentLesson?.slug}
-          order={nav()?.currentLesson?.order}
+          order={nav()?.currentLesson?.lessonorder}
           alreadyRead={isRead()}
           onRead={handleRead}
         />

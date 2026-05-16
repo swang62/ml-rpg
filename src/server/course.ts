@@ -1,15 +1,9 @@
 import { query } from "@solidjs/router";
 import type { Database } from "better-sqlite3";
-import {
-  getAllCourses,
-  getCategoriesByCourse,
-  getCategoryBySlug,
-  getCourseBySlug,
-  getLessonBySlug,
-  getLessonsBySection,
-  getSectionBySlug,
-  getSectionsByCategory,
-} from "~/db/course_sql";
+import { getCategoriesByCourse, getCategoryBySlug } from "~/db/category_sql";
+import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
+import { getLessonBySlug, getLessonsBySection } from "~/db/lesson_sql";
+import { getSectionBySlug, getSectionsByCategory } from "~/db/section_sql";
 import { getDb } from "~/utils/storage";
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {

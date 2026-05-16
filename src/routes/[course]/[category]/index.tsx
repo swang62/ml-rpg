@@ -1,10 +1,22 @@
-import { A, createAsync, useParams } from "@solidjs/router";
+import {
+  A,
+  createAsync,
+  type RouteDefinition,
+  useParams,
+} from "@solidjs/router";
 import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCategoryMetaQuery } from "~/server/course";
 import { getCategoryReadCountsQuery } from "~/server/progress";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
+
+export const route = {
+  preload: ({ params }) => {
+    getCategoryMetaQuery(params.course as string, params.category as string);
+    getCategoryReadCountsQuery(params.course as string);
+  },
+} satisfies RouteDefinition;
 
 export default function CategoryPage() {
   const params = useParams();

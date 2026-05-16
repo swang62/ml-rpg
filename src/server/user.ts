@@ -1,6 +1,6 @@
 import { action, query } from "@solidjs/router";
 
-import { getUserById, updateUserName } from "~/db/user_sql";
+import { getUserById, updateDisplayName } from "~/db/users_sql";
 import { USER_ID } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
@@ -13,8 +13,8 @@ export const getUser = query(async () => {
   return user;
 }, "current-user");
 
-export const updateUserNameAction = action(async (name: string) => {
+export const updateUserNameAction = action(async (displayName: string) => {
   "use server";
   const db = getDb();
-  await updateUserName(db, { name, id: USER_ID });
-}, "update-user-name");
+  await updateDisplayName(db, { displayName, id: USER_ID });
+}, "update-display-name");

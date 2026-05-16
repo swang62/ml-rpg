@@ -5,10 +5,11 @@
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "vinxi dev",
-    "generate:types": "sqlc generate",
-    "lint": "biome check --write --unsafe . && pnpm typecheck",
+    "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
+    "lint": "biome check --write . && pnpm typecheck",
     "preview": "vinxi start",
     "prepare": "husky || true",
+    "seed": "tsx ./scripts/seed.ts",
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {

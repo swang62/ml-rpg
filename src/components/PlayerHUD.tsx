@@ -31,6 +31,7 @@ export default function PlayerHUD() {
         type="button"
         class="player-hud"
         onClick={() => setShowSheet(true)}
+        title="View character sheet"
       >
         <div
           class="player-hud__avatar"
@@ -46,7 +47,7 @@ export default function PlayerHUD() {
         </div>
         <div class="player-hud__info">
           <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-            {user()?.name}{" "}
+            {user()?.displayname}{" "}
             <span class="text-level-section">the {level().title}</span>
           </span>
           <div class="player-hud__xp-bar">
@@ -73,7 +74,7 @@ export default function PlayerHUD() {
 
       <PlayerSheet
         open={showSheet()}
-        userName={user()?.name}
+        userName={user()?.displayname}
         totalXp={xp()}
         onClose={() => setShowSheet(false)}
       />

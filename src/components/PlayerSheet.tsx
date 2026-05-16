@@ -12,8 +12,8 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { updateUserNameAction } from "~/server/user";
-import { AVATAR_TIERS, LEVELS, type LevelDef } from "~/utils/constants";
-import { getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
+import { LEVELS, type LevelDef } from "~/utils/constants";
+import { getAvatarStyle, getLevel } from "~/utils/xp";
 
 interface Props {
   open: boolean;
@@ -68,7 +68,6 @@ export default function PlayerSheet(props: Props) {
   const submission = useSubmission(updateUserNameAction);
 
   const currentLevel = createMemo(() => getLevel(props.totalXp));
-  const nextXp = createMemo(() => xpToNextLevel(props.totalXp));
 
   const handleSave = () => {
     const name = draftName().trim();
@@ -193,12 +192,6 @@ export default function PlayerSheet(props: Props) {
                   <span class="text-level-category">
                     {fmtXp(props.totalXp)}
                   </span>
-                  {/* <span class="text-text-muted">
-                    /{" "}
-                    {nextXp().xpNeeded > 0
-                      ? `${fmtXp(nextXp().nextLevelXp)}`
-                      : "MAX"}
-                  </span> */}
                 </span>
               </div>
             </div>

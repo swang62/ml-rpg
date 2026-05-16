@@ -3,7 +3,7 @@
 import { Database } from "better-sqlite3";
 
 export const getTotalXpQuery = `-- name: GetTotalXp :one
-SELECT COALESCE(SUM(lesson."order"), 0) AS totalorder FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
+SELECT COALESCE(SUM(lesson.lesson_order), 0) AS totalorder FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
 
 export interface GetTotalXpArgs {
     userId: any;

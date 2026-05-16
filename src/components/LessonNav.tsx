@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import type { GetLessonsBySectionRow } from "~/db/course_sql";
+import type { GetLessonsBySectionRow } from "~/db/lesson_sql";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 interface LessonNavProps {
@@ -23,7 +23,7 @@ export default function LessonNav(props: LessonNavProps) {
           onMouseLeave={onCardLeave}
         >
           <ChevronLeft size={14} />
-          <span class="lesson-nav__order">{props.prevLesson?.order}</span>
+          <span class="lesson-nav__order">{props.prevLesson?.lessonorder}</span>
           <span class="lesson-nav__title">{props.prevLesson?.title}</span>
         </A>
       ) : (
@@ -37,7 +37,7 @@ export default function LessonNav(props: LessonNavProps) {
           onMouseLeave={onCardLeave}
         >
           <span class="lesson-nav__title">{props.nextLesson?.title}</span>
-          <span class="lesson-nav__order">{props.nextLesson?.order}</span>
+          <span class="lesson-nav__order">{props.nextLesson?.lessonorder}</span>
           <ChevronRight size={14} />
         </A>
       ) : (

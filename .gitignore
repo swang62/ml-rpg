@@ -6,7 +6,8 @@ dist
 .vinxi
 .nitro
 .dex
-app.config.timestamp_*.js
+.data
+.fallow
 
 # Environment
 .env
@@ -23,17 +24,9 @@ app.config.timestamp_*.js
 .settings/
 .screenshots/
 
-# Temp
-gitignore
-
-# Runtime data - only track directory structure via .gitkeep
-.data/**
-!.data/**/.gitkeep
-
 # System Files
 .DS_Store
 Thumbs.db
-.fallow/
 
 # sqlc
 sqlc-gen-typescript.wasm

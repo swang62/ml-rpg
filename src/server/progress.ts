@@ -1,10 +1,7 @@
 import { query } from "@solidjs/router";
-import {
-  getCategoriesByCourse,
-  getCourseBySlug,
-  getLessonsBySection,
-  getSectionsByCategory,
-} from "~/db/course_sql";
+import { getCategoriesByCourse } from "~/db/category_sql";
+import { getCourseBySlug } from "~/db/course_sql";
+import { getLessonsBySection } from "~/db/lesson_sql";
 import {
   getAllReadLessons,
   getReadCountsByCourse,
@@ -12,7 +9,8 @@ import {
   getTotalXp,
   isLessonRead,
 } from "~/db/progress_sql";
-import { getUserById } from "~/db/user_sql";
+import { getSectionsByCategory } from "~/db/section_sql";
+import { getUserById } from "~/db/users_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { USER_ID, XP_VALUE } from "~/utils/constants";
 import { getDb } from "~/utils/storage";

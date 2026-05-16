@@ -1,12 +1,31 @@
-import { A, createAsync, useAction, useParams } from "@solidjs/router";
+import {
+  A,
+  createAsync,
+  type RouteDefinition,
+  useAction,
+  useParams,
+} from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createMemo } from "solid-js";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { resetSectionAction } from "~/server/actions";
 import { getSubsectionMetaQuery } from "~/server/course";
 import { getSectionReadCountsQuery } from "~/server/progress";
 import { XP_VALUE } from "~/utils/constants";
+
+export const route = {
+  preload: ({ params }) => {
+    getSubsectionMetaQuery(
+      params.course as string,
+      params.category as string,
+      params.subsection as string,
+    );
+    getSectionReadCountsQuery(
+      params.course as string,
+      params.subsection as string,
+    );
+  },
+} satisfies RouteDefinition;
 
 export default function SubsectionPage() {
   const params = useParams();
@@ -29,10 +48,6 @@ export default function SubsectionPage() {
   );
   const reset = useAction(resetSectionAction);
 
-  const sortedLessons = createMemo(() =>
-    [...(subsection()?.lessons ?? [])].sort((a, b) => a.order - b.order),
-  );
-
   return (
     <CoursePageShell
       title={subsection()?.title}
@@ -45,7 +60,7 @@ export default function SubsectionPage() {
       extra={
         <div class="flex flex-nowrap gap-2 items-center">
           <span class="subtitle-xp-counter">
-            {readLessons().length} / {sortedLessons().length} completed
+            {readLessons().length} / {subsection()?.lessons.length} completed
           </span>
           <ResetButton
             onClick={() =>
@@ -59,20 +74,20 @@ export default function SubsectionPage() {
       }
     >
       <section class="articles-list">
-        {sortedLessons().map((lesson) => {
+        {subsection()?.lessons.map((lesson) => {
           const isRead = readLessons().includes(lesson.slug);
           return (
             <A
               href={`/${params.course}/${params.category}/${params.subsection}/${lesson.slug}`}
               class={`card card--article${isRead ? " card--article--read" : ""}`}
             >
-              <span class="article-order">{lesson.order}</span>
+              <span class="article-order">{lesson.lessonorder}</span>
               <span class="article-title">{lesson.title}</span>
               <span
                 class="article-xp-badge"
                 classList={{ "article-xp-badge--read": isRead }}
               >
-                {lesson.order * XP_VALUE}{" "}
+                {lesson.lessonorder * XP_VALUE}{" "}
                 <span class="article-xp-badge__label">XP</span>
               </span>
             </A>

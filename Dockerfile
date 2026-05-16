@@ -3,13 +3,15 @@ FROM node:26-alpine AS build
 ARG CI=true
 WORKDIR /app
 
-RUN npm install --global corepack@latest
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install --global corepack@latest && \
+  corepack enable && corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+
+# Build the Nitro server
 RUN pnpm build
 
 FROM node:26-alpine
@@ -19,9 +21,8 @@ EXPOSE 3000
 
 RUN adduser -D -H -h /app www
 
-# Create production data directories writable by www user
-RUN mkdir -p /app/.data/xp/prod /app/.data/tracking/prod && \
-    chown -R www:www /app/.data
+# Create data directory writable by www user
+RUN mkdir -p /app/.data && chown -R www:www /app/.data
 
 USER www
 WORKDIR /app

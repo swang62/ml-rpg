@@ -1,12 +1,10 @@
 "use server";
 
 import MiniSearch from "minisearch";
-import {
-  getAllCategories,
-  getAllCourses,
-  getAllSections,
-} from "~/db/course_sql";
+import { getAllCategories } from "~/db/category_sql";
+import { getAllCourses } from "~/db/course_sql";
 import { getSearchLessons } from "~/db/lesson_sql";
+import { getAllSections } from "~/db/section_sql";
 import { SEARCH_MAX_RESULTS, type SearchResult } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 

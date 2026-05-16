@@ -8,22 +8,17 @@ import {
   ensureLessonTable,
   ensureProgressTable,
   ensureSectionTable,
-  ensureUserTable,
+  ensureUsersTable,
 } from "../src/db/base_sql";
-import {
-  createCategory,
-  createCourse,
-  createLesson,
-  createSection,
-  deleteAllCategories,
-  deleteAllCourses,
-  deleteAllLessons,
-  deleteAllSections,
-} from "../src/db/course_sql";
+import { createCategory, deleteAllCategories } from "../src/db/category_sql";
+import { createCourse, deleteAllCourses } from "../src/db/course_sql";
+import { createLesson, deleteAllLessons } from "../src/db/lesson_sql";
 import { deleteAllProgress } from "../src/db/progress_sql";
-import { upsertUser } from "../src/db/user_sql";
+import { createSection, deleteAllSections } from "../src/db/section_sql";
+import { deleteAllUsers, upsertUser } from "../src/db/users_sql";
 
-const DB_PATH = ".data/dev.db";
+const DB_DEV = ".data/dev.db";
+const DB_PROD = ".data/prod.db";
 
 const COURSES: Record<
   string,
@@ -44,14 +39,21 @@ const COURSES: Record<
   "ml-system-design": mlSysDesign,
 };
 
+// ENTRY POINT
 async function main() {
-  const db = new Database(DB_PATH);
+  const db = new Database(DB_DEV);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
 
-  await createTables(db);
+  await ensureCourseTable(db);
+  await ensureCategoryTable(db);
+  await ensureSectionTable(db);
+  await ensureLessonTable(db);
+  await ensureProgressTable(db);
+  await ensureUsersTable(db);
 
   db.pragma("foreign_keys = OFF");
+  await deleteAllUsers(db);
   await deleteAllProgress(db);
   await deleteAllLessons(db);
   await deleteAllSections(db);
@@ -59,49 +61,39 @@ async function main() {
   await deleteAllCourses(db);
   db.pragma("foreign_keys = ON");
 
-  await seedData(db);
+  await seedCourseData(db);
+  await upsertUser(db, {
+    username: "steve",
+    userPassword: "password",
+    displayName: "Steve",
+  });
 
-  // Validation
+  // Validation, lesson files must match imported unique lessons
   const lessonFiles = countLessonFiles();
   console.log(`Lesson files on disk: ${lessonFiles}`);
 
-  const dbCount = (
-    db.prepare("SELECT COUNT(*) AS lessoncount FROM lesson").get() as {
+  const validLessons = (
+    db
+      .prepare("SELECT COUNT(*) AS lessoncount FROM lesson WHERE html != ''")
+      .get() as {
       lessoncount: number;
     }
   ).lessoncount;
-  if (dbCount !== lessonFiles) {
+  if (validLessons !== lessonFiles) {
     throw new Error(
-      `Lesson count mismatch: seeded ${dbCount}, expected ${lessonFiles}`,
+      `Lesson count mismatch: seeded ${validLessons}, expected ${lessonFiles}`,
     );
   }
 
-  await upsertUser(db, { name: "Steve" });
-
-  const htmlCount = (
-    db.prepare("SELECT COUNT(*) AS c FROM lesson WHERE html != ''").get() as {
-      c: number;
-    }
-  ).c;
-  console.log(`  Lessons:    ${dbCount} (${htmlCount} containing valid HTML)`);
+  console.log(`Imported lessons: ${validLessons} containing valid HTML`);
   db.close();
 
-  copyFileSync(".data/dev.db", ".data/prod.db");
-  console.log("  Prod DB:    copied to .data/prod.db");
+  copyFileSync(DB_DEV, DB_PROD);
   console.log("\nSeed complete.");
 }
 
 function countLessonFiles(): number {
   return globSync(".data/scraped/lessons/**/*.tsx").length;
-}
-
-async function createTables(db: Database.Database) {
-  await ensureCourseTable(db);
-  await ensureCategoryTable(db);
-  await ensureSectionTable(db);
-  await ensureLessonTable(db);
-  await ensureUserTable(db);
-  await ensureProgressTable(db);
 }
 
 function extractAllLessonHtml(): Map<string, string> {
@@ -162,7 +154,7 @@ function extractHtmlFromTsx(filePath: string): string {
   return html;
 }
 
-async function seedData(db: Database.Database) {
+async function seedCourseData(db: Database.Database) {
   console.log("Extracting HTML from scraped files...");
   const rendered = extractAllLessonHtml();
 
@@ -199,7 +191,7 @@ async function seedData(db: Database.Database) {
             slug: lesson.lesson,
             title: lesson.title,
             html,
-            order: lesson.order,
+            lessonOrder: lesson.order,
             courseId: cid,
             categoryId: catid,
             sectionId: sid,
