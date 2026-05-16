@@ -62,7 +62,7 @@ No test framework is configured.
 - `NODE_ENV` determines dev vs prod database (via `src/utils/constants.ts`)
 - Data is fetched once on page load — no polling for lesson content or read status
 - Read status is tracked via an `IntersectionObserver` sentinel in `LessonTracker`; when the sentinel scrolls into view, the lesson is immediately marked read
-- Toast notification ("Objective Completed") appears briefly at the bottom-center of the lesson page
+- Toast notification ("Objective Complete") appears briefly at the bottom-center of the lesson page
 
 ## Path Alias
 

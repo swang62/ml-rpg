@@ -29,18 +29,18 @@
 }
 
 /* --- Inline callout boxes with border-left (Core Concept, notes, etc.) --- */
-.lesson-content div[style*="border-left:4"] {
+.lesson-content div[style*="border-left: 4"] {
   background: #fef9e7;
   color: #111;
 }
 
-.lesson-content p[style*="border-left:4"] {
+.lesson-content p[style*="border-left: 4"] {
   background: #fef9e7;
   color: #111;
 }
 
 /* --- Inline uppercase labels (Core Concept label, section headings, etc.) --- */
-.lesson-content [style*="text-transform:upper"] {
+.lesson-content [style*="text-transform: upper"] {
   color: var(--text-muted);
 }
 
