@@ -107,9 +107,7 @@ export default function LessonPage() {
             class="article-xp-badge"
             classList={{ "article-xp-badge--read": isRead() }}
           >
-            {isRead() ? (
-              "(Completed)"
-            ) : (
+            {!isRead() && (
               <>
                 {"("}
                 {(nav()?.currentLesson?.order ?? 0) * XP_VALUE}
@@ -139,7 +137,7 @@ export default function LessonPage() {
         <Show when={toastVisible()}>
           <div class="lesson-read-toast">
             <Check size={14} />
-            <span>Objective Completed</span>
+            <span>Objective Complete</span>
           </div>
         </Show>
       </div>
