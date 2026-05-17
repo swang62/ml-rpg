@@ -10,5 +10,8 @@ INSERT INTO users (username, user_password, display_name) VALUES (?,?,?) RETURNI
 -- name: UpdateDisplayName :exec
 UPDATE users SET display_name = ? WHERE id = ?;
 
+-- name: GetUserCount :one
+SELECT COUNT(*) AS count FROM users;
+
 -- name: DeleteAllUsers :exec
 DELETE FROM users;
