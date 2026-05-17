@@ -144,28 +144,6 @@ export async function getLessonCount(database: Database): Promise<GetLessonCount
     return result as GetLessonCountRow;
 }
 
-export const getLessonCountByCategoryQuery = `-- name: GetLessonCountByCategory :many
-SELECT lesson.category_id AS categoryid, category.slug AS categoryslug, COUNT(*) AS lessoncount
-FROM lesson INNER JOIN category ON lesson.category_id = category.id
-WHERE lesson.course_id = ?
-GROUP BY lesson.category_id`;
-
-export interface GetLessonCountByCategoryArgs {
-    courseId: any;
-}
-
-export interface GetLessonCountByCategoryRow {
-    categoryid: any;
-    categoryslug: any;
-    lessoncount: number;
-}
-
-export async function getLessonCountByCategory(database: Database, args: GetLessonCountByCategoryArgs): Promise<GetLessonCountByCategoryRow[]> {
-    const stmt = database.prepare(getLessonCountByCategoryQuery);
-    const result = await stmt.all(args.courseId);
-    return result as GetLessonCountByCategoryRow[];
-}
-
 export const getLessonHtmlQuery = `-- name: GetLessonHtml :one
 SELECT lesson.html FROM lesson WHERE lesson.id = ?`;
 

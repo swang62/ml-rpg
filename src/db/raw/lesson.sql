@@ -19,12 +19,6 @@ DELETE FROM lesson;
 -- name: GetLessonCount :one
 SELECT COUNT(*) AS lessoncount FROM lesson;
 
--- name: GetLessonCountByCategory :many
-SELECT lesson.category_id AS categoryid, category.slug AS categoryslug, COUNT(*) AS lessoncount
-FROM lesson INNER JOIN category ON lesson.category_id = category.id
-WHERE lesson.course_id = ?
-GROUP BY lesson.category_id;
-
 -- name: GetLessonHtml :one
 SELECT lesson.html FROM lesson WHERE lesson.id = ?;
 

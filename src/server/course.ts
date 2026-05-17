@@ -1,12 +1,12 @@
 import { query } from "@solidjs/router";
 import type { Database } from "better-sqlite3";
-import { getCategoriesByCourse, getCategoryBySlug } from "~/db/category_sql";
-import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
 import {
-  getLessonBySlug,
-  getLessonCountByCategory,
-  getLessonsBySection,
-} from "~/db/lesson_sql";
+  getCategoriesByCourse,
+  getCategoryBySlug,
+  getCategoryLessonCounts,
+} from "~/db/category_sql";
+import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
+import { getLessonBySlug, getLessonsBySection } from "~/db/lesson_sql";
 import { getSectionBySlug, getSectionsByCategory } from "~/db/section_sql";
 import { getDb } from "~/utils/storage";
 
@@ -17,28 +17,20 @@ export const getCourseMetaQuery = query(async (courseSlug: string) => {
   if (!course) return null;
 
   const categories = await getCategoriesByCourse(db, { courseId: course.id });
+  const counts = await getCategoryLessonCounts(db, { courseId: course.id });
+  const countMap: Record<string, number> = {};
+  for (const row of counts) {
+    countMap[row.categoryslug as string] = row.lessoncount;
+  }
   return {
     title: course.title,
     categories: categories.map((cat) => ({
       category: cat.slug,
       title: cat.title,
+      lessonCount: countMap[cat.slug as string] ?? 0,
     })),
   };
 }, "course-meta");
-
-export const getCourseLessonCountsQuery = query(async (courseSlug: string) => {
-  "use server";
-  const db = getDb();
-  const course = await getCourseBySlug(db, { slug: courseSlug });
-  if (!course) return {};
-
-  const rows = await getLessonCountByCategory(db, { courseId: course.id });
-  const result: Record<string, number> = {};
-  for (const row of rows) {
-    result[row.categoryslug as string] = row.lessoncount;
-  }
-  return result;
-}, "course-lesson-counts");
 
 export const getCategoryMetaQuery = query(
   async (courseSlug: string, categorySlug: string) => {

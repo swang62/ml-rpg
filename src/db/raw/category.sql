@@ -1,6 +1,13 @@
 -- name: GetCategoriesByCourse :many
 SELECT category.id, category.slug, category.title FROM category WHERE category.course_id = ?;
 
+-- name: GetCategoryLessonCounts :many
+SELECT category.slug AS categoryslug, COUNT(lesson.id) AS lessoncount
+FROM category
+INNER JOIN lesson ON lesson.category_id = category.id
+WHERE category.course_id = ?
+GROUP BY category.id;
+
 -- name: GetAllCategories :many
 SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category;
 

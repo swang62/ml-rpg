@@ -8,10 +8,7 @@ import { createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import {
-  getCourseLessonCountsQuery,
-  getCourseMetaQuery,
-} from "~/server/course";
+import { getCourseMetaQuery } from "~/server/course";
 import { getCourseReadCountsQuery } from "~/server/progress";
 import { getAnonCategoryReadCounts } from "~/utils/client-storage";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
@@ -20,7 +17,6 @@ export const route = {
   preload: ({ params }) => {
     getCourseMetaQuery(params.course as string);
     getCourseReadCountsQuery(params.course as string);
-    getCourseLessonCountsQuery(params.course as string);
   },
 } satisfies RouteDefinition;
 
@@ -34,12 +30,6 @@ export default function CourseIndexPage() {
       : Promise.resolve({} as Record<string, boolean[]>),
   );
 
-  // For anonymous: fetch total lesson counts per category to compute progress
-  const lessonCounts = createAsync(() =>
-    signedIn()
-      ? Promise.resolve({} as Record<string, number>)
-      : getCourseLessonCountsQuery(params.course as string),
-  );
   const [anonReadCounts, setAnonReadCounts] = createSignal<
     Record<string, number>
   >({});
@@ -72,9 +62,8 @@ export default function CourseIndexPage() {
           const completed = subsectionStatuses.filter(Boolean).length;
           const max = subsectionStatuses.length;
 
-          // Anonymous progress: read count vs total lessons in this category
-          const totalInCategory = lessonCounts()?.[category.category] ?? 0;
           const anonRead = anonReadCounts()?.[category.category] ?? 0;
+          const totalInCategory = category.lessonCount;
 
           return (
             <A
