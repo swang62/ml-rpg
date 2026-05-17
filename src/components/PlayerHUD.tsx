@@ -33,8 +33,15 @@ export default function PlayerHUD() {
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
 
-  // After hydration, force all localStorage-backed memos to re-evaluate.
-  // SolidJS restores memo values from SSR without re-running the callback.
+  // Close modals on successful login
+  createEffect(() => {
+    if (signedIn()) {
+      setShowLogin(false);
+      setShowSheet(false);
+    }
+  });
+
+  // After hydration, force all localStorage-backed memos to re-evaluate
   onMount(() => {
     setMounted(true);
     if (!signedIn()) bumpVersion((v) => v + 1);
@@ -87,31 +94,37 @@ export default function PlayerHUD() {
           />
         </div>
         <div class="player-hud__info">
-          <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-            <Show when={mounted()} fallback={"Anon"}>
-              {displayName()}
-            </Show>{" "}
-            <span class="text-level-section">the {level().title}</span>
-          </span>
-          <div class="player-hud__xp-bar">
-            <div
-              class="player-hud__xp-fill"
-              style={{ width: `${progress().pct}%` }}
-            />
-          </div>
-          <div class="player-hud__stats">
-            <span class="player-hud__lvl" classList={{ "level-up": levelUp() }}>
-              Lv.{level().level}
-            </span>
+          <Show when={mounted()}>
             <span
-              class="player-hud__xp-count"
+              class="player-hud__title"
               classList={{ "level-up": levelUp() }}
             >
-              {progress().xpNeeded > 0
-                ? `${progress().currentXp}/${formatXP(progress().xpNeeded)} XP`
-                : `${formatXP(xp().count)} XP (MAX)`}
+              <span>{displayName()}</span>{" "}
+              <span class="text-level-section">the {level().title}</span>
             </span>
-          </div>
+            <div class="player-hud__xp-bar">
+              <div
+                class="player-hud__xp-fill"
+                style={{ width: `${progress().pct}%` }}
+              />
+            </div>
+            <div class="player-hud__stats">
+              <span
+                class="player-hud__lvl"
+                classList={{ "level-up": levelUp() }}
+              >
+                Lv.{level().level}
+              </span>
+              <span
+                class="player-hud__xp-count"
+                classList={{ "level-up": levelUp() }}
+              >
+                {progress().xpNeeded > 0
+                  ? `${progress().currentXp}/${formatXP(progress().xpNeeded)} XP`
+                  : `${formatXP(xp().count)} XP (MAX)`}
+              </span>
+            </div>
+          </Show>
         </div>
       </button>
 
