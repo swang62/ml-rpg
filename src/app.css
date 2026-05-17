@@ -60,6 +60,9 @@
   --radius: 10px;
   --radius-sm: 6px;
 
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 768px;
+
   /* Typography */
   --font-display:
     "Plus Jakarta Sans Variable", "Plus Jakarta Sans", -apple-system,

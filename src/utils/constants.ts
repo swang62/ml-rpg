@@ -30,7 +30,7 @@ export const LEVELS: LevelDef[] = [
   { level: 2, title: "Squire", xpRequired: 500 },
   { level: 3, title: "Knight", xpRequired: 1000 },
   { level: 4, title: "Mage", xpRequired: 1500 },
-  { level: 5, title: "Captain", xpRequired: 2500 },
+  { level: 5, title: "Warlord", xpRequired: 2500 },
   { level: 6, title: "Champion", xpRequired: 3500 },
   { level: 7, title: "Legend", xpRequired: 5000 },
   { level: 8, title: "Mythic", xpRequired: 6500 },
@@ -42,9 +42,9 @@ export const LEVELS: LevelDef[] = [
   { level: 14, title: "Titan", xpRequired: 27000 },
   { level: 15, title: "Elder", xpRequired: 32000 },
   { level: 16, title: "Guardian", xpRequired: 38000 },
-  { level: 17, title: "Celestial", xpRequired: 45000 },
-  { level: 18, title: "Divine", xpRequired: 52000 },
-  { level: 19, title: "Transcendent", xpRequired: 60000 },
+  { level: 17, title: "Sovereign", xpRequired: 45000 },
+  { level: 18, title: "Celestial", xpRequired: 52000 },
+  { level: 19, title: "Divine", xpRequired: 60000 },
   { level: 20, title: "Eternal", xpRequired: 70000 },
 ];
 
