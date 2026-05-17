@@ -1,10 +1,11 @@
 import { createAsync } from "@solidjs/router";
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import LoginModal from "~/components/LoginModal";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
 import {
+  bumpVersion,
   getAnonDisplayName,
   getAnonTotalXp,
   version,
@@ -25,15 +26,21 @@ export default function PlayerHUD() {
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
 
+  // After hydration, force memos to re-evaluate with real localStorage values.
+  // SolidJS restores memo values from SSR on hydration, skipping the callback.
+  onMount(() => {
+    if (!signedIn()) bumpVersion((v) => v + 1);
+  });
+
   const xp = createMemo(() => {
     if (signedIn()) return serverXp();
-    version(); // reactively re-read localStorage on version bumps
+    version();
     return getAnonTotalXp();
   });
 
   const displayName = createMemo(() => {
     if (signedIn()) return user()?.displayname;
-    version(); // reactively re-read localStorage on version bumps
+    version();
     return getAnonDisplayName();
   });
 
