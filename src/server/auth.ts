@@ -36,9 +36,12 @@ export const formLogin = action(async (formData: FormData) => {
   if (hasUsers) {
     // Existing system — require valid credentials
     const row = await getUserByUserNameWithPassword(db, { username: trimmed });
-    if (!row) return new Error("Invalid username");
-    if (!row.userpassword)
-      return new Error("Account exists via another method");
+    if (!row) {
+      throw new Error("Invalid username");
+    }
+    if (!row.userpassword) {
+      throw new Error("Account exists via another method");
+    }
     await checkPassword(row.userpassword as string, password);
     userId = row.id as number;
   } else {
