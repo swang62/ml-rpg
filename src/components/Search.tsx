@@ -156,7 +156,7 @@ export default function Search() {
           id="search-input"
           name="search"
           class="search__input"
-          placeholder="Search objectives..."
+          placeholder="Search topics..."
           value={query()}
           onInput={handleInput}
           onkeydown={handleKeydown}
