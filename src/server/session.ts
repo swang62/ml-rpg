@@ -61,5 +61,5 @@ export async function checkPassword(
   const hash = Buffer.from(key);
   const stored = Buffer.from(storedHash, "hex");
   if (stored.length !== hash.length || !timingSafeEqual(stored, hash))
-    throw new Error("Invalid username or password");
+    throw new Error("Invalid password");
 }
