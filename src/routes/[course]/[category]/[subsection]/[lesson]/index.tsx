@@ -1,5 +1,4 @@
 import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
-import Check from "lucide-solid/icons/check";
 import ExternalLink from "lucide-solid/icons/external-link";
 
 import { createMemo, createSignal, Show } from "solid-js";
@@ -144,9 +143,8 @@ export default function LessonPage() {
         </div>
 
         <Show when={toastVisible()}>
-          <div class="lesson-read-toast">
-            <Check size={14} />
-            <span>Complete</span>
+          <div class="lesson-read-toast font-pixel">
+            +{(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE} XP
           </div>
         </Show>
       </div>

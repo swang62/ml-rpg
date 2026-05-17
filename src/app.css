@@ -1582,19 +1582,15 @@ main {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: var(--tint-category);
-  border: 1px solid var(--border-glow-category);
-  border-radius: 999px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--level-category);
-  font-size: 0.85rem;
-  font-weight: 600;
+  background: var(--tint-section);
+  border: 1px solid var(--border-glow-section);
+  color: var(--level-section);
+  font-size: 0.7rem;
   line-height: 1;
   pointer-events: none;
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba(52, 211, 153, 0.15);
+    0 0 20px rgba(251, 191, 36, 0.15);
   animation: toast-popup 3s ease-out forwards;
 }
 
