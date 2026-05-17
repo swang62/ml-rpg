@@ -243,7 +243,7 @@ a {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 3px solid var(--border);
-  padding: 10px 24px;
+  padding: 10px 16px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -991,13 +991,15 @@ a {
 .search__input {
   width: 100%;
   padding: 9px 14px 9px 36px;
-  background: var(--surface);
+  background: rgba(22, 25, 34, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 2px solid var(--border);
-  border-radius: 4px;
+  border-radius: 999px;
   color: var(--base);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   outline: none;
-  font-family: var(--font-display);
+  font-family: var(--font-pixel);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -1010,6 +1012,8 @@ a {
 
 .search__input::placeholder {
   color: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
 }
 
 .search__shortcut {
@@ -1052,7 +1056,7 @@ a {
   right: 0;
   background: var(--surface-elevated);
   border: 2px solid var(--border);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow-dropdown);
   max-height: 380px;
   overflow-y: auto;
@@ -1063,7 +1067,8 @@ a {
   padding: 20px;
   text-align: center;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.7rem;
+  font-family: var(--font-pixel);
 }
 
 .search__result {
@@ -1074,16 +1079,17 @@ a {
   padding: 10px 14px;
   color: var(--base);
   text-decoration: none;
+  font-family: var(--font-pixel);
   transition: background 0.1s ease;
   cursor: pointer;
 }
 
 .search__result:last-child {
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: 10px 10px 0 0;
 }
 
 .search__result:first-child {
-  border-radius: 0 0 var(--radius) var(--radius);
+  border-radius: 0 0 10px 10px;
 }
 
 .search__result:hover,
@@ -1099,12 +1105,13 @@ a {
 }
 
 .search__result-meta {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--muted);
   opacity: 70%;
   display: flex;
   gap: 6px;
   width: 100%;
+  font-family: var(--font-pixel);
 }
 
 .search__result-meta span {
@@ -1133,7 +1140,7 @@ a {
   width: 36px;
   height: 36px;
   border: 2px solid var(--border);
-  border-radius: 4px;
+  border-radius: 999px;
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
