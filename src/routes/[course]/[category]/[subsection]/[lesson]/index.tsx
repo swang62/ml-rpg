@@ -2,7 +2,8 @@ import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ExternalLink from "lucide-solid/icons/external-link";
 
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, onMount, Show } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
 import BackToQuest from "~/components/BackToQuest";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
@@ -10,6 +11,7 @@ import PageTitle from "~/components/PageTitle";
 import { getLessonNavQuery } from "~/server/course";
 import { getLessonHTMLQuery } from "~/server/lesson";
 import { getLessonReadStatusQuery } from "~/server/progress";
+import { isAnonLessonRead } from "~/utils/client-storage";
 import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export const route = {
@@ -25,6 +27,8 @@ export const route = {
 export default function LessonPage() {
   const params = useParams();
   if (!params.category || !params.subsection || !params.lesson) return;
+
+  const { signedIn } = useAuth();
 
   const nav = createAsync(() =>
     getLessonNavQuery(
@@ -45,19 +49,41 @@ export default function LessonPage() {
     { initialValue: "" },
   );
 
-  // Preloaded via route.preload, auto-invalidated by markLessonReadAction via
-  // single-flight mutation — no manual refetching needed
-  const isRead = createAsync(() =>
-    getLessonReadStatusQuery(
-      params.course as string,
-      params.subsection as string,
-      params.lesson as string,
-    ),
+  const serverReadStatus = createAsync(() =>
+    signedIn()
+      ? getLessonReadStatusQuery(
+          params.course as string,
+          params.subsection as string,
+          params.lesson as string,
+        )
+      : Promise.resolve(false),
+  );
+
+  const [anonRead, setAnonRead] = createSignal(false);
+
+  onMount(() => {
+    if (!signedIn()) {
+      setAnonRead(
+        isAnonLessonRead(
+          params.course as string,
+          params.category as string,
+          params.subsection as string,
+          params.lesson as string,
+        ),
+      );
+    }
+  });
+
+  const isRead = createMemo(() =>
+    signedIn() ? serverReadStatus() : anonRead(),
   );
 
   const [toastVisible, setToastVisible] = createSignal(false);
 
   const handleRead = () => {
+    if (!signedIn()) {
+      setAnonRead(true);
+    }
     setToastVisible(true);
     setTimeout(() => setToastVisible(false), TOAST_TIMEOUT);
   };
@@ -106,8 +132,10 @@ export default function LessonPage() {
         <div innerHTML={lessonHtml()} />
         <LessonTracker
           course={params.course}
+          category={params.category}
           subsection={params.subsection}
           lesson={nav()?.currentLesson?.slug}
+          lessonOrder={nav()?.currentLesson?.lessonorder}
           alreadyRead={isRead()}
           onRead={handleRead}
         />

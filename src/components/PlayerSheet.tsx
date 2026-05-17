@@ -15,12 +15,13 @@ import {
 import { Portal } from "solid-js/web";
 import { logoutAction } from "~/server/auth";
 import { updateUserNameAction } from "~/server/user";
+import { setAnonDisplayName } from "~/utils/client-storage";
 import { LEVELS, type LevelDef } from "~/utils/constants";
 import { getAvatarStyle, getLevel } from "~/utils/xp";
 
 interface Props {
   open: boolean;
-  userName: string | undefined;
+  userName: string | null | undefined;
   totalXp: number;
   completionPercent: number;
   signedIn: boolean;
@@ -74,7 +75,11 @@ export default function PlayerSheet(props: Props) {
   const handleSave = () => {
     const name = draftName().trim();
     if (!name) return;
-    updateName(name);
+    if (props.signedIn) {
+      updateName(name);
+    } else {
+      setAnonDisplayName(name);
+    }
     setEditing(false);
   };
 
