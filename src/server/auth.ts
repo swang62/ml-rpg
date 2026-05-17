@@ -1,5 +1,10 @@
 import { action, query, redirect } from "@solidjs/router";
-import { getUserById, getUserCount } from "~/db/users_sql";
+import {
+  getUserById,
+  getUserByUserNameWithPassword,
+  getUserCount,
+  upsertUser,
+} from "~/db/users_sql";
 import { checkPassword, createHash, getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
 
@@ -30,25 +35,22 @@ export const formLogin = action(async (formData: FormData) => {
 
   if (hasUsers) {
     // Existing system — require valid credentials
-    const row = db
-      .prepare("SELECT id, user_password FROM users WHERE username = ?")
-      .get(trimmed) as { id: number; user_password: string | null } | undefined;
+    const row = await getUserByUserNameWithPassword(db, { username: trimmed });
     if (!row) return new Error("Invalid username or password");
-    if (!row.user_password)
+    if (!row.userPassword)
       return new Error("Account exists via another method");
-    await checkPassword(row.user_password, password);
-    userId = row.id;
+    await checkPassword(row.userPassword as string, password);
+    userId = row.id as number;
   } else {
     // First user — auto-register
     const hashed = await createHash(password);
-    const stmt = db.prepare(
-      "INSERT INTO users (username, user_password, display_name) VALUES (?, ?, ?) RETURNING id",
-    );
-    const row = stmt.get(trimmed, hashed, trimmed) as
-      | { id: number }
-      | undefined;
+    const row = await upsertUser(db, {
+      username: trimmed,
+      userPassword: hashed,
+      displayName: trimmed,
+    });
     if (!row) return new Error("Failed to create user");
-    userId = row.id;
+    userId = row.id as number;
   }
 
   const session = await getSession();

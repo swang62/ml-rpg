@@ -1,4 +1,4 @@
-import { getRandomValues, subtle, timingSafeEqual } from "node:crypto";
+import { getRandomValues, subtle, timingSafeEqual } from "crypto";
 import { useSession } from "vinxi/http";
 
 export interface Session {
