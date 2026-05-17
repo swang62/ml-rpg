@@ -1,7 +1,15 @@
+import { createSignal } from "solid-js";
 import { isServer } from "solid-js/web";
 import { XP_VALUE } from "~/utils/constants";
 
 const BASE = "sf:";
+
+// Reactive version counter — all mutations bump this signal.
+// Components can read version() in a createEffect/createMemo to reactively
+// re-read from localStorage when anonymous data changes.
+const [version, bumpVersion] = createSignal(0);
+
+export { bumpVersion, version };
 
 function ls(): Storage | null {
   if (isServer) return null;
@@ -44,6 +52,7 @@ export function getAnonDisplayName(): string {
 
 export function setAnonDisplayName(name: string): void {
   setItem(`${BASE}anon:displayName`, name);
+  bumpVersion((v: number) => v + 1);
 }
 
 function makeKey(
@@ -63,6 +72,7 @@ export function markAnonLessonRead(
   lessonOrder: number,
 ): void {
   setItem(makeKey(course, category, section, lesson), String(lessonOrder));
+  bumpVersion((v: number) => v + 1);
 }
 
 export function isAnonLessonRead(
@@ -112,6 +122,7 @@ export function resetAnonSection(course: string, subsection: string): void {
       removeItem(key);
     }
   }
+  bumpVersion((v: number) => v + 1);
 }
 
 export function getAnonTotalXp(): { count: number; percent: number } {

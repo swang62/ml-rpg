@@ -6,7 +6,7 @@ import {
   useParams,
 } from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
@@ -16,6 +16,7 @@ import { getSectionReadCountsQuery } from "~/server/progress";
 import {
   getAnonSectionReadSlugs,
   resetAnonSection,
+  version,
 } from "~/utils/client-storage";
 import { XP_VALUE } from "~/utils/constants";
 
@@ -59,8 +60,11 @@ export default function SubsectionPage() {
   );
 
   const [anonReadLessons, setAnonReadLessons] = createSignal<string[]>([]);
+  const dep = createMemo(() => version());
 
-  onMount(() => {
+  onMount(() => dep());
+  createEffect(() => {
+    dep();
     if (!signedIn()) {
       setAnonReadLessons(
         getAnonSectionReadSlugs(

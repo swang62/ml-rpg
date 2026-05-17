@@ -1,10 +1,14 @@
 import { createAsync } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import LoginModal from "~/components/LoginModal";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
-import { getAnonDisplayName, getAnonTotalXp } from "~/utils/client-storage";
+import {
+  getAnonDisplayName,
+  getAnonTotalXp,
+  version,
+} from "~/utils/client-storage";
 import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
@@ -16,20 +20,22 @@ export default function PlayerHUD() {
         : Promise.resolve({ count: 0, percent: 0 }),
     { initialValue: { count: 0, percent: 0 } },
   );
-  const [anonXp, setAnonXp] = createSignal(getAnonTotalXp());
 
   const [levelUp, setLevelUp] = createSignal(false);
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
 
-  onMount(() => {
-    if (!signedIn()) setAnonXp(getAnonTotalXp());
+  const xp = createMemo(() => {
+    if (signedIn()) return serverXp();
+    version(); // reactively re-read localStorage on version bumps
+    return getAnonTotalXp();
   });
 
-  const xp = createMemo(() => (signedIn() ? serverXp() : anonXp()));
-  const displayName = createMemo(() =>
-    signedIn() ? user()?.displayname : getAnonDisplayName(),
-  );
+  const displayName = createMemo(() => {
+    if (signedIn()) return user()?.displayname;
+    version(); // reactively re-read localStorage on version bumps
+    return getAnonDisplayName();
+  });
 
   const level = createMemo(() => getLevel(xp().count));
   const progress = createMemo(() => xpToNextLevel(xp().count));
