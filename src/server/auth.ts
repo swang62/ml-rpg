@@ -53,7 +53,7 @@ export const formLogin = action(async (formData: FormData) => {
 
   const session = await getSession();
   await session.update({ id: userId });
-  return null;
+  return redirect("/", { revalidate: "session" });
 });
 
 export const logoutAction = action(async () => {
