@@ -2,12 +2,11 @@ import { createSignal } from "solid-js";
 import { isServer } from "solid-js/web";
 import { XP_VALUE } from "~/utils/constants";
 
-const BASE = "sf:";
-
 // Reactive version counter — all mutations bump this signal.
 // Components can read version() in a createEffect/createMemo to reactively
 // re-read from localStorage when anonymous data changes.
 const [version, bumpVersion] = createSignal(0);
+const DISPLAYNAME_KEY = `user:displayName`;
 
 export { bumpVersion, version };
 
@@ -47,17 +46,16 @@ function keys(): string[] {
 }
 
 export function getAnonDisplayName(): string {
-  const key = `${BASE}anon:displayName`;
-  let value = getItem(key);
+  let value = getItem(DISPLAYNAME_KEY);
   if (value === null) {
-    setItem(key, "Anon");
+    setItem(DISPLAYNAME_KEY, "Anon");
     value = "Anon";
   }
   return value;
 }
 
 export function setAnonDisplayName(name: string): void {
-  setItem(`${BASE}anon:displayName`, name);
+  setItem(DISPLAYNAME_KEY, name);
   bumpVersion((v: number) => v + 1);
 }
 
@@ -67,7 +65,7 @@ function makeKey(
   section: string,
   lesson: string,
 ): string {
-  return `${BASE}read:${course}:${category}:${section}:${lesson}`;
+  return `read:${course}:${category}:${section}:${lesson}`;
 }
 
 export function markAnonLessonRead(
@@ -94,7 +92,7 @@ export function getAnonSectionReadSlugs(
   course: string,
   subsection: string,
 ): string[] {
-  const prefix = `${BASE}read:${course}:`;
+  const prefix = `read:${course}:`;
   const slugs: string[] = [];
   for (const key of keys()) {
     if (!key.startsWith(prefix)) continue;
@@ -109,7 +107,7 @@ export function getAnonSectionReadSlugs(
 export function getAnonCategoryReadCounts(
   course: string,
 ): Record<string, number> {
-  const prefix = `${BASE}read:${course}:`;
+  const prefix = `read:${course}:`;
   const result: Record<string, number> = {};
   for (const key of keys()) {
     if (!key.startsWith(prefix)) continue;
@@ -120,7 +118,7 @@ export function getAnonCategoryReadCounts(
 }
 
 export function resetAnonSection(course: string, subsection: string): void {
-  const prefix = `${BASE}read:${course}:`;
+  const prefix = `read:${course}:`;
   for (const key of keys()) {
     if (!key.startsWith(prefix)) continue;
     const parts = key.slice(prefix.length).split(":");
@@ -132,7 +130,7 @@ export function resetAnonSection(course: string, subsection: string): void {
 }
 
 export function getAnonTotalXp(): { count: number; percent: number } {
-  const prefix = `${BASE}read:`;
+  const prefix = `read:`;
   let sum = 0;
   for (const key of keys()) {
     if (!key.startsWith(prefix)) continue;
