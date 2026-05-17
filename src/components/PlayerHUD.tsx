@@ -2,7 +2,9 @@ import { createAsync } from "@solidjs/router";
 import {
   createEffect,
   createMemo,
+  createRenderEffect,
   createSignal,
+  onCleanup,
   onMount,
   Show,
 } from "solid-js";
@@ -59,8 +61,31 @@ export default function PlayerHUD() {
     return getAnonDisplayName();
   });
 
-  const level = createMemo(() => getLevel(xp().count));
-  const progress = createMemo(() => xpToNextLevel(xp().count));
+  // Animated XP counter — smoothly counts up when value changes
+  const [animatedXp, setAnimatedXp] = createSignal(xp().count);
+  let prevXp = xp().count;
+  createRenderEffect(() => {
+    const target = xp().count;
+    if (target === prevXp) return;
+    const start = prevXp;
+    prevXp = target;
+    const duration = 400;
+    const startTime = performance.now();
+    let frameId: number;
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // ease-out quad
+      const ease = t * (2 - t);
+      setAnimatedXp(Math.round(start + (target - start) * ease));
+      if (t < 1) frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+    onCleanup(() => cancelAnimationFrame(frameId));
+  });
+
+  const level = createMemo(() => getLevel(animatedXp()));
+  const progress = createMemo(() => xpToNextLevel(animatedXp()));
   const avatarStyle = createMemo(() => getAvatarStyle(level().level));
 
   let prevLevel = -1;
@@ -121,7 +146,7 @@ export default function PlayerHUD() {
               >
                 {progress().xpNeeded > 0
                   ? `${progress().currentXp}/${formatXP(progress().xpNeeded)} XP`
-                  : `${formatXP(xp().count)} XP (MAX)`}
+                  : `${formatXP(animatedXp())} XP (MAX)`}
               </span>
             </div>
           </Show>
