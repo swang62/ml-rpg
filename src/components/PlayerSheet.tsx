@@ -22,6 +22,7 @@ import { getAvatarStyle, getLevel } from "~/utils/xp";
 interface Props {
   open: boolean;
   userName: string | null | undefined;
+  displayName: string | null | undefined;
   totalXp: number;
   completionPercent: number;
   signedIn: boolean;
@@ -47,7 +48,7 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
           alt=""
         />
       </div>
-      <span class={`font-pixel text-[0.6rem] text-accent`}>
+      <span class={`font-pixel text-[0.7rem] text-accent`}>
         Lv.{props.lvl.level}
       </span>
       <span
@@ -56,7 +57,7 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
         {props.lvl.title}
       </span>
       <span
-        class={`font-pixel text-[0.55rem] whitespace-nowrap text-right ${isCurrent ? "text-level-category" : "text-muted"}`}
+        class={`font-pixel text-[0.6rem] whitespace-nowrap text-right ${isCurrent ? "text-level-category" : "text-muted"}`}
       >
         {props.lvl.xpRequired}
       </span>
@@ -66,7 +67,7 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
 
 export default function PlayerSheet(props: Props) {
   const [editing, setEditing] = createSignal(false);
-  const [draftName, setDraftName] = createSignal(props.userName ?? "");
+  const [draftName, setDraftName] = createSignal(props.displayName ?? "");
   const updateName = useAction(updateUserNameAction);
   const submission = useSubmission(updateUserNameAction);
 
@@ -84,7 +85,7 @@ export default function PlayerSheet(props: Props) {
   };
 
   const handleCancel = () => {
-    setDraftName(props.userName ?? "");
+    setDraftName(props.displayName ?? "");
     setEditing(false);
   };
 
@@ -130,13 +131,13 @@ export default function PlayerSheet(props: Props) {
                   fallback={
                     <div class="flex items-center gap-2">
                       <span class="font-pixel text-[1.05rem] text-heading text-nowrap">
-                        {props.userName}
+                        {props.displayName}
                       </span>
                       <button
                         type="button"
                         class={btn}
                         onClick={() => {
-                          setDraftName(props.userName ?? "");
+                          setDraftName(props.displayName ?? "");
                           setEditing(true);
                         }}
                         aria-label="Edit name"
@@ -247,35 +248,35 @@ export default function PlayerSheet(props: Props) {
               <Show
                 when={props.signedIn}
                 fallback={
-                  <div class="flex items-center justify-between px-2">
-                    <span class="font-pixel text-[0.55rem] text-muted">
-                      Logged out, using browser cache.
-                    </span>
+                  <div class="flex items-center justify-between gap-2">
                     <button
                       type="button"
-                      class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
+                      class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:cursor-pointer hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
                       onClick={props.onLogin}
                     >
                       <LogIn size={13} />
                       Sign In
                     </button>
+                    <span class="font-pixel text-[0.75rem] text-muted text-right">
+                      Logged out: <span class="text-accent">local-only</span>
+                    </span>
                   </div>
                 }
               >
-                <div class="flex items-center justify-between px-2">
-                  <span class="font-pixel text-[0.55rem] text-muted">
-                    Logged in as:{" "}
-                    <span class="text-accent">{props.userName}</span>
-                  </span>
+                <div class="flex items-center justify-between">
                   <form action={logoutAction} method="post">
                     <button
                       type="submit"
-                      class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                      class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
                     >
                       <LogOut size={13} />
                       Sign Out
                     </button>
                   </form>
+                  <span class="font-pixel text-[0.75rem] text-muted text-right">
+                    Logged in as{" "}
+                    <span class="text-accent">{props.userName}</span>
+                  </span>
                 </div>
               </Show>
             </div>
