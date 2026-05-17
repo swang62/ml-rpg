@@ -3,7 +3,7 @@ import ChevronLeft from "lucide-solid/icons/chevron-left";
 
 interface Props {
   href: string;
-  isRead: boolean;
+  isRead?: boolean;
 }
 
 export default function BackToQuest(props: Props) {

@@ -33,7 +33,7 @@ export default function PlayerHUD() {
         type="button"
         class="player-hud"
         onClick={() => setShowSheet(true)}
-        title="View Stats"
+        title="Click to view stats"
       >
         <div
           class="player-hud__avatar"

@@ -68,10 +68,9 @@ export default function LessonPage() {
   return (
     <main class="container container-narrow page-level--lesson">
       <PageTitle segment={nav()?.currentLesson?.title} />
-
       <BackToQuest
         href={`/${params.course}/${params.category}/${params.subsection}`}
-        isRead={!!isRead()}
+        isRead={isRead()}
       />
 
       <div class="lesson-card">

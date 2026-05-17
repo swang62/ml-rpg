@@ -1647,7 +1647,7 @@ main {
 .lesson-back-link {
   position: fixed;
   top: 80px;
-  left: 20px;
+  left: 60px;
   z-index: 100;
   display: inline-flex;
   align-items: center;
@@ -1688,7 +1688,7 @@ main {
 .lesson-back-link-bottom {
   display: flex;
   justify-content: center;
-  margin-top: 32px;
+  margin-top: 20px;
   padding-top: 24px;
 }
 

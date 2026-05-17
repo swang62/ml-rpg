@@ -3,7 +3,7 @@ import "./legacy-shim.css";
 import "@fontsource-variable/plus-jakarta-sans";
 import "@fontsource/press-start-2p";
 
-import { Link, MetaProvider, Title } from "@solidjs/meta";
+import { MetaProvider, Title } from "@solidjs/meta";
 import { Router, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { onCleanup, onMount, Suspense } from "solid-js";
@@ -51,7 +51,6 @@ export default function App() {
       root={(props) => (
         <MetaProvider>
           <Title>{SITE_NAME}</Title>
-          <Link type="image/x-icon" rel="icon" href="/favicon.ico" />
           <GlobalBackspaceHandler />
           <ParallaxBackground />
           <div class="app-layout">
