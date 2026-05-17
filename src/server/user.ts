@@ -1,7 +1,6 @@
 import { action } from "@solidjs/router";
-
 import { updateDisplayName } from "~/db/users_sql";
-import { getSession } from "~/server/auth";
+import { getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
 
 export const updateUserNameAction = action(async (displayName: string) => {

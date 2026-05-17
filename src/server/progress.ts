@@ -9,8 +9,8 @@ import {
   isLessonRead,
 } from "~/db/progress_sql";
 import { getSectionsByCategory } from "~/db/section_sql";
-import { getSession } from "~/server/auth";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
+import { getSession } from "~/server/session";
 import { XP_VALUE } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 

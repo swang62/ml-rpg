@@ -1,26 +1,52 @@
+import { isServer } from "solid-js/web";
 import { XP_VALUE } from "~/utils/constants";
 
 const BASE = "sf:";
-const VERSION_KEY = `${BASE}version`;
-const DISPLAY_NAME_KEY = `${BASE}anon:displayName`;
+
+function ls(): Storage | null {
+  if (isServer) return null;
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function getItem(key: string): string | null {
+  const storage = ls();
+  return storage ? storage.getItem(key) : null;
+}
+
+function setItem(key: string, value: string): void {
+  const storage = ls();
+  if (storage) storage.setItem(key, value);
+}
+
+function removeItem(key: string): void {
+  const storage = ls();
+  if (storage) storage.removeItem(key);
+}
+
+function keys(): string[] {
+  const storage = ls();
+  if (!storage) return [];
+  const result: string[] = [];
+  for (let i = 0; i < storage.length; i++) {
+    const k = storage.key(i);
+    if (k) result.push(k);
+  }
+  return result;
+}
 
 export function getAnonDisplayName(): string {
-  return localStorage.getItem(DISPLAY_NAME_KEY) ?? "Anon";
+  return getItem(`${BASE}anon:displayName`) ?? "Anon";
 }
 
 export function setAnonDisplayName(name: string): void {
-  localStorage.setItem(DISPLAY_NAME_KEY, name);
+  setItem(`${BASE}anon:displayName`, name);
 }
 
-export function bumpVersion(): void {
-  localStorage.setItem(VERSION_KEY, Date.now().toString());
-}
-
-export function getVersion(): number {
-  return Number(localStorage.getItem(VERSION_KEY)) || 0;
-}
-
-function readKey(
+function makeKey(
   course: string,
   category: string,
   section: string,
@@ -36,11 +62,7 @@ export function markAnonLessonRead(
   lesson: string,
   lessonOrder: number,
 ): void {
-  localStorage.setItem(
-    readKey(course, category, section, lesson),
-    String(lessonOrder),
-  );
-  bumpVersion();
+  setItem(makeKey(course, category, section, lesson), String(lessonOrder));
 }
 
 export function isAnonLessonRead(
@@ -49,9 +71,7 @@ export function isAnonLessonRead(
   section: string,
   lesson: string,
 ): boolean {
-  return (
-    localStorage.getItem(readKey(course, category, section, lesson)) !== null
-  );
+  return getItem(makeKey(course, category, section, lesson)) !== null;
 }
 
 export function getAnonSectionReadSlugs(
@@ -60,9 +80,8 @@ export function getAnonSectionReadSlugs(
 ): string[] {
   const prefix = `${BASE}read:${course}:`;
   const slugs: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (!key?.startsWith(prefix)) continue;
+  for (const key of keys()) {
+    if (!key.startsWith(prefix)) continue;
     const parts = key.slice(prefix.length).split(":");
     if (parts[1] === subsection) {
       slugs.push(parts.slice(2).join(":"));
@@ -76,9 +95,8 @@ export function getAnonCategoryReadCounts(
 ): Record<string, number> {
   const prefix = `${BASE}read:${course}:`;
   const result: Record<string, number> = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (!key?.startsWith(prefix)) continue;
+  for (const key of keys()) {
+    if (!key.startsWith(prefix)) continue;
     const parts = key.slice(prefix.length).split(":");
     result[parts[1]] = (result[parts[1]] ?? 0) + 1;
   }
@@ -87,26 +105,21 @@ export function getAnonCategoryReadCounts(
 
 export function resetAnonSection(course: string, subsection: string): void {
   const prefix = `${BASE}read:${course}:`;
-  const toRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (!key?.startsWith(prefix)) continue;
+  for (const key of keys()) {
+    if (!key.startsWith(prefix)) continue;
     const parts = key.slice(prefix.length).split(":");
     if (parts[1] === subsection) {
-      toRemove.push(key);
+      removeItem(key);
     }
   }
-  for (const key of toRemove) localStorage.removeItem(key);
-  bumpVersion();
 }
 
 export function getAnonTotalXp(): { count: number; percent: number } {
   const prefix = `${BASE}read:`;
   let sum = 0;
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (!key?.startsWith(prefix)) continue;
-    const value = localStorage.getItem(key);
+  for (const key of keys()) {
+    if (!key.startsWith(prefix)) continue;
+    const value = getItem(key);
     const num = Number(value);
     if (!Number.isNaN(num)) {
       sum += num;
