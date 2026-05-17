@@ -224,23 +224,29 @@ a {
 
 .app-content {
   flex: 1;
+  padding-bottom: var(--nav-height);
 }
 
 /* ===== Sticky header ===== */
 
+:root {
+  --nav-height: 68px;
+}
+
 .app-header {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   background: var(--surface-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 3px solid var(--border);
+  border-top: 3px solid var(--border);
   padding: 10px 24px;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.4s ease;
 }
 
 .app-header__inner {
@@ -1041,7 +1047,8 @@ a {
 
 .search__dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  bottom: calc(100% + 6px);
+  top: auto;
   left: 0;
   right: 0;
   background: var(--surface-elevated);
@@ -1072,11 +1079,11 @@ a {
   cursor: pointer;
 }
 
-.search__result:first-child {
+.search__result:last-child {
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.search__result:last-child {
+.search__result:first-child {
   border-radius: 0 0 var(--radius) var(--radius);
 }
 
@@ -1641,7 +1648,7 @@ main {
     position: fixed;
     width: 140px;
     top: auto;
-    bottom: 40px;
+    bottom: 80px;
     left: 50%;
     right: 50%;
     margin-left: -70px;
@@ -1671,7 +1678,8 @@ main {
   .search--mobile-open .search__input-wrapper {
     display: flex;
     position: fixed;
-    top: 60px;
+    bottom: var(--nav-height);
+    top: auto;
     left: 0;
     right: 0;
     z-index: 100;
@@ -1679,12 +1687,13 @@ main {
     background: var(--surface-glass);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 2px solid var(--border);
+    border-top: 2px solid var(--border);
   }
 
   .search--mobile-open .search__icon {
     margin-left: 12px;
     font-size: 1rem;
+    /* icon is absolutely positioned; keep its left offset */
   }
 
   .search--mobile-open .search__input {
@@ -1694,10 +1703,11 @@ main {
 
   .search--mobile-open .search__dropdown {
     position: fixed;
-    top: 117px;
+    top: 0;
+    bottom: calc(var(--nav-height) + 48px);
     left: 12px;
     right: 12px;
-    max-height: 50vh;
+    max-height: none;
   }
 
   .lesson-nav {
