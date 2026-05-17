@@ -23,7 +23,7 @@ export default function LessonNav(props: LessonNavProps) {
           onMouseLeave={onCardLeave}
         >
           <ChevronLeft size={14} />
-          <span class="lesson-nav__order">{props.prevLesson?.lessonorder}</span>
+          {/* <span class="lesson-nav__order">{props.prevLesson?.lessonorder}</span> */}
           <span class="lesson-nav__title">{props.prevLesson?.title}</span>
         </A>
       ) : (
@@ -37,7 +37,7 @@ export default function LessonNav(props: LessonNavProps) {
           onMouseLeave={onCardLeave}
         >
           <span class="lesson-nav__title">{props.nextLesson?.title}</span>
-          <span class="lesson-nav__order">{props.nextLesson?.lessonorder}</span>
+          {/* <span class="lesson-nav__order">{props.nextLesson?.lessonorder}</span> */}
           <ChevronRight size={14} />
         </A>
       ) : (

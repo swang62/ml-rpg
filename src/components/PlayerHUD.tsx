@@ -7,12 +7,14 @@ import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
   const user = createAsync(() => getUser());
-  const xp = createAsync(() => getTotalXpQuery(), { initialValue: 0 });
+  const xp = createAsync(() => getTotalXpQuery(), {
+    initialValue: { count: 0, percent: 0 },
+  });
   const [levelUp, setLevelUp] = createSignal(false);
   const [showSheet, setShowSheet] = createSignal(false);
 
-  const level = createMemo(() => getLevel(xp()));
-  const progress = createMemo(() => xpToNextLevel(xp()));
+  const level = createMemo(() => getLevel(xp().count));
+  const progress = createMemo(() => xpToNextLevel(xp().count));
   const avatarStyle = createMemo(() => getAvatarStyle(level().level));
 
   let prevLevel = -1;
@@ -31,7 +33,7 @@ export default function PlayerHUD() {
         type="button"
         class="player-hud"
         onClick={() => setShowSheet(true)}
-        title="View character sheet"
+        title="View Stats"
       >
         <div
           class="player-hud__avatar"
@@ -66,7 +68,7 @@ export default function PlayerHUD() {
             >
               {progress().xpNeeded > 0
                 ? `${progress().currentXp}/${formatXP(progress().xpNeeded)} XP`
-                : `${formatXP(xp())} XP (MAX)`}
+                : `${formatXP(xp().count)} XP (MAX)`}
             </span>
           </div>
         </div>
@@ -75,7 +77,8 @@ export default function PlayerHUD() {
       <PlayerSheet
         open={showSheet()}
         userName={user()?.displayname}
-        totalXp={xp()}
+        totalXp={xp().count}
+        completionPercent={xp().percent}
         onClose={() => setShowSheet(false)}
       />
     </>

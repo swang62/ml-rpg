@@ -1,12 +1,11 @@
 import { query } from "@solidjs/router";
 import { getCategoriesByCourse } from "~/db/category_sql";
 import { getCourseBySlug } from "~/db/course_sql";
-import { getLessonsBySection } from "~/db/lesson_sql";
+import { getAllLessons, getLessonsBySection } from "~/db/lesson_sql";
 import {
   getAllReadLessons,
   getReadCountsByCourse,
   getReadLessonsBySection,
-  getTotalXp,
   isLessonRead,
 } from "~/db/progress_sql";
 import { getSectionsByCategory } from "~/db/section_sql";
@@ -19,10 +18,19 @@ export const getTotalXpQuery = query(async () => {
   "use server";
   const db = getDb();
   const user = await getUserById(db, { id: USER_ID });
-  if (!user) return 0;
+  if (!user) return { count: 0, percent: 0 };
 
-  const result = await getTotalXp(db, { userId: user.id });
-  return (result?.totalorder ?? 0) * XP_VALUE;
+  const totalLessons = await getAllLessons(db);
+  const result = await getAllReadLessons(db, { userId: user.id });
+
+  const totalCalculatedXP =
+    result.map((r) => r.lessonorder).reduce((prev, curr) => prev + curr, 0) *
+    XP_VALUE;
+
+  return {
+    count: totalCalculatedXP,
+    percent: result.length / totalLessons.length,
+  };
 }, "total-xp");
 
 export const getLessonReadStatusQuery = query(
@@ -44,7 +52,7 @@ export const getLessonReadStatusQuery = query(
       lessonId: lesson.id,
       userId: user.id,
     });
-    return (result?.readcount ?? 0) > 0;
+    return result?.isread ?? false;
   },
   "lesson-read-status",
 );

@@ -19,11 +19,8 @@ interface Props {
   open: boolean;
   userName: string | undefined;
   totalXp: number;
+  completionPercent: number;
   onClose: () => void;
-}
-
-function fmtXp(n: number): string {
-  return n.toLocaleString();
 }
 
 function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
@@ -38,7 +35,7 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
         style={avatarStyle}
       >
         <img
-          class={`w-6 h-6 mix-blend-screen brightness-125 ${isCurrent ? "brightness-150 sepia-[0.6] saturate-[4] hue-rotate-[340deg]" : ""}`}
+          class={`w-6 h-6 mix-blend-screen brightness-125 ${isCurrent ? "brightness-150 sepia-[0.6] saturate-[4] hue-rotate-340" : ""}`}
           style={{ "image-rendering": "pixelated" }}
           src={`/assets/avatars/lvl${props.lvl.level}.svg`}
           alt=""
@@ -48,14 +45,14 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
         Lv.{props.lvl.level}
       </span>
       <span
-        class={`font-pixel text-[0.6rem]  ${isCurrent ? "text-level-section" : "text-text"}`}
+        class={`font-pixel text-[0.6rem]  ${isCurrent ? "text-level-section" : "text-base"}`}
       >
         {props.lvl.title}
       </span>
       <span
-        class={`font-pixel text-[0.55rem] whitespace-nowrap text-right ${isCurrent ? "text-level-category" : "text-text-muted"}`}
+        class={`font-pixel text-[0.55rem] whitespace-nowrap text-right ${isCurrent ? "text-level-category" : "text-muted"}`}
       >
-        {fmtXp(props.lvl.xpRequired)}
+        {props.lvl.xpRequired}
       </span>
     </div>
   );
@@ -96,9 +93,9 @@ export default function PlayerSheet(props: Props) {
   });
 
   const btn =
-    "inline-flex items-center justify-center p-1 border-2 border-border rounded cursor-pointer bg-transparent text-text-muted hover:text-accent hover:border-orange-400 hover:bg-surface-hover transition-colors duration-150";
+    "inline-flex items-center justify-center p-1 border-2 border-border rounded cursor-pointer bg-transparent text-muted hover:text-accent hover:border-orange-400 hover:bg-surface-hover transition-colors duration-150";
   const btnConfirm =
-    "inline-flex items-center justify-center p-1 border-2 border-level-category rounded cursor-pointer bg-transparent text-level-category hover:text-text-heading hover:bg-[rgba(52,211,153,0.15)] hover:border-level-category transition-colors duration-150";
+    "inline-flex items-center justify-center p-1 border-2 border-level-category rounded cursor-pointer bg-transparent text-level-category hover:text-heading hover:bg-[rgba(52,211,153,0.15)] hover:border-level-category transition-colors duration-150";
 
   return (
     <Show when={props.open}>
@@ -114,15 +111,15 @@ export default function PlayerSheet(props: Props) {
           <div class="pointer-events-auto w-[min(740px,88vw)] max-h-[min(85vh,720px)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
             {/* Player info */}
             <div class="flex flex-col gap-2 items-center">
-              <div class="grid grid-cols-6 items-center gap-8 w-full">
-                <span class="col-span-1 font-pixel text-text-muted text-right whitespace-nowrap">
+              <div class="grid grid-cols-5 items-center gap-8 w-full">
+                <span class="col-span-1 font-pixel text-muted text-right whitespace-nowrap">
                   Name
                 </span>
                 <Show
                   when={editing()}
                   fallback={
                     <div class="flex items-center gap-2">
-                      <span class="font-pixel text-[1.05rem] text-text-heading">
+                      <span class="font-pixel text-[1.05rem] text-heading">
                         {props.userName}
                       </span>
                       <button
@@ -141,7 +138,7 @@ export default function PlayerSheet(props: Props) {
                 >
                   <div class="flex items-center gap-2">
                     <input
-                      class="font-pixel text-[1rem] text-text-heading bg-surface-hover border-2 border-accent rounded-sm px-2 py-1 outline-none tracking-[0.02em] focus:shadow-[0_0_0_3px_rgba(96,165,250,0.15)]"
+                      class="font-pixel text-[1rem] text-heading bg-surface-hover border-2 border-accent rounded-sm px-2 py-1 outline-none tracking-[0.02em] focus:shadow-[0_0_0_3px_rgba(96,165,250,0.15)]"
                       value={draftName()}
                       onInput={(e) => setDraftName(e.currentTarget.value)}
                       onKeyDown={handleKeyDown}
@@ -170,8 +167,8 @@ export default function PlayerSheet(props: Props) {
                 </Show>
               </div>
 
-              <div class="grid grid-cols-6 items-center gap-8  w-full">
-                <span class="col-span-1 font-pixel text-text-muted text-right whitespace-nowrap">
+              <div class="grid grid-cols-5 items-center gap-8  w-full">
+                <span class="col-span-1 font-pixel text-muted text-right whitespace-nowrap">
                   Rank
                 </span>
                 <div class="inline-flex items-baseline gap-4">
@@ -184,13 +181,20 @@ export default function PlayerSheet(props: Props) {
                 </div>
               </div>
 
-              <div class="grid grid-cols-6 items-center gap-8  w-full">
-                <span class="col-span-1 font-pixel text-text-muted text-right whitespace-nowrap">
-                  XP
+              <div class="grid grid-cols-5 items-center gap-8  w-full">
+                <span class="col-span-1 font-pixel text-muted text-right whitespace-nowrap">
+                  Current
                 </span>
                 <span class="font-pixel flex-nowrap flex text-nowrap gap-4">
-                  <span class="text-level-category">
-                    {fmtXp(props.totalXp)}
+                  <span class="text-level-category">{props.totalXp} XP</span>
+                  <span class="text-muted">
+                    {" "}
+                    (
+                    {props.completionPercent.toLocaleString(undefined, {
+                      style: "percent",
+                      minimumFractionDigits: 1,
+                    })}{" "}
+                    complete)
                   </span>
                 </span>
               </div>
@@ -198,7 +202,7 @@ export default function PlayerSheet(props: Props) {
 
             {/* Level chart */}
             <div class=" border-border rounded-lg bg-black overflow-hidden">
-              <div class="font-pixel text-[0.6rem] text-text-muted tracking-[0.06em] uppercase text-center py-2 border-b-2 border-border bg-[rgba(0,0,0,0.2)]">
+              <div class="font-pixel text-[0.6rem] text-muted tracking-[0.06em] uppercase text-center py-2 border-b-2 border-border bg-[rgba(0,0,0,0.2)]">
                 Levels
               </div>
               <div class="flex py-4 px-2">

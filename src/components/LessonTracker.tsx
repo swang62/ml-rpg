@@ -1,6 +1,6 @@
 import { useAction } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
-import { markLessonReadAction } from "~/server/actions";
+import { markLessonReadAction } from "~/server/mutations";
 
 // Persists across component re-renders and effect re-runs so that
 // query invalidation from the action doesn't trigger an infinite loop

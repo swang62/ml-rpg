@@ -2,26 +2,6 @@
 
 import { Database } from "better-sqlite3";
 
-export const getTotalXpQuery = `-- name: GetTotalXp :one
-SELECT COALESCE(SUM(lesson.lesson_order), 0) AS totalorder FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
-
-export interface GetTotalXpArgs {
-    userId: any;
-}
-
-export interface GetTotalXpRow {
-    totalorder: any | null;
-}
-
-export async function getTotalXp(database: Database, args: GetTotalXpArgs): Promise<GetTotalXpRow | null> {
-    const stmt = database.prepare(getTotalXpQuery);
-    const result = await stmt.get(args.userId);
-    if (result == undefined) {
-        return null;
-    }
-    return result as GetTotalXpRow;
-}
-
 export const getReadLessonsBySectionQuery = `-- name: GetReadLessonsBySection :many
 SELECT lesson.slug FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.section_id = ?`;
 
@@ -40,8 +20,26 @@ export async function getReadLessonsBySection(database: Database, args: GetReadL
     return result as GetReadLessonsBySectionRow[];
 }
 
+export const getAllReadLessonsQuery = `-- name: GetAllReadLessons :many
+SELECT progress.lesson_id AS lessonid, lesson.lesson_order AS lessonorder FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
+
+export interface GetAllReadLessonsArgs {
+    userId: any;
+}
+
+export interface GetAllReadLessonsRow {
+    lessonid: any;
+    lessonorder: any;
+}
+
+export async function getAllReadLessons(database: Database, args: GetAllReadLessonsArgs): Promise<GetAllReadLessonsRow[]> {
+    const stmt = database.prepare(getAllReadLessonsQuery);
+    const result = await stmt.all(args.userId);
+    return result as GetAllReadLessonsRow[];
+}
+
 export const isLessonReadQuery = `-- name: IsLessonRead :one
-SELECT COUNT(*) AS readcount FROM progress WHERE progress.lesson_id = ? AND progress.user_id = ?`;
+SELECT COUNT(*) > 0 AS isread FROM progress WHERE progress.lesson_id = ? AND progress.user_id = ?`;
 
 export interface IsLessonReadArgs {
     lessonId: any;
@@ -49,7 +47,7 @@ export interface IsLessonReadArgs {
 }
 
 export interface IsLessonReadRow {
-    readcount: number;
+    isread: boolean;
 }
 
 export async function isLessonRead(database: Database, args: IsLessonReadArgs): Promise<IsLessonReadRow | null> {
@@ -112,22 +110,5 @@ DELETE FROM progress`;
 export async function deleteAllProgress(database: Database): Promise<void> {
     const stmt = database.prepare(deleteAllProgressQuery);
     await stmt.run();
-}
-
-export const getAllReadLessonsQuery = `-- name: GetAllReadLessons :many
-SELECT progress.lesson_id AS lessonid FROM progress WHERE progress.user_id = ?`;
-
-export interface GetAllReadLessonsArgs {
-    userId: any;
-}
-
-export interface GetAllReadLessonsRow {
-    lessonid: any;
-}
-
-export async function getAllReadLessons(database: Database, args: GetAllReadLessonsArgs): Promise<GetAllReadLessonsRow[]> {
-    const stmt = database.prepare(getAllReadLessonsQuery);
-    const result = await stmt.all(args.userId);
-    return result as GetAllReadLessonsRow[];
 }
 

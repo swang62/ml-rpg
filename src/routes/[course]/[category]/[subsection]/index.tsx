@@ -8,8 +8,8 @@ import {
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
-import { resetSectionAction } from "~/server/actions";
 import { getSubsectionMetaQuery } from "~/server/course";
+import { resetSectionAction } from "~/server/mutations";
 import { getSectionReadCountsQuery } from "~/server/progress";
 import { XP_VALUE } from "~/utils/constants";
 
