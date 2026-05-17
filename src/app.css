@@ -198,6 +198,12 @@ a {
 }
 
 /* Page-level background images on the main content area */
+.page-level--world {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .page-level--course {
   flex: 1;
   display: flex;
@@ -224,7 +230,9 @@ a {
 
 .app-content {
   flex: 1;
-  padding-bottom: var(--nav-height);
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0 var(--nav-height);
 }
 
 /* ===== Sticky header ===== */
