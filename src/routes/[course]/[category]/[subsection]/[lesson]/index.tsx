@@ -2,7 +2,7 @@ import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
 import ExternalLink from "lucide-solid/icons/external-link";
 
-import { createMemo, createSignal, onMount, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import BackToQuest from "~/components/BackToQuest";
 import LessonNav from "~/components/LessonNav";
@@ -11,7 +11,7 @@ import PageTitle from "~/components/PageTitle";
 import { getLessonNavQuery } from "~/server/course";
 import { getLessonHTMLQuery } from "~/server/lesson";
 import { getLessonReadStatusQuery } from "~/server/progress";
-import { isAnonLessonRead } from "~/utils/client-storage";
+import { isAnonLessonRead, version } from "~/utils/client-storage";
 import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export const route = {
@@ -59,31 +59,20 @@ export default function LessonPage() {
       : Promise.resolve(false),
   );
 
-  const [anonRead, setAnonRead] = createSignal(false);
-
-  onMount(() => {
-    if (!signedIn()) {
-      setAnonRead(
-        isAnonLessonRead(
-          params.course as string,
-          params.category as string,
-          params.subsection as string,
-          params.lesson as string,
-        ),
-      );
-    }
+  const isRead = createMemo(() => {
+    if (signedIn()) return serverReadStatus();
+    version(); // reactively re-read localStorage on version bumps (e.g. lesson marked read)
+    return isAnonLessonRead(
+      params.course as string,
+      params.category as string,
+      params.subsection as string,
+      params.lesson as string,
+    );
   });
-
-  const isRead = createMemo(() =>
-    signedIn() ? serverReadStatus() : anonRead(),
-  );
 
   const [toastVisible, setToastVisible] = createSignal(false);
 
   const handleRead = () => {
-    if (!signedIn()) {
-      setAnonRead(true);
-    }
     setToastVisible(true);
     setTimeout(() => setToastVisible(false), TOAST_TIMEOUT);
   };

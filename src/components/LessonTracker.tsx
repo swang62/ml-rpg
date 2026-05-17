@@ -1,5 +1,5 @@
 import { useAction } from "@solidjs/router";
-import { createEffect, onCleanup, onMount } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import { markLessonReadAction } from "~/server/mutations";
 import { markAnonLessonRead } from "~/utils/client-storage";
@@ -19,20 +19,23 @@ export default function LessonTracker(props: Props) {
   const markRead = useAction(markLessonReadAction);
   let sentinelRef: HTMLDivElement | undefined;
 
-  const track = () => {
+  createEffect(() => {
     const course = props.course;
     const category = props.category;
     const subsection = props.subsection;
     const lesson = props.lesson;
 
     if (!course || !subsection || !lesson) return;
+    // signedIn() is read here so it becomes a reactive dependency —
+    // if the user logs in/out the observer resets correctly
+    const isAuthed = signedIn();
     if (props.alreadyRead) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
           observer.disconnect();
-          if (signedIn()) {
+          if (isAuthed) {
             markRead(course, subsection, lesson).then(() => props.onRead?.());
           } else {
             markAnonLessonRead(
@@ -51,16 +54,6 @@ export default function LessonTracker(props: Props) {
 
     if (sentinelRef) observer.observe(sentinelRef);
     onCleanup(() => observer.disconnect());
-  };
-
-  // Fresh observer on every page mount/nav — no module-level cache.
-  // Server/localStorage handles dedup on the write side.
-  onMount(() => {
-    if (!signedIn()) track();
-  });
-
-  createEffect(() => {
-    if (signedIn()) track();
   });
 
   return <div ref={sentinelRef} aria-hidden="true" style={{ height: "1px" }} />;
