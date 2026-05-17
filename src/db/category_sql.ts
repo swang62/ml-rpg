@@ -21,6 +21,28 @@ export async function getCategoriesByCourse(database: Database, args: GetCategor
     return result as GetCategoriesByCourseRow[];
 }
 
+export const getCategoryLessonCountsQuery = `-- name: GetCategoryLessonCounts :many
+SELECT category.slug AS categoryslug, COUNT(lesson.id) AS lessoncount
+FROM category
+INNER JOIN lesson ON lesson.category_id = category.id
+WHERE category.course_id = ?
+GROUP BY category.id`;
+
+export interface GetCategoryLessonCountsArgs {
+    courseId: any;
+}
+
+export interface GetCategoryLessonCountsRow {
+    categoryslug: any;
+    lessoncount: number;
+}
+
+export async function getCategoryLessonCounts(database: Database, args: GetCategoryLessonCountsArgs): Promise<GetCategoryLessonCountsRow[]> {
+    const stmt = database.prepare(getCategoryLessonCountsQuery);
+    const result = await stmt.all(args.courseId);
+    return result as GetCategoryLessonCountsRow[];
+}
+
 export const getAllCategoriesQuery = `-- name: GetAllCategories :many
 SELECT category.id, category.slug, category.title, category.course_id AS courseid FROM category`;
 
