@@ -1,7 +1,7 @@
 import { action } from "@solidjs/router";
 import { markLessonRead, resetSectionProgress } from "~/db/progress_sql";
-import { getSession } from "~/server/auth";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
+import { getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
 
 export const markLessonReadAction = action(
