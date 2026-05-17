@@ -1571,7 +1571,7 @@ main {
 
 .lesson-read-toast {
   position: fixed;
-  bottom: 24px;
+  bottom: 12px;
   left: 50%;
   z-index: 9000;
   display: inline-flex;
@@ -1641,7 +1641,7 @@ main {
     position: fixed;
     width: 140px;
     top: auto;
-    bottom: 16px;
+    bottom: 40px;
     left: 50%;
     right: 50%;
     margin-left: -70px;
