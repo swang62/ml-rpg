@@ -243,29 +243,40 @@ export default function PlayerSheet(props: Props) {
             </div>
 
             {/* Login / Logout */}
-            <div class="flex justify-center">
+            <div>
               <Show
                 when={props.signedIn}
                 fallback={
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
-                    onClick={props.onLogin}
-                  >
-                    <LogIn size={13} />
-                    Sign In
-                  </button>
+                  <div class="flex items-center justify-between px-2">
+                    <span class="font-pixel text-[0.55rem] text-muted">
+                      Logged out, using browser cache.
+                    </span>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
+                      onClick={props.onLogin}
+                    >
+                      <LogIn size={13} />
+                      Sign In
+                    </button>
+                  </div>
                 }
               >
-                <form action={logoutAction} method="post">
-                  <button
-                    type="submit"
-                    class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
-                  >
-                    <LogOut size={13} />
-                    Sign Out
-                  </button>
-                </form>
+                <div class="flex items-center justify-between px-2">
+                  <span class="font-pixel text-[0.55rem] text-muted">
+                    Logged in as:{" "}
+                    <span class="text-accent">{props.userName}</span>
+                  </span>
+                  <form action={logoutAction} method="post">
+                    <button
+                      type="submit"
+                      class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                    >
+                      <LogOut size={13} />
+                      Sign Out
+                    </button>
+                  </form>
+                </div>
               </Show>
             </div>
           </div>
