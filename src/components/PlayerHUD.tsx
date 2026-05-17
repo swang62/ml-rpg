@@ -69,7 +69,7 @@ export default function PlayerHUD() {
     if (target === prevXp) return;
     const start = prevXp;
     prevXp = target;
-    const duration = 400;
+    const duration = 2000;
     const startTime = performance.now();
     let frameId: number;
     const tick = (now: number) => {
@@ -93,7 +93,7 @@ export default function PlayerHUD() {
     const currentLevel = level().level;
     if (prevLevel >= 0 && currentLevel !== prevLevel) {
       setLevelUp(true);
-      setTimeout(() => setLevelUp(false), 800);
+      setTimeout(() => setLevelUp(false), 1600);
     }
     prevLevel = currentLevel;
   });
