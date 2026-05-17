@@ -47,7 +47,13 @@ function keys(): string[] {
 }
 
 export function getAnonDisplayName(): string {
-  return getItem(`${BASE}anon:displayName`) ?? "Anon";
+  const key = `${BASE}anon:displayName`;
+  let value = getItem(key);
+  if (value === null) {
+    setItem(key, "Anon");
+    value = "Anon";
+  }
+  return value;
 }
 
 export function setAnonDisplayName(name: string): void {

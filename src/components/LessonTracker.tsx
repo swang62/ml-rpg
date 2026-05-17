@@ -32,7 +32,9 @@ export default function LessonTracker(props: Props) {
     const key = `${course}/${subsection}/${lesson}`;
 
     if (props.alreadyRead) return;
-    if (lessonReadState.has(key)) return;
+    // Session-level cache: track which lessons were already marked in this tab.
+    // For anonymous users, skip the cache so prev/next nav always gets a fresh observer.
+    if (signedIn() && lessonReadState.has(key)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
