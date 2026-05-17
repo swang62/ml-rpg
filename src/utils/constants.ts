@@ -1,4 +1,5 @@
 export const BASE_URL = "https://www.systemoverflow.com/learn";
+export const SITE_NAME = "Machine Learning (the RPG)";
 export const NOT_FOUND_PATH = "/404";
 
 export const XP_VALUE = 25;
@@ -10,16 +11,7 @@ export const SEARCH_MAX_RESULTS = 6;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
 export const TOAST_TIMEOUT = 3000;
 
-export const SITE_NAME = "System Overflow";
-
 export const IS_PROD = process.env.NODE_ENV === "production";
-
-export interface SearchResult {
-  lessonTitle: string;
-  categoryTitle: string;
-  subsectionTitle: string;
-  url: string;
-}
 
 export interface LevelDef {
   level: number;
@@ -89,3 +81,110 @@ export const AVATAR_TIERS: AvatarTier[] = [
     glow: "0 0 4px var(--accent-glow)",
   },
 ];
+
+export const STOP_WORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "nor",
+  "not",
+  "if",
+  "so",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "by",
+  "with",
+  "up",
+  "as",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "can",
+  "could",
+  "shall",
+  "should",
+  "may",
+  "might",
+  "must",
+  "this",
+  "that",
+  "these",
+  "those",
+  "it",
+  "its",
+  "they",
+  "them",
+  "their",
+  "we",
+  "us",
+  "our",
+  "you",
+  "your",
+  "he",
+  "she",
+  "him",
+  "her",
+  "his",
+  "my",
+  "me",
+  "no",
+  "nor",
+  "also",
+  "than",
+  "all",
+  "any",
+  "each",
+  "few",
+  "some",
+  "every",
+  "about",
+  "above",
+  "after",
+  "again",
+  "before",
+  "between",
+  "both",
+  "because",
+  "into",
+  "more",
+  "most",
+  "much",
+  "now",
+  "only",
+  "other",
+  "own",
+  "over",
+  "same",
+  "such",
+  "through",
+  "until",
+  "very",
+  "just",
+  "what",
+  "when",
+  "where",
+  "which",
+  "while",
+  "who",
+  "why",
+  "how",
+]);

@@ -1,14 +1,15 @@
 "use server";
 
 import MiniSearch from "minisearch";
+
 import { getAllCategories } from "~/db/category_sql";
 import { getAllCourses } from "~/db/course_sql";
 import { getSearchLessons } from "~/db/lesson_sql";
 import { getAllSections } from "~/db/section_sql";
-import { SEARCH_MAX_RESULTS, type SearchResult } from "~/utils/constants";
+import { SEARCH_MAX_RESULTS, STOP_WORDS } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
-function plainText(html: string): string {
+function cleanHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&[a-z]+;/g, " ")
@@ -17,7 +18,7 @@ function plainText(html: string): string {
     .toLowerCase();
 }
 
-interface Document {
+interface SearchDocument {
   id: string;
   lessonTitle: string;
   lessonContent: string;
@@ -25,8 +26,10 @@ interface Document {
   sectionTitle: string;
   url: string;
 }
-let _engine: MiniSearch | null = null;
-const _ready: boolean = false;
+
+export type MiniSearchResult = Omit<SearchDocument, "id" | "lessonContent">;
+
+let _engine: MiniSearch<SearchDocument> | null = null;
 
 async function buildIndex() {
   if (_engine) return true;
@@ -43,7 +46,7 @@ async function buildIndex() {
   const categories = new Map(categoryRows.map((r) => [r.id, r]));
   const sections = new Map(sectionRows.map((r) => [r.id, r]));
 
-  const docs: Document[] = [];
+  const docs: SearchDocument[] = [];
 
   for (const lesson of lessonRows) {
     const sec = sections.get(lesson.sectionid);
@@ -55,7 +58,7 @@ async function buildIndex() {
     const course = courses.get(cat.courseid);
     if (!course) continue;
 
-    const lessonContent = plainText(lesson.html);
+    const lessonContent = cleanHtml(lesson.html);
     if (!lessonContent) continue;
 
     docs.push({
@@ -68,114 +71,7 @@ async function buildIndex() {
     });
   }
 
-  const STOP_WORDS = new Set([
-    "a",
-    "an",
-    "the",
-    "and",
-    "or",
-    "but",
-    "nor",
-    "not",
-    "if",
-    "so",
-    "in",
-    "on",
-    "at",
-    "to",
-    "for",
-    "of",
-    "by",
-    "with",
-    "up",
-    "as",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "been",
-    "being",
-    "have",
-    "has",
-    "had",
-    "do",
-    "does",
-    "did",
-    "will",
-    "would",
-    "can",
-    "could",
-    "shall",
-    "should",
-    "may",
-    "might",
-    "must",
-    "this",
-    "that",
-    "these",
-    "those",
-    "it",
-    "its",
-    "they",
-    "them",
-    "their",
-    "we",
-    "us",
-    "our",
-    "you",
-    "your",
-    "he",
-    "she",
-    "him",
-    "her",
-    "his",
-    "my",
-    "me",
-    "no",
-    "nor",
-    "also",
-    "than",
-    "all",
-    "any",
-    "each",
-    "few",
-    "some",
-    "every",
-    "about",
-    "above",
-    "after",
-    "again",
-    "before",
-    "between",
-    "both",
-    "because",
-    "into",
-    "more",
-    "most",
-    "much",
-    "now",
-    "only",
-    "other",
-    "own",
-    "over",
-    "same",
-    "such",
-    "through",
-    "until",
-    "very",
-    "just",
-    "what",
-    "when",
-    "where",
-    "which",
-    "while",
-    "who",
-    "why",
-    "how",
-  ]);
-
-  const engine = new MiniSearch({
+  const engine = new MiniSearch<SearchDocument>({
     fields: ["lessonTitle", "lessonContent"],
     storeFields: ["lessonTitle", "categoryTitle", "sectionTitle", "url"],
     processTerm: (term) => {
@@ -193,28 +89,18 @@ async function buildIndex() {
   _engine = engine;
   return true;
 }
-export async function searchLessons(
-  searchQuery: string,
-): Promise<SearchResult[]> {
+export async function searchLessons(searchQuery: string) {
   await buildIndex();
 
   const raw = _engine?.search(searchQuery, {
     prefix: true,
     fuzzy: 0.2,
     boost: {
-      lessonTitle: 1.5,
+      lessonTitle: 1.2,
     },
   });
-  const results: SearchResult[] = [];
-  if (!raw?.length) return results;
 
-  for (const r of raw.slice(0, SEARCH_MAX_RESULTS)) {
-    results.push({
-      lessonTitle: r.lessonTitle,
-      categoryTitle: r.categoryTitle,
-      subsectionTitle: `${r.sectionTitle}`,
-      url: r.url,
-    });
-  }
-  return results;
+  if (!raw?.length) return [];
+
+  return raw.slice(0, SEARCH_MAX_RESULTS) as unknown as MiniSearchResult[];
 }

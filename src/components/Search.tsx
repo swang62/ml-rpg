@@ -1,11 +1,10 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, type JSX, onMount } from "solid-js";
-import { searchLessons } from "~/server/search";
+import { type MiniSearchResult, searchLessons } from "~/server/search";
 import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
-  type SearchResult,
 } from "~/utils/constants";
 
 export default function Search() {
@@ -13,7 +12,7 @@ export default function Search() {
   const [query, setQuery] = createSignal("");
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal(-1);
-  const [results, setResults] = createSignal<SearchResult[]>([]);
+  const [results, setResults] = createSignal<MiniSearchResult[]>([]);
   const [mobileOpen, setMobileOpen] = createSignal(false);
   let inputRef: HTMLInputElement | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -192,7 +191,7 @@ export default function Search() {
                 <span class="search__result-title">{result.lessonTitle}</span>
                 <span class="search__result-meta">
                   <span>{result.categoryTitle}</span>
-                  <span>{result.subsectionTitle}</span>
+                  <span>{result.sectionTitle}</span>
                 </span>
               </a>
             ))
