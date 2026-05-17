@@ -4,18 +4,23 @@ import {
   type RouteDefinition,
   useParams,
 } from "@solidjs/router";
-import { createMemo } from "solid-js";
+import { createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
-import { getCourseMetaQuery } from "~/server/course";
+import {
+  getCourseLessonCountsQuery,
+  getCourseMetaQuery,
+} from "~/server/course";
 import { getCourseReadCountsQuery } from "~/server/progress";
+import { getAnonCategoryReadCounts } from "~/utils/client-storage";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export const route = {
   preload: ({ params }) => {
     getCourseMetaQuery(params.course as string);
     getCourseReadCountsQuery(params.course as string);
+    getCourseLessonCountsQuery(params.course as string);
   },
 } satisfies RouteDefinition;
 
@@ -28,6 +33,21 @@ export default function CourseIndexPage() {
       ? getCourseReadCountsQuery(params.course as string)
       : Promise.resolve({} as Record<string, boolean[]>),
   );
+
+  // For anonymous: fetch total lesson counts per category to compute progress
+  const lessonCounts = createAsync(() =>
+    signedIn()
+      ? Promise.resolve({} as Record<string, number>)
+      : getCourseLessonCountsQuery(params.course as string),
+  );
+  const [anonReadCounts, setAnonReadCounts] = createSignal<
+    Record<string, number>
+  >({});
+  onMount(() => {
+    if (!signedIn()) {
+      setAnonReadCounts(getAnonCategoryReadCounts(params.course as string));
+    }
+  });
 
   const categories = createMemo(() => course()?.categories ?? []);
   const sectionReadStatus = createMemo(() =>
@@ -51,6 +71,11 @@ export default function CourseIndexPage() {
             : [];
           const completed = subsectionStatuses.filter(Boolean).length;
           const max = subsectionStatuses.length;
+
+          // Anonymous progress: read count vs total lessons in this category
+          const totalInCategory = lessonCounts()?.[category.category] ?? 0;
+          const anonRead = anonReadCounts()?.[category.category] ?? 0;
+
           return (
             <A
               href={`/${params.course}/${category.category}`}
@@ -63,6 +88,13 @@ export default function CourseIndexPage() {
                 <ProgressBar
                   value={completed}
                   max={max}
+                  color="--level-course"
+                />
+              )}
+              {!signedIn() && totalInCategory > 0 && (
+                <ProgressBar
+                  value={anonRead}
+                  max={totalInCategory}
                   color="--level-course"
                 />
               )}
