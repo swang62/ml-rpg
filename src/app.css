@@ -978,7 +978,7 @@ a {
 .search {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 360px;
 }
 
 .search__input-wrapper {
@@ -1070,8 +1070,8 @@ a {
   border: 2px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-dropdown);
-  max-height: 380px;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   z-index: 100;
 }
 
