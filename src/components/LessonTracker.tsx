@@ -10,7 +10,6 @@ interface Props {
   course?: string;
   subsection?: string;
   lesson?: string;
-  order?: number;
   alreadyRead?: boolean;
   onRead?: () => void;
 }
@@ -38,7 +37,7 @@ export default function LessonTracker(props: Props) {
         if (entries[0]?.isIntersecting) {
           lessonReadState.set(key, true);
           observer.disconnect();
-          markRead(course, subsection, lesson, props.order ?? 0).then(() => {
+          markRead(course, subsection, lesson).then(() => {
             props.onRead?.();
           });
         }

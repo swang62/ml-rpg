@@ -6,12 +6,7 @@ import { USER_ID } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
 export const markLessonReadAction = action(
-  async (
-    courseSlug: string,
-    subsectionSlug: string,
-    lessonSlug: string,
-    _order: number,
-  ) => {
+  async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
     "use server";
     const db = getDb();
     const user = await getUserById(db, { id: USER_ID });

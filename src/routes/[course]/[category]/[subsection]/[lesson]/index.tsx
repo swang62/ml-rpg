@@ -109,7 +109,6 @@ export default function LessonPage() {
           course={params.course}
           subsection={params.subsection}
           lesson={nav()?.currentLesson?.slug}
-          order={nav()?.currentLesson?.lessonorder}
           alreadyRead={isRead()}
           onRead={handleRead}
         />

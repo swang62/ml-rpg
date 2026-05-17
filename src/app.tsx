@@ -51,7 +51,7 @@ export default function App() {
       root={(props) => (
         <MetaProvider>
           <Title>{SITE_NAME}</Title>
-          <Link rel="icon" href="/favicon.ico" sizes="any" />
+          <Link type="image/x-icon" rel="icon" href="/favicon.ico" />
           <GlobalBackspaceHandler />
           <ParallaxBackground />
           <div class="app-layout">
