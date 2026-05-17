@@ -129,7 +129,7 @@ export default function PlayerSheet(props: Props) {
                   when={editing()}
                   fallback={
                     <div class="flex items-center gap-2">
-                      <span class="font-pixel text-[1.05rem] text-heading">
+                      <span class="font-pixel text-[1.05rem] text-heading text-nowrap">
                         {props.userName}
                       </span>
                       <button
