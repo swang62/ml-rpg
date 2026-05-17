@@ -40,11 +40,11 @@
   --surface-glass: rgba(13, 15, 20, 0.65);
 
   /* Hierarchy tints and glows */
-  --tint-course: rgba(167, 139, 250, 0.08);
+  --tint-course: rgba(167, 139, 250, 0.1);
   --tint-course-hover: rgba(167, 139, 250, 0.15);
   --tint-category: rgba(52, 211, 153, 0.1);
-  --tint-section: rgba(251, 191, 36, 0.08);
-  --tint-accent: rgba(96, 165, 250, 0.08);
+  --tint-section: rgba(251, 191, 36, 0.1);
+  --tint-accent: rgba(96, 165, 250, 0.1);
   --border-glow-course: rgba(167, 139, 250, 0.3);
   --border-glow-category: rgba(52, 211, 153, 0.25);
   --border-glow-section: rgba(251, 191, 36, 0.2);
@@ -231,7 +231,7 @@ a {
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 9999;
+  z-index: 1000;
   background: var(--surface-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -241,10 +241,6 @@ a {
   justify-content: center;
   align-items: center;
   transition: transform 0.4s ease;
-}
-
-.app-header--hidden {
-  transform: translateY(-100%);
 }
 
 .app-header__inner {
@@ -1577,7 +1573,7 @@ main {
   position: fixed;
   bottom: 24px;
   left: 50%;
-  z-index: 100;
+  z-index: 9000;
   display: inline-flex;
   align-items: center;
   gap: 8px;
