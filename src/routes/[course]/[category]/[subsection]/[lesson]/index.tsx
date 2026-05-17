@@ -135,12 +135,12 @@ export default function LessonPage() {
           subsection={params.subsection as string}
         />
 
-        <div class="lesson-back-link-bottom">
+        {/* <div class="lesson-back-link-bottom">
           <BackToQuest
             href={`/${params.course}/${params.category}/${params.subsection}`}
             isRead={!!isRead()}
           />
-        </div>
+        </div> */}
 
         <Show when={toastVisible()}>
           <div class="lesson-read-toast font-pixel">
