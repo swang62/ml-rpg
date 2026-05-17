@@ -46,6 +46,29 @@ export async function getUserByUserName(database: Database, args: GetUserByUserN
     return result as GetUserByUserNameRow;
 }
 
+export const getUserByUserNameWithPasswordQuery = `-- name: GetUserByUserNameWithPassword :one
+SELECT users.id, users.username, users.user_password, users.display_name AS displayname FROM users WHERE users.username = ?`;
+
+export interface GetUserByUserNameWithPasswordArgs {
+    username: any;
+}
+
+export interface GetUserByUserNameWithPasswordRow {
+    id: any;
+    username: any;
+    userPassword: any;
+    displayname: any | null;
+}
+
+export async function getUserByUserNameWithPassword(database: Database, args: GetUserByUserNameWithPasswordArgs): Promise<GetUserByUserNameWithPasswordRow | null> {
+    const stmt = database.prepare(getUserByUserNameWithPasswordQuery);
+    const result = await stmt.get(args.username);
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetUserByUserNameWithPasswordRow;
+}
+
 export const upsertUserQuery = `-- name: UpsertUser :one
 INSERT INTO users (username, user_password, display_name) VALUES (?,?,?) RETURNING id`;
 
