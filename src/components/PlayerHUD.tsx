@@ -1,17 +1,19 @@
 import { createAsync } from "@solidjs/router";
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
+import LoginModal from "~/components/LoginModal";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
-import { getUser } from "~/server/user";
 import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
-  const user = createAsync(() => getUser());
+  const { user, signedIn } = useAuth();
   const xp = createAsync(() => getTotalXpQuery(), {
     initialValue: { count: 0, percent: 0 },
   });
   const [levelUp, setLevelUp] = createSignal(false);
   const [showSheet, setShowSheet] = createSignal(false);
+  const [showLogin, setShowLogin] = createSignal(false);
 
   const level = createMemo(() => getLevel(xp().count));
   const progress = createMemo(() => xpToNextLevel(xp().count));
@@ -49,7 +51,7 @@ export default function PlayerHUD() {
         </div>
         <div class="player-hud__info">
           <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-            {user()?.displayname}{" "}
+            {user()?.displayname ?? "Anon"}{" "}
             <span class="text-level-section">the {level().title}</span>
           </span>
           <div class="player-hud__xp-bar">
@@ -76,11 +78,20 @@ export default function PlayerHUD() {
 
       <PlayerSheet
         open={showSheet()}
-        userName={user()?.displayname}
+        userName={user()?.displayname ?? undefined}
         totalXp={xp().count}
         completionPercent={xp().percent}
+        signedIn={signedIn()}
+        onLogin={() => {
+          setShowSheet(false);
+          setShowLogin(true);
+        }}
         onClose={() => setShowSheet(false)}
       />
+
+      <Show when={showLogin()}>
+        <LoginModal open={showLogin()} onClose={() => setShowLogin(false)} />
+      </Show>
     </>
   );
 }
