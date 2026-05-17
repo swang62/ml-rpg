@@ -9,7 +9,7 @@ export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;
 export const SEARCH_MAX_RESULTS = 6;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
-export const TOAST_TIMEOUT = 3000;
+export const TOAST_TIMEOUT = 5000;
 
 export const IS_PROD = process.env.NODE_ENV === "production";
 

@@ -275,8 +275,8 @@ a {
   color: inherit;
   border-radius: 8px;
   transition:
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    box-shadow 0.4s ease,
+    background 0.4s ease;
 }
 
 .player-hud:hover {
@@ -327,19 +327,19 @@ a {
 }
 
 .player-hud__avatar.level-up {
-  animation: pulse-zoom 0.8s ease-out;
+  animation: pulse-zoom 1.6s ease-out;
 }
 
 .player-hud__xp-count.level-up {
-  animation: pulse-zoom-and-color 0.8s ease-out;
+  animation: pulse-zoom-and-color 1.6s ease-out;
 }
 
 .player-hud__title.level-up {
-  animation: pulse-color 0.8s ease-out;
+  animation: pulse-color 1.6s ease-out;
 }
 
 .player-hud__lvl.level-up {
-  animation: pulse-zoom-and-color 0.8s ease-out;
+  animation: pulse-zoom-and-color 1.6s ease-out;
 }
 
 .player-hud__info {
@@ -372,7 +372,7 @@ a {
   height: 100%;
   background: var(--level-category);
   border-radius: 1px;
-  transition: width 0.5s ease;
+  transition: width 1s ease;
 }
 
 .player-hud__stats {
@@ -1585,13 +1585,13 @@ main {
   background: var(--tint-section);
   border: 1px solid var(--border-glow-section);
   color: var(--level-section);
-  font-size: 0.7rem;
+  font-size: 1rem;
   line-height: 1;
   pointer-events: none;
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.4),
     0 0 20px rgba(251, 191, 36, 0.15);
-  animation: toast-popup 3s ease-out forwards;
+  animation: toast-popup 5s ease-out forwards;
 }
 
 @media (max-width: 768px) {
