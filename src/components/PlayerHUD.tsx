@@ -35,11 +35,16 @@ export default function PlayerHUD() {
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
 
-  // Close modals on auth state change (login or logout)
+  // Close modals only on auth state change (login or logout),
+  // not when user signal updates (e.g. display name edit)
+  let prevSignedIn: boolean | undefined;
   createEffect(() => {
-    signedIn(); // track auth state — effect re-runs when it changes
-    setShowLogin(false);
-    setShowSheet(false);
+    const current = signedIn();
+    if (current !== prevSignedIn) {
+      setShowLogin(false);
+      setShowSheet(false);
+    }
+    prevSignedIn = current;
   });
 
   // After hydration, force all localStorage-backed memos to re-evaluate
@@ -154,7 +159,8 @@ export default function PlayerHUD() {
 
       <PlayerSheet
         open={showSheet()}
-        userName={displayName()}
+        userName={user()?.username}
+        displayName={displayName()}
         totalXp={xp().count}
         completionPercent={xp().percent}
         signedIn={signedIn()}
