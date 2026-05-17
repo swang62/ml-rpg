@@ -267,7 +267,7 @@ export default function PlayerSheet(props: Props) {
                   <form action={logoutAction} method="post">
                     <button
                       type="submit"
-                      class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
                     >
                       <LogOut size={13} />
                       Sign Out
