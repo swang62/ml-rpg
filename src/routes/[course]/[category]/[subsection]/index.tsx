@@ -51,7 +51,7 @@ export default function SubsectionPage() {
   return (
     <CoursePageShell
       title={subsection()?.title}
-      subtitle="Complete all objectives"
+      subtitle="Complete all objectives to finish this quest"
       badge="QUEST"
       containerClass="container-narrow"
       pageLevel="section"

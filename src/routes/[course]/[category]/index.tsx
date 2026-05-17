@@ -34,7 +34,7 @@ export default function CategoryPage() {
   return (
     <CoursePageShell
       title={category()?.title}
-      subtitle="Choose your quest"
+      subtitle="Choose your quest to begin training"
       badge="LEVEL"
       containerClass="container-medium"
       pageLevel="category"

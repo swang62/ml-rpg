@@ -30,7 +30,7 @@ export default function CourseIndexPage() {
   return (
     <CoursePageShell
       title={course()?.title}
-      subtitle="Choose a level to begin your training"
+      subtitle="Choose a level to begin your adventure"
       badge="WORLD"
       containerClass=""
       pageLevel="course"
