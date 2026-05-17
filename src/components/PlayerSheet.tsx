@@ -197,15 +197,17 @@ export default function PlayerSheet(props: Props) {
                 </span>
                 <span class="font-pixel flex-nowrap flex text-nowrap gap-4">
                   <span class="text-level-category">{props.totalXp} XP</span>
-                  <span class="text-muted hidden sm:block">
-                    {" "}
-                    (
-                    {props.completionPercent.toLocaleString(undefined, {
-                      style: "percent",
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    complete)
-                  </span>
+                  <Show when={props.signedIn}>
+                    <span class="text-muted hidden sm:block">
+                      {" "}
+                      (
+                      {props.completionPercent.toLocaleString(undefined, {
+                        style: "percent",
+                        minimumFractionDigits: 1,
+                      })}{" "}
+                      complete)
+                    </span>
+                  </Show>
                 </span>
               </div>
             </div>

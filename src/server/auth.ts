@@ -37,9 +37,7 @@ export const formLogin = action(async (formData: FormData) => {
     // Existing system — require valid credentials
     const row = await getUserByUserNameWithPassword(db, { username: trimmed });
     if (!row) return new Error("Invalid username or password");
-    if (!row.userPassword)
-      return new Error("Account exists via another method");
-    await checkPassword(row.userPassword as string, password);
+    await checkPassword(row.userpassword, password);
     userId = row.id as number;
   } else {
     // First user — auto-register
@@ -47,7 +45,7 @@ export const formLogin = action(async (formData: FormData) => {
     const row = await upsertUser(db, {
       username: trimmed,
       userPassword: hashed,
-      displayName: trimmed,
+      displayName: `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`,
     });
     if (!row) return new Error("Failed to create user");
     userId = row.id as number;
