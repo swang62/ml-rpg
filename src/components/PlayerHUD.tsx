@@ -1,19 +1,35 @@
 import { createAsync } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import LoginModal from "~/components/LoginModal";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
+import { getAnonDisplayName, getAnonTotalXp } from "~/utils/client-storage";
 import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {
   const { user, signedIn } = useAuth();
-  const xp = createAsync(() => getTotalXpQuery(), {
-    initialValue: { count: 0, percent: 0 },
-  });
+  const serverXp = createAsync(
+    () =>
+      signedIn()
+        ? getTotalXpQuery()
+        : Promise.resolve({ count: 0, percent: 0 }),
+    { initialValue: { count: 0, percent: 0 } },
+  );
+  const [anonXp, setAnonXp] = createSignal(getAnonTotalXp());
+
   const [levelUp, setLevelUp] = createSignal(false);
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
+
+  onMount(() => {
+    if (!signedIn()) setAnonXp(getAnonTotalXp());
+  });
+
+  const xp = createMemo(() => (signedIn() ? serverXp() : anonXp()));
+  const displayName = createMemo(() =>
+    signedIn() ? user()?.displayname : getAnonDisplayName(),
+  );
 
   const level = createMemo(() => getLevel(xp().count));
   const progress = createMemo(() => xpToNextLevel(xp().count));
@@ -51,7 +67,7 @@ export default function PlayerHUD() {
         </div>
         <div class="player-hud__info">
           <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-            {user()?.displayname ?? "Anon"}{" "}
+            {displayName()}{" "}
             <span class="text-level-section">the {level().title}</span>
           </span>
           <div class="player-hud__xp-bar">
@@ -78,7 +94,7 @@ export default function PlayerHUD() {
 
       <PlayerSheet
         open={showSheet()}
-        userName={user()?.displayname ?? undefined}
+        userName={displayName()}
         totalXp={xp().count}
         completionPercent={xp().percent}
         signedIn={signedIn()}
@@ -89,9 +105,7 @@ export default function PlayerHUD() {
         onClose={() => setShowSheet(false)}
       />
 
-      <Show when={showLogin()}>
-        <LoginModal open={showLogin()} onClose={() => setShowLogin(false)} />
-      </Show>
+      <LoginModal open={showLogin()} onClose={() => setShowLogin(false)} />
     </>
   );
 }

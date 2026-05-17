@@ -5,6 +5,7 @@ import {
   useParams,
 } from "@solidjs/router";
 import { createMemo } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCourseMetaQuery } from "~/server/course";
@@ -20,12 +21,18 @@ export const route = {
 
 export default function CourseIndexPage() {
   const params = useParams();
+  const { signedIn } = useAuth();
   const course = createAsync(() => getCourseMetaQuery(params.course as string));
-  const sectionReadStatus = createAsync(() =>
-    getCourseReadCountsQuery(params.course as string),
+  const serverSectionStatus = createAsync(() =>
+    signedIn()
+      ? getCourseReadCountsQuery(params.course as string)
+      : Promise.resolve({} as Record<string, boolean[]>),
   );
 
   const categories = createMemo(() => course()?.categories ?? []);
+  const sectionReadStatus = createMemo(() =>
+    signedIn() ? (serverSectionStatus() ?? {}) : {},
+  );
 
   return (
     <CoursePageShell
@@ -39,9 +46,11 @@ export default function CourseIndexPage() {
     >
       <section class="categories-grid">
         {categories().map((category) => {
-          const subsectionStatuses =
-            sectionReadStatus()?.[category.category] ?? [];
+          const subsectionStatuses = signedIn()
+            ? (sectionReadStatus()?.[category.category] ?? [])
+            : [];
           const completed = subsectionStatuses.filter(Boolean).length;
+          const max = subsectionStatuses.length;
           return (
             <A
               href={`/${params.course}/${category.category}`}
@@ -50,10 +59,10 @@ export default function CourseIndexPage() {
               onMouseLeave={onCardLeave}
             >
               <h2>{category.title}</h2>
-              {subsectionStatuses.length > 0 && (
+              {max > 0 && (
                 <ProgressBar
                   value={completed}
-                  max={subsectionStatuses.length}
+                  max={max}
                   color="--level-course"
                 />
               )}

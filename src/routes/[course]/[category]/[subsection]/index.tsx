@@ -6,11 +6,17 @@ import {
   useParams,
 } from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
+import { createMemo, createSignal, onMount } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
 import { getSubsectionMetaQuery } from "~/server/course";
 import { resetSectionAction } from "~/server/mutations";
 import { getSectionReadCountsQuery } from "~/server/progress";
+import {
+  getAnonSectionReadSlugs,
+  resetAnonSection,
+} from "~/utils/client-storage";
 import { XP_VALUE } from "~/utils/constants";
 
 export const route = {
@@ -31,6 +37,8 @@ export default function SubsectionPage() {
   const params = useParams();
   if (!params.category || !params.subsection) return;
 
+  const { signedIn } = useAuth();
+
   const subsection = createAsync(() =>
     getSubsectionMetaQuery(
       params.course as string,
@@ -38,14 +46,35 @@ export default function SubsectionPage() {
       params.subsection as string,
     ),
   );
-  const readLessons = createAsync(
+
+  const serverReadLessons = createAsync(
     () =>
-      getSectionReadCountsQuery(
-        params.course as string,
-        params.subsection as string,
-      ),
+      signedIn()
+        ? getSectionReadCountsQuery(
+            params.course as string,
+            params.subsection as string,
+          )
+        : Promise.resolve([]),
     { initialValue: [] },
   );
+
+  const [anonReadLessons, setAnonReadLessons] = createSignal<string[]>([]);
+
+  onMount(() => {
+    if (!signedIn()) {
+      setAnonReadLessons(
+        getAnonSectionReadSlugs(
+          params.course as string,
+          params.subsection as string,
+        ),
+      );
+    }
+  });
+
+  const readLessons = createMemo(() =>
+    signedIn() ? serverReadLessons() : anonReadLessons(),
+  );
+
   const reset = useAction(resetSectionAction);
 
   return (
@@ -63,9 +92,20 @@ export default function SubsectionPage() {
             {readLessons().length} / {subsection()?.lessons.length} completed
           </span>
           <ResetButton
-            onClick={() =>
-              reset(params.course as string, params.subsection as string)
-            }
+            onClick={async () => {
+              if (signedIn()) {
+                await reset(
+                  params.course as string,
+                  params.subsection as string,
+                );
+              } else {
+                resetAnonSection(
+                  params.course as string,
+                  params.subsection as string,
+                );
+                setAnonReadLessons([]);
+              }
+            }}
           >
             <RotateCcw size={12} />
             Reset All

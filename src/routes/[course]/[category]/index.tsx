@@ -4,11 +4,13 @@ import {
   type RouteDefinition,
   useParams,
 } from "@solidjs/router";
-import { createMemo } from "solid-js";
+import { createMemo, createSignal, onMount } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCategoryMetaQuery } from "~/server/course";
 import { getCategoryReadCountsQuery } from "~/server/progress";
+import { getAnonCategoryReadCounts } from "~/utils/client-storage";
 import { onCardLeave, onCardMove } from "~/utils/tilt";
 
 export const route = {
@@ -22,11 +24,29 @@ export default function CategoryPage() {
   const params = useParams();
   if (!params.category) return;
 
+  const { signedIn } = useAuth();
+
   const category = createAsync(() =>
     getCategoryMetaQuery(params.course as string, params.category as string),
   );
-  const readCounts = createAsync(() =>
-    getCategoryReadCountsQuery(params.course as string),
+  const serverReadCounts = createAsync(() =>
+    signedIn()
+      ? getCategoryReadCountsQuery(params.course as string)
+      : Promise.resolve({} as Record<string, number>),
+  );
+
+  const [anonReadCounts, setAnonReadCounts] = createSignal<
+    Record<string, number>
+  >({});
+
+  onMount(() => {
+    if (!signedIn()) {
+      setAnonReadCounts(getAnonCategoryReadCounts(params.course as string));
+    }
+  });
+
+  const readCounts = createMemo(() =>
+    signedIn() ? serverReadCounts() : anonReadCounts(),
   );
 
   const subsections = createMemo(() => category()?.subsections ?? []);
