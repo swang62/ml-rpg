@@ -47,7 +47,7 @@ export async function getUserByUserName(database: Database, args: GetUserByUserN
 }
 
 export const getUserByUserNameWithPasswordQuery = `-- name: GetUserByUserNameWithPassword :one
-SELECT users.id, users.username, users.user_password, users.display_name AS displayname FROM users WHERE users.username = ?`;
+SELECT users.id, users.username, users.user_password AS userpassword, users.display_name AS displayname FROM users WHERE users.username = ?`;
 
 export interface GetUserByUserNameWithPasswordArgs {
     username: any;
@@ -56,7 +56,7 @@ export interface GetUserByUserNameWithPasswordArgs {
 export interface GetUserByUserNameWithPasswordRow {
     id: any;
     username: any;
-    userPassword: any;
+    userpassword: any;
     displayname: any | null;
 }
 
