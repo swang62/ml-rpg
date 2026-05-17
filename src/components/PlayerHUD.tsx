@@ -1,5 +1,11 @@
 import { createAsync } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, onMount } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onMount,
+  Show,
+} from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import LoginModal from "~/components/LoginModal";
 import PlayerSheet from "~/components/PlayerSheet";
@@ -22,13 +28,15 @@ export default function PlayerHUD() {
     { initialValue: { count: 0, percent: 0 } },
   );
 
+  const [mounted, setMounted] = createSignal(false);
   const [levelUp, setLevelUp] = createSignal(false);
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
 
-  // After hydration, force memos to re-evaluate with real localStorage values.
-  // SolidJS restores memo values from SSR on hydration, skipping the callback.
+  // After hydration, force all localStorage-backed memos to re-evaluate.
+  // SolidJS restores memo values from SSR without re-running the callback.
   onMount(() => {
+    setMounted(true);
     if (!signedIn()) bumpVersion((v) => v + 1);
   });
 
@@ -80,7 +88,9 @@ export default function PlayerHUD() {
         </div>
         <div class="player-hud__info">
           <span class="player-hud__title" classList={{ "level-up": levelUp() }}>
-            {displayName()}{" "}
+            <Show when={mounted()} fallback={"Anon"}>
+              {displayName()}
+            </Show>{" "}
             <span class="text-level-section">the {level().title}</span>
           </span>
           <div class="player-hud__xp-bar">

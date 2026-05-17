@@ -1,10 +1,8 @@
 import { useAction } from "@solidjs/router";
-import { createEffect, onCleanup } from "solid-js";
+import { createEffect, onCleanup, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import { markLessonReadAction } from "~/server/mutations";
 import { markAnonLessonRead } from "~/utils/client-storage";
-
-const lessonReadState = new Map<string, boolean>();
 
 interface Props {
   course?: string;
@@ -21,30 +19,21 @@ export default function LessonTracker(props: Props) {
   const markRead = useAction(markLessonReadAction);
   let sentinelRef: HTMLDivElement | undefined;
 
-  createEffect(() => {
+  const track = () => {
     const course = props.course;
     const category = props.category;
     const subsection = props.subsection;
     const lesson = props.lesson;
 
     if (!course || !subsection || !lesson) return;
-
-    const key = `${course}/${subsection}/${lesson}`;
-
     if (props.alreadyRead) return;
-    // Session-level cache: track which lessons were already marked in this tab.
-    // For anonymous users, skip the cache so prev/next nav always gets a fresh observer.
-    if (signedIn() && lessonReadState.has(key)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          lessonReadState.set(key, true);
           observer.disconnect();
           if (signedIn()) {
-            markRead(course, subsection, lesson).then(() => {
-              props.onRead?.();
-            });
+            markRead(course, subsection, lesson).then(() => props.onRead?.());
           } else {
             markAnonLessonRead(
               course,
@@ -61,10 +50,17 @@ export default function LessonTracker(props: Props) {
     );
 
     if (sentinelRef) observer.observe(sentinelRef);
+    onCleanup(() => observer.disconnect());
+  };
 
-    onCleanup(() => {
-      observer.disconnect();
-    });
+  // Fresh observer on every page mount/nav — no module-level cache.
+  // Server/localStorage handles dedup on the write side.
+  onMount(() => {
+    if (!signedIn()) track();
+  });
+
+  createEffect(() => {
+    if (signedIn()) track();
   });
 
   return <div ref={sentinelRef} aria-hidden="true" style={{ height: "1px" }} />;
