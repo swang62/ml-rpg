@@ -35,12 +35,11 @@ export default function PlayerHUD() {
   const [showSheet, setShowSheet] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
 
-  // Close modals on successful login
+  // Close modals on auth state change (login or logout)
   createEffect(() => {
-    if (signedIn()) {
-      setShowLogin(false);
-      setShowSheet(false);
-    }
+    signedIn(); // track auth state — effect re-runs when it changes
+    setShowLogin(false);
+    setShowSheet(false);
   });
 
   // After hydration, force all localStorage-backed memos to re-evaluate
