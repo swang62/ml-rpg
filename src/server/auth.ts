@@ -60,5 +60,5 @@ export const logoutAction = action(async () => {
   "use server";
   const session = await getSession();
   await session.update({ id: undefined });
-  throw redirect("/", { revalidate: "session" });
+  return redirect("/", { revalidate: "session" });
 });
