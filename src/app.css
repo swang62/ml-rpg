@@ -145,31 +145,31 @@ a {
 .app-layout:has(.page-level--world) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.5)),
-    url("/assets/bg/world-bg.jpg") center / 130% fixed no-repeat;
+    url("/assets/bg/world-bg.jpg") center 110% fixed no-repeat;
 }
 
 .app-layout:has(.page-level--course) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.6)),
-    url("/assets/bg/course-bg.jpg") center / 130% fixed no-repeat;
+    url("/assets/bg/course-bg.jpg") center 110% fixed no-repeat;
 }
 
 .app-layout:has(.page-level--category) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.82), rgba(13, 15, 20, 0.6)),
-    url("/assets/bg/category-bg.jpg") center / 130% fixed no-repeat;
+    url("/assets/bg/category-bg.jpg") center 110% fixed no-repeat;
 }
 
 .app-layout:has(.page-level--section) {
   background:
     linear-gradient(rgba(13, 15, 20, 0.8), rgba(13, 15, 20, 0.6)),
-    url("/assets/bg/section-bg.jpg") center / 130% fixed no-repeat;
+    url("/assets/bg/section-bg.jpg") center 110% fixed no-repeat;
 }
 
 .app-layout:has(.page-level--lesson) {
   background:
     linear-gradient(rgba(24, 26, 36, 0.9), rgba(24, 26, 36, 0.3)),
-    url("/assets/bg/lesson-bg.jpg") center / 130% fixed no-repeat;
+    url("/assets/bg/lesson-bg.jpg") center fixed no-repeat;
 }
 
 /* Ensure page content extends to full viewport height on non-homepage pages
@@ -896,6 +896,7 @@ a {
 
 .hero-course-card {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -976,7 +977,9 @@ a {
 
 .search__icon {
   position: absolute;
+  top: 50%;
   left: 12px;
+  transform: translateY(-50%);
   color: var(--muted);
   pointer-events: none;
 }
@@ -1093,7 +1096,7 @@ a {
 .search__result-meta {
   font-size: 0.75rem;
   color: var(--muted);
-  opacity: 80%;
+  opacity: 70%;
   display: flex;
   gap: 6px;
   width: 100%;
@@ -1304,140 +1307,7 @@ main {
   animation: slide-up 0.4s ease-out 0.3s both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none;
-    transition: none;
-  }
-}
-
 /* ===== Responsive ===== */
-
-@media (max-width: 768px) {
-  .container {
-    padding: 32px 16px;
-  }
-
-  .page-header h1 {
-    font-size: 1.6rem;
-  }
-
-  .categories-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .subsections-list {
-    grid-template-columns: 1fr;
-  }
-
-  .card--category {
-    padding: 20px;
-  }
-
-  .hero h1 {
-    font-size: 2rem;
-  }
-
-  .hero {
-    padding: 40px 16px 32px;
-  }
-
-  .stats-bar {
-    gap: 20px;
-  }
-
-  .stat__value {
-    font-size: 1.3rem;
-  }
-
-  .hero-course-card {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 20px 24px;
-    margin: 0 16px 32px;
-  }
-
-  .app-header__inner {
-    gap: 8px;
-  }
-
-  .player-hud {
-    min-width: 150px;
-    flex-grow: 1;
-    flex-shrink: 0;
-  }
-
-  .player-hud__title {
-    font-size: 0.6rem;
-  }
-
-  .player-hud__lvl,
-  .player-hud__xp-count {
-    font-size: 0.5rem;
-  }
-
-  .player-hud__avatar {
-    width: 36px;
-    height: 36px;
-  }
-
-  .player-hud__avatar img {
-    width: 28px;
-    height: 28px;
-  }
-
-  .player-hud__info {
-    min-width: 0;
-  }
-
-  /* Mobile search: hide bar, show toggle */
-  .search {
-    max-width: 100%;
-    flex-shrink: 0;
-  }
-
-  .search__toggle {
-    display: flex;
-  }
-
-  .search__input-wrapper {
-    display: none;
-  }
-
-  .search--mobile-open .search__input-wrapper {
-    display: flex;
-    position: fixed;
-    top: 64px;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    padding: 8px 12px;
-    background: var(--surface-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 2px solid var(--border);
-  }
-
-  .search--mobile-open .search__input {
-    padding: 10px 14px 10px 36px;
-    font-size: 1rem;
-  }
-
-  .search--mobile-open .search__dropdown {
-    position: fixed;
-    top: 117px;
-    left: 12px;
-    right: 12px;
-    max-height: 50vh;
-  }
-
-  .app-footer__inner {
-    flex-direction: column;
-    text-align: center;
-  }
-}
 
 @media (max-width: 480px) {
   .page-header h1 {
@@ -1688,8 +1558,8 @@ main {
 .lesson-back-link-bottom {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
-  padding-top: 24px;
+  margin-top: 12px;
+  padding-top: 16px;
 }
 
 .lesson-back-link-bottom .lesson-back-link {
@@ -1723,6 +1593,135 @@ main {
     0 4px 24px rgba(0, 0, 0, 0.4),
     0 0 20px rgba(52, 211, 153, 0.15);
   animation: toast-popup 3s ease-out forwards;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 32px 16px;
+  }
+
+  .page-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subsections-list {
+    grid-template-columns: 1fr;
+  }
+
+  .card--category {
+    padding: 20px;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .hero {
+    padding: 40px 16px 32px;
+  }
+
+  .stats-bar {
+    gap: 20px;
+  }
+
+  .stat__value {
+    font-size: 1.3rem;
+  }
+
+  .hero-course-card {
+    padding: 20px 24px;
+    margin: 0 8px 16px;
+    width: 100%;
+  }
+
+  .app-header__inner {
+    gap: 8px;
+  }
+
+  .lesson-back-link {
+    position: fixed;
+    width: 140px;
+    top: auto;
+    bottom: 16px;
+    left: 50%;
+    right: 50%;
+    margin-left: -70px;
+  }
+
+  .lesson-back-link-bottom {
+    display: none;
+  }
+
+  /* Mobile search: hide bar, show toggle */
+  .search {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 10%;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .search__toggle {
+    display: flex;
+  }
+
+  .search__input-wrapper {
+    display: none;
+  }
+
+  .search--mobile-open .search__input-wrapper {
+    display: flex;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 8px 12px;
+    background: var(--surface-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .search--mobile-open .search__icon {
+    margin-left: 12px;
+    font-size: 1rem;
+  }
+
+  .search--mobile-open .search__input {
+    padding: 10px 14px 10px 36px;
+    font-size: 1rem;
+  }
+
+  .search--mobile-open .search__dropdown {
+    position: fixed;
+    top: 117px;
+    left: 12px;
+    right: 12px;
+    max-height: 50vh;
+  }
+
+  .lesson-nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lesson-nav__link {
+    width: 100%;
+  }
+
+  .lesson-card {
+    padding: 12px 12px;
+  }
+
+  .app-footer__inner {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 @keyframes toast-popup {

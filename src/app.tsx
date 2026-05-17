@@ -58,8 +58,8 @@ export default function App() {
               <div class="app-header__inner">
                 <Suspense>
                   <PlayerHUD />
+                  <Search />
                 </Suspense>
-                <Search />
               </div>
             </header>
             <div class="app-content">

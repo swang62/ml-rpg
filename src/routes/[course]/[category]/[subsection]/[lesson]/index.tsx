@@ -129,7 +129,7 @@ export default function LessonPage() {
         <Show when={toastVisible()}>
           <div class="lesson-read-toast">
             <Check size={14} />
-            <span>Objective Complete</span>
+            <span>Complete</span>
           </div>
         </Show>
       </div>

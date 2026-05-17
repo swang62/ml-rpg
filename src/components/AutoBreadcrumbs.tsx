@@ -2,7 +2,6 @@ import { createAsync, useParams } from "@solidjs/router";
 import { createMemo } from "solid-js";
 import Breadcrumbs from "~/components/Breadcrumbs";
 import { getBreadcrumbsQuery } from "~/server/course";
-import { SITE_NAME } from "~/utils/constants";
 
 export default function AutoBreadcrumbs() {
   const params = useParams();
@@ -17,7 +16,7 @@ export default function AutoBreadcrumbs() {
 
   const items = createMemo(() => {
     const crumbs = dbCrumbs() ?? [];
-    return [{ label: SITE_NAME, href: "/" }, ...crumbs];
+    return [{ label: "Home", href: "/" }, ...crumbs];
   });
 
   return <Breadcrumbs items={items()} />;
