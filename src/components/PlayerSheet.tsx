@@ -1,5 +1,7 @@
 import { useAction, useSubmission } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
+import LogIn from "lucide-solid/icons/log-in";
+import LogOut from "lucide-solid/icons/log-out";
 import Pencil from "lucide-solid/icons/pencil";
 import X from "lucide-solid/icons/x";
 import {
@@ -11,6 +13,7 @@ import {
   Show,
 } from "solid-js";
 import { Portal } from "solid-js/web";
+import { logoutAction } from "~/server/auth";
 import { updateUserNameAction } from "~/server/user";
 import { LEVELS, type LevelDef } from "~/utils/constants";
 import { getAvatarStyle, getLevel } from "~/utils/xp";
@@ -20,6 +23,8 @@ interface Props {
   userName: string | undefined;
   totalXp: number;
   completionPercent: number;
+  signedIn: boolean;
+  onLogin: () => void;
   onClose: () => void;
 }
 
@@ -228,6 +233,33 @@ export default function PlayerSheet(props: Props) {
                   )}
                 </For>
               </div>
+            </div>
+
+            {/* Login / Logout */}
+            <div class="flex justify-center">
+              <Show
+                when={props.signedIn}
+                fallback={
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
+                    onClick={props.onLogin}
+                  >
+                    <LogIn size={13} />
+                    Sign In
+                  </button>
+                }
+              >
+                <form action={logoutAction} method="post">
+                  <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                  >
+                    <LogOut size={13} />
+                    Sign Out
+                  </button>
+                </form>
+              </Show>
             </div>
           </div>
         </div>

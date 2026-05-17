@@ -9,19 +9,19 @@ import {
   isLessonRead,
 } from "~/db/progress_sql";
 import { getSectionsByCategory } from "~/db/section_sql";
-import { getUserById } from "~/db/users_sql";
+import { getSession } from "~/server/auth";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
-import { USER_ID, XP_VALUE } from "~/utils/constants";
+import { XP_VALUE } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
 export const getTotalXpQuery = query(async () => {
   "use server";
-  const db = getDb();
-  const user = await getUserById(db, { id: USER_ID });
-  if (!user) return { count: 0, percent: 0 };
+  const session = await getSession();
+  if (!session.data.id) return { count: 0, percent: 0 };
 
+  const db = getDb();
   const totalLessons = await getAllLessons(db);
-  const result = await getAllReadLessons(db, { userId: user.id });
+  const result = await getAllReadLessons(db, { userId: session.data.id });
 
   const totalCalculatedXP =
     result.map((r) => r.lessonorder).reduce((prev, curr) => prev + curr, 0) *
@@ -36,10 +36,10 @@ export const getTotalXpQuery = query(async () => {
 export const getLessonReadStatusQuery = query(
   async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
     "use server";
-    const db = getDb();
-    const user = await getUserById(db, { id: USER_ID });
-    if (!user) return false;
+    const session = await getSession();
+    if (!session.data.id) return false;
 
+    const db = getDb();
     const lesson = await findLessonByPath(
       db,
       courseSlug,
@@ -50,7 +50,7 @@ export const getLessonReadStatusQuery = query(
 
     const result = await isLessonRead(db, {
       lessonId: lesson.id,
-      userId: user.id,
+      userId: session.data.id,
     });
     return result?.isread ?? false;
   },
@@ -60,15 +60,15 @@ export const getLessonReadStatusQuery = query(
 export const getSectionReadCountsQuery = query(
   async (courseSlug: string, subsectionSlug: string) => {
     "use server";
-    const db = getDb();
-    const user = await getUserById(db, { id: USER_ID });
-    if (!user) return [];
+    const session = await getSession();
+    if (!session.data.id) return [];
 
+    const db = getDb();
     const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
     if (!sec) return [];
 
     const rows = await getReadLessonsBySection(db, {
-      userId: user.id,
+      userId: session.data.id,
       sectionId: sec.id,
     });
     return rows.map((r) => r.slug);
@@ -78,19 +78,18 @@ export const getSectionReadCountsQuery = query(
 
 export const getCategoryReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
-  const db = getDb();
-  const user = await getUserById(db, { id: USER_ID });
-  if (!user) return {};
+  const session = await getSession();
+  if (!session.data.id) return {};
 
+  const db = getDb();
   const course = await getCourseBySlug(db, { slug: courseSlug });
   if (!course) return {};
 
   const rows = await getReadCountsByCourse(db, {
-    userId: user.id,
+    userId: session.data.id,
     courseId: course.id,
   });
 
-  // Build a map of sectionid -> slug for lookups
   const categories = await getCategoriesByCourse(db, { courseId: course.id });
   const sectionIdToSlug: Record<number, string> = {};
   for (const cat of categories) {
@@ -112,14 +111,14 @@ export const getCategoryReadCountsQuery = query(async (courseSlug: string) => {
 
 export const getCourseReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
-  const db = getDb();
-  const user = await getUserById(db, { id: USER_ID });
-  if (!user) return {};
+  const session = await getSession();
+  if (!session.data.id) return {};
 
+  const db = getDb();
   const course = await getCourseBySlug(db, { slug: courseSlug });
   if (!course) return {};
 
-  const allRead = await getAllReadLessons(db, { userId: user.id });
+  const allRead = await getAllReadLessons(db, { userId: session.data.id });
   const readSet = new Set(allRead.map((r) => r.lessonid));
 
   const categories = await getCategoriesByCourse(db, { courseId: course.id });
