@@ -31,40 +31,31 @@ function boldTerms(text: string, terms: string[]): string {
   return result;
 }
 
-interface BlurbResult {
-  blurb: string;
-  titleNeedsBold: boolean;
-}
+// function computeBlurb(query: string, lessonContent: string) {
+//   const terms = query
+//     .toLowerCase()
+//     .split(/\s+/)
+//     .filter((t) => t.length >= 2);
+//   if (terms.length === 0) return { blurb: "", titleNeedsBold: false };
 
-function computeBlurb(
-  query: string,
-  lessonContent: string,
-  lessonTitle: string,
-): BlurbResult {
-  const terms = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((t) => t.length >= 2);
-  if (terms.length === 0) return { blurb: "", titleNeedsBold: false };
+//   const sentences = lessonContent.match(/[^.!?\n]+[.!?]?/g) ?? [lessonContent];
 
-  const sentences = lessonContent.match(/[^.!?\n]+[.!?]?/g) ?? [lessonContent];
+//   const matchingSentences = sentences.filter((s) =>
+//     terms.some((t) => s.toLowerCase().includes(t)),
+//   );
 
-  const matchingSentences = sentences.filter((s) =>
-    terms.some((t) => s.toLowerCase().includes(t)),
-  );
+//   if (matchingSentences.length > 0) {
+//     const snippet = matchingSentences.slice(0, 2).join(" ");
+//     return {
+//       blurb: boldTerms(escapeHtml(snippet), terms),
+//       titleNeedsBold: false,
+//     };
+//   }
 
-  if (matchingSentences.length > 0) {
-    const snippet = matchingSentences.slice(0, 2).join(" ");
-    return {
-      blurb: boldTerms(escapeHtml(snippet), terms),
-      titleNeedsBold: false,
-    };
-  }
-
-  // Title-only match: include first sentence of content, bold title
-  const firstSentence = sentences[0] || lessonContent;
-  return { blurb: escapeHtml(firstSentence), titleNeedsBold: true };
-}
+//   // Title-only match: include first sentence of content, bold title
+//   const firstSentence = sentences[0] || lessonContent;
+//   return { blurb: escapeHtml(firstSentence), titleNeedsBold: true };
+// }
 
 export default function Search() {
   const navigate = useNavigate();
@@ -238,16 +229,11 @@ export default function Search() {
               const terms = q
                 .toLowerCase()
                 .split(/\s+/)
-                .filter((t) => t.length >= 2);
-              const { blurb, titleNeedsBold } = computeBlurb(
-                q,
-                result.lessonContent ?? "",
-                result.lessonTitle,
+                .filter((t) => t.length >= SEARCH_MIN_QUERY_LENGTH);
+              const titleHtml = boldTerms(
+                escapeHtml(result.lessonTitle),
+                terms,
               );
-              const titleHtml = titleNeedsBold
-                ? boldTerms(escapeHtml(result.lessonTitle), terms)
-                : escapeHtml(result.lessonTitle);
-
               return (
                 <a
                   href={result.url}
@@ -263,15 +249,10 @@ export default function Search() {
                   }}
                 >
                   <span class="search__result-title" innerHTML={titleHtml} />
-                  {blurb && (
-                    <span class="search__result-blurb" innerHTML={blurb} />
-                  )}
                   <span class="search__result-meta">
                     <span>{result.categoryTitle}</span>
                     <span>{result.sectionTitle}</span>
-                    <span class="search__result-score">
-                      score: {Math.round(result.score)}
-                    </span>
+                    {/* <span>Relevance: {Math.round(result.score)}</span> */}
                   </span>
                 </a>
               );

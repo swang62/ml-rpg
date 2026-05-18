@@ -25,32 +25,34 @@ function cleanHtml(html: string): string {
  * 3. If neither exist, extract the first `<p>` element with content.
  */
 function extractSearchText(html: string): string {
-  // Match any element with border-left: 4px in its style attribute
-  const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
-  const borderSections = html.match(borderPattern);
+  return cleanHtml(html);
 
-  if (borderSections?.length) {
-    const combined = borderSections.join(" ");
-    return cleanHtml(combined);
-  }
+  // // Match any element with border-left: 4px in its style attribute
+  // const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
+  // const borderSections = html.match(borderPattern);
 
-  // Fallback: extract all <strong> content
-  const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
-  const strongMatches = html.match(strongPattern);
+  // if (borderSections?.length) {
+  //   const combined = borderSections.join(" ");
+  //   return cleanHtml(combined);
+  // }
 
-  if (strongMatches?.length) {
-    const combined = strongMatches.join(" ");
-    return cleanHtml(combined);
-  }
+  // // Fallback: extract all <strong> content
+  // const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
+  // const strongMatches = html.match(strongPattern);
 
-  // Fallback: extract the first <p> element with visible content
-  const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
-  if (firstParagraph?.length) {
-    const cleaned = cleanHtml(firstParagraph[0]);
-    if (cleaned.length > 0) return cleaned;
-  }
+  // if (strongMatches?.length) {
+  //   const combined = strongMatches.join(" ");
+  //   return cleanHtml(combined);
+  // }
 
-  return "";
+  // // Fallback: extract the first <p> element with visible content
+  // const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
+  // if (firstParagraph?.length) {
+  //   const cleaned = cleanHtml(firstParagraph[0]);
+  //   if (cleaned.length > 0) return cleaned;
+  // }
+
+  // return "";
 }
 
 interface SearchDocument {
@@ -139,7 +141,6 @@ export async function searchLessons(searchQuery: string) {
     boost: {
       lessonTitle: 1.2,
     },
-    filter: (result) => result.score >= 10,
   });
 
   if (!raw?.length) return [];
