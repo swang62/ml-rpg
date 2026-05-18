@@ -31,3 +31,7 @@ Thumbs.db
 
 # sqlc
 sqlc-gen-typescript.wasm
+
+# agent
+DESIGN.md
+PRODUCT.md
