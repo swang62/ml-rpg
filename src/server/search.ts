@@ -18,6 +18,36 @@ function cleanHtml(html: string): string {
     .toLowerCase();
 }
 
+/**
+ * Extract search-relevant text from a lesson's HTML.
+ *
+ * 1. Find elements with `border-left: 4px` in style (callout/highlight sections).
+ *    If any exist, use only their content for indexing.
+ * 2. If none found, extract text from all `<strong>` tags instead.
+ */
+function extractSearchText(html: string): string {
+  // Match any element with border-left: 4px in its style attribute
+  const borderPattern =
+    /<(\w+)[^>]*style="[^"]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
+  const borderSections = html.match(borderPattern);
+
+  if (borderSections && borderSections.length > 0) {
+    const combined = borderSections.join(" ");
+    return cleanHtml(combined);
+  }
+
+  // Fallback: extract all <strong> content
+  const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
+  const strongMatches = html.match(strongPattern);
+
+  if (strongMatches && strongMatches.length > 0) {
+    const combined = strongMatches.join(" ");
+    return cleanHtml(combined);
+  }
+
+  return cleanHtml(html);
+}
+
 interface SearchDocument {
   id: string;
   lessonTitle: string;
@@ -58,7 +88,7 @@ async function buildIndex() {
     const course = courses.get(cat.courseid);
     if (!course) continue;
 
-    const lessonContent = cleanHtml(lesson.html);
+    const lessonContent = extractSearchText(lesson.html);
     if (!lessonContent) continue;
 
     docs.push({
