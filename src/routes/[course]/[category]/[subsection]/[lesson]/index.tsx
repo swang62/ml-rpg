@@ -11,7 +11,7 @@ import { getLessonNavQuery } from "~/server/course";
 import { getLessonHTMLQuery } from "~/server/lesson";
 import { getLessonReadStatusQuery } from "~/server/progress";
 import { isAnonLessonRead, version } from "~/utils/client-storage";
-import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
+import { EXTERNAL_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export const route = {
   preload: ({ params }) => {
@@ -77,7 +77,7 @@ export default function LessonPage() {
   };
 
   const lessonURL = () =>
-    `${BASE_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.slug}`;
+    `${EXTERNAL_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.slug}`;
 
   return (
     <main class="container container-narrow page-level--lesson">

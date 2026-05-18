@@ -27,12 +27,13 @@ EXPOSE $PORT
 RUN adduser -D -H -h /app www
 
 # Create data directory writable by www user
-RUN mkdir -p /app/.data && chown -R www:www /app/.data
+RUN mkdir -p /app/.data 
+COPY --from=build /app/src/db/empty.db /app/.data/prod.db
+RUN chown -R www:www /app/.data
 
 USER www
 WORKDIR /app
 
 COPY --from=build /app/.output .
-COPY --from=build /app/src/db/empty.db /app/.data/prod.db
 
 CMD ["node", "server/index.mjs"]
