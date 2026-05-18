@@ -7,7 +7,8 @@ RUN npm install --global corepack@latest && \
   corepack enable && corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+  pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 COPY . .
 
@@ -16,8 +17,12 @@ RUN pnpm build
 
 FROM node:26-alpine
 
+ARG PORT
+
 ENV NODE_ENV=production
-EXPOSE 3000
+ENV HOST=0.0.0.0
+ENV PORT=$PORT
+EXPOSE $PORT
 
 RUN adduser -D -H -h /app www
 
@@ -28,6 +33,6 @@ USER www
 WORKDIR /app
 
 COPY --from=build /app/.output .
-COPY --from=build /app/src/db/empty.db /app/.data/empty.db
+COPY --from=build /app/src/db/empty.db /app/.data/prod.db
 
 CMD ["node", "server/index.mjs"]
