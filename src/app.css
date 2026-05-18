@@ -1129,12 +1129,6 @@ a {
   border-radius: 4px;
 }
 
-.search__result-score {
-  color: var(--level-section);
-  font-family: var(--font-pixel);
-  font-size: 0.6rem;
-}
-
 .search__result-blurb {
   font-size: 0.78rem;
   color: var(--muted);
@@ -1622,7 +1616,7 @@ main {
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.4),
     0 0 20px rgba(251, 191, 36, 0.15);
-  animation: toast-popup 5s ease-out forwards;
+  animation: toast-popup 3s ease-out forwards;
 }
 
 @media (max-width: 768px) {
@@ -1703,13 +1697,12 @@ main {
     display: none;
   }
 
-  .search--mobile-open .search__input-wrapper {
-    display: flex;
+  .search--mobile-open {
     position: fixed;
     bottom: var(--nav-height);
-    top: auto;
     left: 0;
     right: 0;
+    max-width: 100%;
     z-index: 100;
     padding: 8px 12px;
     background: var(--surface-glass);
@@ -1718,10 +1711,14 @@ main {
     border-top: 2px solid var(--border);
   }
 
+  .search--mobile-open .search__input-wrapper {
+    display: flex;
+    /* not fixed — flows inline within .search--mobile-open */
+  }
+
   .search--mobile-open .search__icon {
     margin-left: 12px;
     font-size: 1rem;
-    /* icon is absolutely positioned; keep its left offset */
   }
 
   .search--mobile-open .search__input {
@@ -1730,12 +1727,9 @@ main {
   }
 
   .search--mobile-open .search__dropdown {
-    position: fixed;
-    top: 0;
-    bottom: calc(var(--nav-height) + 48px);
+    /* inherit desktop: position absolute, opens upward from parent */
     left: 12px;
     right: 12px;
-    max-height: none;
   }
 
   .lesson-nav {
@@ -1754,6 +1748,10 @@ main {
   .app-footer__inner {
     flex-direction: column;
     text-align: center;
+  }
+
+  .app-content {
+    padding-top: 4px;
   }
 }
 
