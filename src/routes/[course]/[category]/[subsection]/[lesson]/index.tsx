@@ -135,13 +135,6 @@ export default function LessonPage() {
           subsection={params.subsection as string}
         />
 
-        {/* <div class="lesson-back-link-bottom">
-          <BackToQuest
-            href={`/${params.course}/${params.category}/${params.subsection}`}
-            isRead={!!isRead()}
-          />
-        </div> */}
-
         <Show when={toastVisible()}>
           <div class="lesson-read-toast font-pixel">
             +{(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE} XP

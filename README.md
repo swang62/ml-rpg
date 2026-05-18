@@ -4,7 +4,7 @@ A gamified learning course catalog for ML & Data Engineering content. Built on S
 
 ## Summary
 
-A retro video game-themed (Hyperlight Drifter inspired) content-navigation site with a built-in XP/leveling RPG system:
+A retro video game-themed (Hyperlight Drifter inspired) content-navigation site with a built-in leveling system (just like an RPG!):
 
 1. **World** (course) — a high-level curriculum
 2. **Level** (category) — a topical category within a world
@@ -20,28 +20,27 @@ Each objective awards XP when completed. Players level up through 20 ranks (Novi
 - Each objective awards `order * XP_VALUE` XP (objective 1 = 25 XP, objective 6 = 150 XP)
 - 20 ranks from Novice (0) to Eternal (20), gradual exponential curve
 - Level 20 requires 60,000 XP (~87,000 is total available XP if all lessons are completed)
-- Server-side persistence via better-sqlite3
-- Separate dev/prod environments based on `NODE_ENV`
 
 ### Player HUD
 
-- Auth is completely optional, default user is Anon/Anonymous, local storage tracking
-- Rendered as player profile in bottom bar, fetches and shows dynamic XP stats and levelling
-- Custom avatars at each rank, with border glow that scales with level
+- Login is completely optional, default user is Anon using local storage tracking
+- Rendered as player profile in bottom bar, fetches and shows dynamic XP stats and leveling
+- Custom avatars with each rank, border glow scales with higher levels
 
-### Read Status Tracking
+### Read Tracking
 
 - Objectives are marked read immediately when completed
 - "Reset All" button clears read status for the current quest
-- Completed toast appears briefly, along with XP animations
+- XP earned animations (+XP) just like in Mario
 
 ---
 
 ## Tech Stack
 
-- **SolidStart** — meta-framework (SolidJS + file-system routing)
-- **Vinxi** — build tool and dev server (based on Nitro)
-- **Sqlite** — persistence layer (local storage fallback)
+- **SolidStart** — meta-framework (SolidJS for reactivity + file-system routing)
+- **Vinxi** — build tool and dev server with HMR (Vite/Nitro)
+- **better-sqlite3** — fast synchronous persistence layer for course & user data
+- **sqlc** - fully type-safe TS generator for handling sql queries/mutations
 - **Docker** - full production-ready CI/CD deployment from github hooks
 
 ## Folder Structure
