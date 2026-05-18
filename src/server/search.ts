@@ -24,11 +24,11 @@ function cleanHtml(html: string): string {
  * 1. Find elements with `border-left: 4px` in style (callout/highlight sections).
  *    If any exist, use only their content for indexing.
  * 2. If none found, extract text from all `<strong>` tags instead.
+ * 3. If neither exist, extract the first `<p>` element with content.
  */
 function extractSearchText(html: string): string {
   // Match any element with border-left: 4px in its style attribute
-  const borderPattern =
-    /<(\w+)[^>]*style="[^"]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
+  const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
   const borderSections = html.match(borderPattern);
 
   if (borderSections && borderSections.length > 0) {
@@ -43,6 +43,13 @@ function extractSearchText(html: string): string {
   if (strongMatches && strongMatches.length > 0) {
     const combined = strongMatches.join(" ");
     return cleanHtml(combined);
+  }
+
+  // Fallback: extract the first <p> element with visible content
+  const firstParagraph = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+  if (firstParagraph) {
+    const cleaned = cleanHtml(firstParagraph[0]);
+    if (cleaned.length > 0) return cleaned;
   }
 
   return cleanHtml(html);
