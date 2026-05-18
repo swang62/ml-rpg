@@ -992,12 +992,12 @@ a {
   top: 50%;
   left: 12px;
   transform: translateY(-50%);
-  color: var(--heading);
+  color: var(--muted);
   pointer-events: none;
 }
 
 .search__icon path {
-  stroke-width: 2.5;
+  stroke-width: 1.5;
 }
 
 .search__input {
