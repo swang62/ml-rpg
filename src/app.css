@@ -1117,7 +1117,7 @@ a {
 .search__result-meta {
   font-size: 0.75rem;
   color: var(--muted);
-  opacity: 70%;
+  opacity: 90%;
   display: flex;
   gap: 6px;
   width: 100%;
