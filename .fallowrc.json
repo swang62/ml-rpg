@@ -13,9 +13,9 @@
   },
   "ignoreExportsUsedInFile": true,
   "ignorePatterns": [
-    "src/data/**/*",
+    "src/db/**/*",
     "scripts/**/*",
-    "**/404.tsx",
+    "**/[...404].tsx",
     "**/*.config.ts"
   ],
   "rules": {

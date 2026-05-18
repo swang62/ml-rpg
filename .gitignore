@@ -9,6 +9,7 @@ dist
 .data
 .fallow
 .tmp
+.vscode
 
 # Environment
 .env
@@ -18,7 +19,7 @@ dist
 /node_modules
 
 # IDEs and editors
-/.idea
+.fallowrc.json
 .project
 .classpath
 *.launch

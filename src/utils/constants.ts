@@ -1,6 +1,5 @@
 export const BASE_URL = "https://www.systemoverflow.com/learn";
 export const SITE_NAME = "Machine Learning (the RPG)";
-export const NOT_FOUND_PATH = "/404";
 
 export const XP_VALUE = 25;
 
