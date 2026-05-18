@@ -122,7 +122,7 @@ export default function PlayerSheet(props: Props) {
           <div class="pointer-events-auto w-[min(740px,88vw)] max-h-[min(85vh,720px)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
             {/* Player info */}
             <div class="flex flex-col gap-2 items-center">
-              <div class="grid grid-cols-2 sm:grid-cols-5 items-center gap-8 w-full">
+              <div class="grid grid-cols-2 md:grid-cols-5 items-center gap-8 w-full">
                 <span class="col-span-1 font-pixel text-muted text-right whitespace-nowrap">
                   Name
                 </span>
@@ -178,7 +178,7 @@ export default function PlayerSheet(props: Props) {
                 </Show>
               </div>
 
-              <div class="grid grid-cols-2 sm:grid-cols-5 items-center gap-8  w-full">
+              <div class="grid grid-cols-2 md:grid-cols-5 items-center gap-8  w-full">
                 <span class="col-span-1 font-pixel text-muted text-right whitespace-nowrap">
                   Rank
                 </span>
@@ -192,14 +192,14 @@ export default function PlayerSheet(props: Props) {
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 sm:grid-cols-5 items-center gap-8  w-full">
+              <div class="grid grid-cols-2 md:grid-cols-5 items-center gap-8  w-full">
                 <span class="col-span-1 font-pixel text-muted text-right whitespace-nowrap">
                   Current
                 </span>
                 <span class="font-pixel flex-nowrap flex text-nowrap gap-4">
                   <span class="text-level-category">{props.totalXp} XP</span>
                   <Show when={props.signedIn}>
-                    <span class="text-muted hidden sm:block">
+                    <span class="text-muted hidden md:block">
                       {" "}
                       (
                       {props.completionPercent.toLocaleString(undefined, {
@@ -218,7 +218,7 @@ export default function PlayerSheet(props: Props) {
               <div class="font-pixel text-[0.6rem] text-muted tracking-[0.06em] uppercase text-center py-2 border-b-2 border-border bg-[rgba(0,0,0,0.2)]">
                 Levels
               </div>
-              <div class="flex flex-col sm:flex-row py-4 px-2">
+              <div class="flex flex-col md:flex-row py-4 px-2">
                 <div class="flex-1 flex flex-col">
                   <For each={LEVELS.slice(0, 10)}>
                     {(lvl) => (

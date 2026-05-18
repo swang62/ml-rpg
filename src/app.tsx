@@ -7,6 +7,7 @@ import { MetaProvider, Title } from "@solidjs/meta";
 import { Router, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { onCleanup, onMount, Suspense } from "solid-js";
+import AskAI from "~/components/AskAI";
 import Auth from "~/components/AuthContext";
 import ParallaxBackground from "~/components/ParallaxBackground";
 import PlayerHUD from "~/components/PlayerHUD";
@@ -61,6 +62,7 @@ export default function App() {
                   <Suspense>
                     <PlayerHUD />
                     <Search />
+                    <AskAI />
                   </Suspense>
                 </div>
               </header>

@@ -11,6 +11,13 @@ export const TOAST_TIMEOUT = 5000;
 
 export const IS_PROD = process.env.NODE_ENV === "production";
 
+export const LANCEDB_PATH = "./.data/search";
+export const VOYAGE_MODEL = "voyage-context-3";
+export const RAG_MAX_HISTORY = 3;
+export const RAG_MAX_SOURCES = 3;
+export const RAG_BM25_WEIGHT = 0.6;
+export const RAG_VECTOR_WEIGHT = 0.4;
+
 export interface LevelDef {
   level: number;
   title: string;
