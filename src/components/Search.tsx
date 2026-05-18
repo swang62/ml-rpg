@@ -1,4 +1,5 @@
 import { useNavigate } from "@solidjs/router";
+import SearchIcon from "lucide-solid/icons/search";
 import { createSignal, type JSX, onMount } from "solid-js";
 import { type MiniSearchResult, searchLessons } from "~/server/search";
 import {
@@ -185,21 +186,7 @@ export default function Search() {
         </svg>
       </button>
       <div class="search__input-wrapper">
-        <svg
-          class="search__icon"
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M6.5 11.5a5 5 0 1 0 0-10 5 5 0 0 0 0 10ZM13 13l-3-3"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
+        <SearchIcon size={18} class="search__icon text-muted" />
         <input
           ref={inputRef}
           type="search"
