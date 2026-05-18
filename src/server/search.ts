@@ -9,50 +9,44 @@ import { getAllSections } from "~/db/section_sql";
 import { SEARCH_MAX_RESULTS, STOP_WORDS } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
 
-function cleanHtml(html: string): string {
+function stripHtmlTags(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&[a-z]+;/g, " ")
-    .replace(/\s+/g, " ");
+    .replace(/&[a-z]+\d*;/g, " ")
+    .replace(/&#\d+;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
  * Extract search-relevant text from a lesson's HTML.
- *
- * 1. Find elements with `border-left: 4px` in style (callout/highlight sections).
- *    If any exist, use only their content for indexing.
- * 2. If none found, extract text from all `<strong>` tags instead.
- * 3. If neither exist, extract the first `<p>` element with content.
  */
-function extractSearchText(html: string): string {
-  return cleanHtml(html);
+export function extractRelevantText(html: string): string {
+  // Match any element with border-left: 4px in its style attribute
+  const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
+  const borderSections = html.match(borderPattern);
+  if (borderSections?.length) {
+    const combined = borderSections.join(" ");
+    return stripHtmlTags(combined);
+  }
 
-  // // Match any element with border-left: 4px in its style attribute
-  // const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
-  // const borderSections = html.match(borderPattern);
+  // Fallback: extract all <strong> content
+  const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
+  const strongMatches = html.match(strongPattern);
+  if (strongMatches?.length) {
+    const combined = strongMatches.join(" ");
+    return stripHtmlTags(combined);
+  }
 
-  // if (borderSections?.length) {
-  //   const combined = borderSections.join(" ");
-  //   return cleanHtml(combined);
-  // }
+  // Fallback: extract the first element with visible content
+  const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
+  if (firstParagraph?.length) {
+    const cleaned = stripHtmlTags(firstParagraph[0]);
+    if (cleaned.length > 0) return cleaned;
+  }
 
-  // // Fallback: extract all <strong> content
-  // const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
-  // const strongMatches = html.match(strongPattern);
-
-  // if (strongMatches?.length) {
-  //   const combined = strongMatches.join(" ");
-  //   return cleanHtml(combined);
-  // }
-
-  // // Fallback: extract the first <p> element with visible content
-  // const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
-  // if (firstParagraph?.length) {
-  //   const cleaned = cleanHtml(firstParagraph[0]);
-  //   if (cleaned.length > 0) return cleaned;
-  // }
-
-  // return "";
+  return stripHtmlTags(html);
 }
 
 interface SearchDocument {
@@ -95,7 +89,7 @@ async function buildIndex() {
     const course = courses.get(cat.courseid);
     if (!course) continue;
 
-    const lessonContent = extractSearchText(lesson.html);
+    const lessonContent = extractRelevantText(lesson.html);
     if (!lessonContent) continue;
 
     docs.push({

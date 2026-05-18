@@ -1,7 +1,8 @@
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import Database from "better-sqlite3";
+import { extractRelevantText } from "~/server/search";
 
 const COURSE_DB = "./src/db/empty.db";
 const LANCEDB_PATH = "./.data/search";
@@ -68,16 +69,6 @@ type ChunkData = Record<string, any> & {
   chunkIndex: number;
 };
 
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&[a-z]+;/g, " ")
-    .replace(/&[a-z]+\d*;/g, " ")
-    .replace(/&#\d+;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 async function buildIndex() {
   console.log("[index] Opening DB:", COURSE_DB);
   const db = new Database(COURSE_DB);
@@ -126,7 +117,7 @@ async function buildIndex() {
     const course = courses.get(lesson.course_id);
     if (!section || !category || !course) continue;
 
-    const plainText = stripHtml(lesson.html);
+    const plainText = extractRelevantText(lesson.html);
     if (!plainText) continue;
 
     const lessonUrl = `/${course.slug}/${category.slug}/${section.slug}/${lesson.slug}`;
@@ -147,6 +138,30 @@ async function buildIndex() {
       texts: chunks,
     });
     totalChunks += chunks.length;
+  }
+
+  // Add custom "Site Information" document from README.md
+  const repoUrl = "https://github.com/swang62/ml-rpg";
+  try {
+    const readmeText = readFileSync("./README.md", "utf-8");
+    const readmeChunks = await splitter.splitText(readmeText);
+    if (readmeChunks.length > 0) {
+      lessonGroups.push({
+        lessonTitle: "Site Information",
+        lessonUrl: repoUrl,
+        categoryTitle: "About",
+        sectionTitle: "README",
+        courseTitle: "Machine Learning (the RPG)",
+        courseSlug: "ml-rpg",
+        categorySlug: "about",
+        sectionSlug: "readme",
+        lessonSlug: "site-information",
+        texts: readmeChunks,
+      });
+      totalChunks += readmeChunks.length;
+    }
+  } catch {
+    console.warn("[index] Could not read README.md, skipping custom document");
   }
 
   console.log(

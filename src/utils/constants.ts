@@ -17,6 +17,8 @@ export const RAG_MAX_HISTORY = 3;
 export const RAG_MAX_SOURCES = 3;
 export const RAG_BM25_WEIGHT = 0.6;
 export const RAG_VECTOR_WEIGHT = 0.4;
+export const MIN_HYBRID_SCORE = 0.2;
+export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
 
 export interface LevelDef {
   level: number;

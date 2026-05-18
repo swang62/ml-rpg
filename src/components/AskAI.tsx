@@ -1,5 +1,5 @@
 import MessageBox from "lucide-solid/icons/message-square-text";
-import { createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, Show } from "solid-js";
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG, type SourceResult } from "~/server/rag";
@@ -22,6 +22,17 @@ export default function AskAI() {
   const [messages, setMessages] = createSignal<ChatMessage[]>([GREETING]);
   const [inputValue, setInputValue] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
+  let messagesRef: HTMLDivElement | undefined;
+
+  createEffect(() => {
+    messages();
+    isLoading();
+    requestAnimationFrame(() => {
+      if (messagesRef) {
+        messagesRef.scrollTop = messagesRef.scrollHeight;
+      }
+    });
+  });
 
   const toggleOpen = () => {
     const next = !isOpen();
@@ -106,13 +117,14 @@ export default function AskAI() {
               </button>
             </div>
 
-            <div class="askai-messages">
+            <div class="askai-messages" ref={messagesRef}>
               <For each={messages()}>
                 {(msg) => (
                   <AskAIMessage
                     role={msg.role}
                     content={msg.content}
                     sources={msg.sources}
+                    onClose={() => setIsOpen(false)}
                   />
                 )}
               </For>

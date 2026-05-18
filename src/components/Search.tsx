@@ -32,32 +32,6 @@ function boldTerms(text: string, terms: string[]): string {
   return result;
 }
 
-// function computeBlurb(query: string, lessonContent: string) {
-//   const terms = query
-//     .toLowerCase()
-//     .split(/\s+/)
-//     .filter((t) => t.length >= 2);
-//   if (terms.length === 0) return { blurb: "", titleNeedsBold: false };
-
-//   const sentences = lessonContent.match(/[^.!?\n]+[.!?]?/g) ?? [lessonContent];
-
-//   const matchingSentences = sentences.filter((s) =>
-//     terms.some((t) => s.toLowerCase().includes(t)),
-//   );
-
-//   if (matchingSentences.length > 0) {
-//     const snippet = matchingSentences.slice(0, 2).join(" ");
-//     return {
-//       blurb: boldTerms(escapeHtml(snippet), terms),
-//       titleNeedsBold: false,
-//     };
-//   }
-
-//   // Title-only match: include first sentence of content, bold title
-//   const firstSentence = sentences[0] || lessonContent;
-//   return { blurb: escapeHtml(firstSentence), titleNeedsBold: true };
-// }
-
 export default function Search() {
   const navigate = useNavigate();
   const [query, setQuery] = createSignal("");
@@ -153,10 +127,11 @@ export default function Search() {
   const isMac = navigator.platform.includes("Mac");
 
   return (
-    <div class="search" classList={{ "search--mobile-open": mobileOpen() }}>
+    <>
       <button
         type="button"
         class="search__toggle"
+        classList={{ "search__toggle--open": mobileOpen() }}
         onClick={toggleMobileSearch}
         aria-label={mobileOpen() ? "Close search" : "Open search"}
         aria-expanded={mobileOpen()}
@@ -185,68 +160,70 @@ export default function Search() {
           )}
         </svg>
       </button>
-      <div class="search__input-wrapper">
-        <SearchIcon size={18} class="search__icon text-muted" />
-        <input
-          ref={inputRef}
-          type="search"
-          id="search-input"
-          name="search"
-          class="search__input"
-          placeholder="Search topics..."
-          value={query()}
-          onInput={handleInput}
-          onkeydown={handleKeydown}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          aria-label="Search objectives"
-        />
-        <span class="search__shortcut" aria-hidden="true">
-          <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>
-          <kbd>K</kbd>
-        </span>
-      </div>
-      {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (
-        <div class="search__dropdown" role="listbox">
-          {results().length === 0 ? (
-            <div class="search__empty"></div>
-          ) : (
-            results().map((result, i) => {
-              const q = query();
-              const terms = q
-                .toLowerCase()
-                .split(/\s+/)
-                .filter((t) => t.length >= SEARCH_MIN_QUERY_LENGTH);
-              const titleHtml = boldTerms(
-                escapeHtml(result.lessonTitle),
-                terms,
-              );
-              return (
-                <a
-                  href={result.url}
-                  class={`search__result ${i === activeIndex() ? "search__result--active" : ""}`}
-                  role="option"
-                  aria-selected={i === activeIndex()}
-                  onClick={() => {
-                    navigate(result.url);
-                    setIsOpen(false);
-                    setQuery("");
-                    setResults([]);
-                    setMobileOpen(false);
-                  }}
-                >
-                  <span class="search__result-title" innerHTML={titleHtml} />
-                  <span class="search__result-meta">
-                    <span>{result.categoryTitle}</span>
-                    <span>{result.sectionTitle}</span>
-                    {/* <span>Relevance: {Math.round(result.score)}</span> */}
-                  </span>
-                </a>
-              );
-            })
-          )}
+      <div class="search" classList={{ "search--mobile-open": mobileOpen() }}>
+        <div class="search__input-wrapper">
+          <SearchIcon size={18} class="search__icon text-muted" />
+          <input
+            ref={inputRef}
+            type="search"
+            id="search-input"
+            name="search"
+            class="search__input"
+            placeholder="Search topics..."
+            value={query()}
+            onInput={handleInput}
+            onkeydown={handleKeydown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            aria-label="Search objectives"
+          />
+          <span class="search__shortcut" aria-hidden="true">
+            <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>
+            <kbd>K</kbd>
+          </span>
         </div>
-      )}
-    </div>
+        {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (
+          <div class="search__dropdown" role="listbox">
+            {results().length === 0 ? (
+              <div class="search__empty"></div>
+            ) : (
+              results().map((result, i) => {
+                const q = query();
+                const terms = q
+                  .toLowerCase()
+                  .split(/\s+/)
+                  .filter((t) => t.length >= SEARCH_MIN_QUERY_LENGTH);
+                const titleHtml = boldTerms(
+                  escapeHtml(result.lessonTitle),
+                  terms,
+                );
+                return (
+                  <a
+                    href={result.url}
+                    class={`search__result ${i === activeIndex() ? "search__result--active" : ""}`}
+                    role="option"
+                    aria-selected={i === activeIndex()}
+                    onClick={() => {
+                      navigate(result.url);
+                      setIsOpen(false);
+                      setQuery("");
+                      setResults([]);
+                      setMobileOpen(false);
+                    }}
+                  >
+                    <span class="search__result-title" innerHTML={titleHtml} />
+                    <span class="search__result-meta">
+                      <span>{result.categoryTitle}</span>
+                      <span>{result.sectionTitle}</span>
+                      {/* <span>Relevance: {Math.round(result.score)}</span> */}
+                    </span>
+                  </a>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

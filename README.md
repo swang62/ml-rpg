@@ -1,6 +1,6 @@
 # Machine Learning (the RPG)
 
-A gamified learning course catalog for ML & Data Engineering content. Built on SolidStart (Nitro). 
+A gamified learning course platform for ML & Data Engineering content. Built on SolidStart. 
 
 ## Summary
 
@@ -17,8 +17,8 @@ Each objective awards XP when completed. Players level up through 20 ranks (Novi
 
 ### XP & Leveling
 
-- Each objective awards `order * XP_VALUE` XP (objective 1 = 25 XP, objective 6 = 150 XP)
-- 20 ranks from Novice (0) to Eternal (20), gradual exponential curve
+- Each objective awards `order * 25 XP` (objective 1 = 25 XP, objective 6 = 150 XP)
+- 20 ranks from Novice (0) to Eternal (20), gradual increasing difficulty curve
 - Level 20 requires 60,000 XP (~87,000 is total available XP if all lessons are completed)
 
 ### Player HUD
