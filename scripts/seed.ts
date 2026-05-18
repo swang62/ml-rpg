@@ -18,7 +18,7 @@ import { createSection, deleteAllSections } from "../src/db/section_sql";
 import { deleteAllUsers } from "../src/db/users_sql";
 
 const DB_DEV = ".data/dev.db";
-const DB_PROD = ".data/prod.db";
+const DB_EMPTY = "src/db/empty.db";
 
 const COURSES: Record<
   string,
@@ -83,7 +83,7 @@ async function main() {
   console.log(`Imported lessons: ${validLessons} containing valid HTML`);
   db.close();
 
-  copyFileSync(DB_DEV, DB_PROD);
+  copyFileSync(DB_DEV, DB_EMPTY);
   console.log("\nSeed complete.");
 }
 

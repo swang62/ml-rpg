@@ -8,5 +8,7 @@ services:
     restart: unless-stopped
     ports:
       - "3333:3000"
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET}
     volumes:
-      - ./.data/prod.db:/app/.data/prod.db
+      - ./.data:/app/.data
