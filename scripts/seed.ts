@@ -151,6 +151,34 @@ function extractHtmlFromTsx(filePath: string): string {
     html = `<div>${html}</div>`;
   }
 
+  return transformLessonHtml(html);
+}
+
+/**
+ * Extract only the important content from a lesson's HTML.
+ *
+ * 1. Look for elements with `border-left: 4px` in their style — these are
+ *    callout/highlight sections. If any exist, keep only those.
+ * 2. If none found, extract text from all `<strong>` tags as a fallback.
+ */
+function transformLessonHtml(html: string): string {
+  // Match any element with border-left: 4px in style (typically <p> callouts)
+  const borderPattern =
+    /<(\w+)[^>]*style="[^"]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
+  const borderSections = html.match(borderPattern);
+
+  if (borderSections && borderSections.length > 0) {
+    return borderSections.join("\n");
+  }
+
+  // Fallback: extract all <strong> content
+  const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
+  const strongMatches = html.match(strongPattern);
+
+  if (strongMatches && strongMatches.length > 0) {
+    return strongMatches.map((s) => `<p>${s}</p>`).join("\n");
+  }
+
   return html;
 }
 
