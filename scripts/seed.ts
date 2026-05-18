@@ -15,7 +15,7 @@ import { createCourse, deleteAllCourses } from "../src/db/course_sql";
 import { createLesson, deleteAllLessons } from "../src/db/lesson_sql";
 import { deleteAllProgress } from "../src/db/progress_sql";
 import { createSection, deleteAllSections } from "../src/db/section_sql";
-import { deleteAllUsers, upsertUser } from "../src/db/users_sql";
+import { deleteAllUsers } from "../src/db/users_sql";
 
 const DB_DEV = ".data/dev.db";
 const DB_PROD = ".data/prod.db";
@@ -62,11 +62,6 @@ async function main() {
   db.pragma("foreign_keys = ON");
 
   await seedCourseData(db);
-  await upsertUser(db, {
-    username: "steve",
-    userPassword: "password",
-    displayName: "Steve",
-  });
 
   // Validation, lesson files must match imported unique lessons
   const lessonFiles = countLessonFiles();

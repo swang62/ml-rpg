@@ -1129,6 +1129,19 @@ a {
   border-radius: 4px;
 }
 
+.search__result-score {
+  color: var(--level-section);
+  font-family: var(--font-pixel);
+  font-size: 0.6rem;
+}
+
+.search__result-blurb {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+  width: 100%;
+}
+
 .search__result-arrow {
   color: var(--muted);
   font-size: 0.8rem;

@@ -1,6 +1,6 @@
 "use server";
 
-import MiniSearch from "minisearch";
+import MiniSearch, { type SearchResult } from "minisearch";
 
 import { getAllCategories } from "~/db/category_sql";
 import { getAllCourses } from "~/db/course_sql";
@@ -13,9 +13,7 @@ function cleanHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&[a-z]+;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+    .replace(/\s+/g, " ");
 }
 
 /**
@@ -31,7 +29,7 @@ function extractSearchText(html: string): string {
   const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
   const borderSections = html.match(borderPattern);
 
-  if (borderSections && borderSections.length > 0) {
+  if (borderSections?.length) {
     const combined = borderSections.join(" ");
     return cleanHtml(combined);
   }
@@ -40,19 +38,19 @@ function extractSearchText(html: string): string {
   const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
   const strongMatches = html.match(strongPattern);
 
-  if (strongMatches && strongMatches.length > 0) {
+  if (strongMatches?.length) {
     const combined = strongMatches.join(" ");
     return cleanHtml(combined);
   }
 
   // Fallback: extract the first <p> element with visible content
-  const firstParagraph = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
-  if (firstParagraph) {
+  const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
+  if (firstParagraph?.length) {
     const cleaned = cleanHtml(firstParagraph[0]);
     if (cleaned.length > 0) return cleaned;
   }
 
-  return cleanHtml(html);
+  return "";
 }
 
 interface SearchDocument {
@@ -64,7 +62,7 @@ interface SearchDocument {
   url: string;
 }
 
-export type MiniSearchResult = Omit<SearchDocument, "id" | "lessonContent">;
+export type MiniSearchResult = SearchResult & Omit<SearchDocument, "id">;
 
 let _engine: MiniSearch<SearchDocument> | null = null;
 
@@ -110,7 +108,13 @@ async function buildIndex() {
 
   const engine = new MiniSearch<SearchDocument>({
     fields: ["lessonTitle", "lessonContent"],
-    storeFields: ["lessonTitle", "categoryTitle", "sectionTitle", "url"],
+    storeFields: [
+      "lessonTitle",
+      "lessonContent",
+      "categoryTitle",
+      "sectionTitle",
+      "url",
+    ],
     processTerm: (term) => {
       const t = term.toLowerCase();
       if (t.length < 3 || /^[0-9\s]+$/.test(t)) return null;
@@ -135,9 +139,10 @@ export async function searchLessons(searchQuery: string) {
     boost: {
       lessonTitle: 1.2,
     },
+    filter: (result) => result.score >= 10,
   });
 
   if (!raw?.length) return [];
 
-  return raw.slice(0, SEARCH_MAX_RESULTS) as unknown as MiniSearchResult[];
+  return raw.slice(0, SEARCH_MAX_RESULTS) as MiniSearchResult[];
 }
