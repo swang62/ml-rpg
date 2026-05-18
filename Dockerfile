@@ -28,5 +28,6 @@ USER www
 WORKDIR /app
 
 COPY --from=build /app/.output .
+COPY --from=build /app/src/db/empty.db /app/.data/empty.db
 
 CMD ["node", "server/index.mjs"]
