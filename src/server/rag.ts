@@ -4,7 +4,9 @@ import { connect, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import { AI_BOT_NAME } from "~/components/AskAI";
 import {
+  GITHUB_REPO_URL,
   LANCEDB_PATH,
+  MIN_HYBRID_SCORE,
   RAG_BM25_WEIGHT,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
@@ -150,7 +152,10 @@ async function hybridSearch(
     });
   }
 
-  return merged.sort((a, b) => b.score - a.score).slice(0, RAG_MAX_SOURCES * 2);
+  return merged
+    .filter((c) => c.score >= MIN_HYBRID_SCORE)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, RAG_MAX_SOURCES * 2);
 }
 
 function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
@@ -194,12 +199,14 @@ export async function queryRAG({
     .join("\n\n");
 
   const systemPrompt = [
-    `You are a helpful local guide named ${AI_BOT_NAME} in a gamified learning platform.`,
-    "You can only answer questions about machine learning and data engineering course material and lesson content that is provided to you.",
-    "Any questions unrelated to machine learning or data engineering, you are not allowed to answer, say you don't know.",
-    "Use the provided context to answer the user's question accurately. The context is the only source of truth.",
-    "If the context doesn't contain enough information, say so clearly. Do not respond with your own knowledge.",
-    "Keep answers concise and educational.",
+    `You are a helpful local guide named ${AI_BOT_NAME} in a gamified learning platform called 'Machine Learning (the RPG)'.`,
+    "You exist to answer questions about machine learning and data engineering course material from context provided to you below.",
+    "Any questions not related to machine learning, data engineering, or this learning platform, do not humor the user, do not reply with 'in this case' or any answer.",
+    "Just remind them you are only familiar with machine learning or questions about this learning platform.",
+    "However, you are allowed to interact with the user about who you are and what your purpose is.",
+    "Either way, if the questions are unrelated to ML or this learning platform or you are talking about yourself, be extermely brief, no more than a 1 sentence response.",
+    "Use the provided context combined with your knowledge of machine learning and data engineering to answer the user's question accurately.",
+    "Keep answers informative and educational, your tone is friendly and informal.",
     "Do not mention the context or sources in your answer.",
     "Answer in plain text without markdown formatting.",
   ].join(" ");
@@ -214,10 +221,20 @@ export async function queryRAG({
     model: "llama-3.1-8b-instant",
     messages,
     temperature: 0.3,
-    max_tokens: 8000,
+    max_completion_tokens: 500,
   });
 
   const answer = completion.choices[0]?.message?.content ?? "";
 
-  return { answer, sources };
+  // Filter out sources with less than one sentence
+  const isShortReply = answer.split(/[.!?]/).filter(Boolean).length <= 2;
+
+  // Filter out sources if the top result is the GitHub repo
+  const isSelfExplaining =
+    sources.length > 0 && sources[0].url === GITHUB_REPO_URL;
+
+  return {
+    answer,
+    sources: isShortReply || isSelfExplaining ? [] : sources,
+  };
 }

@@ -6,10 +6,16 @@ interface Props {
   role: "user" | "assistant";
   content: string;
   sources?: SourceResult[];
+  onClose?: () => void;
 }
 
 export default function AskAIMessage(props: Props) {
   const navigate = useNavigate();
+
+  const handleSourceClick = (url: string) => {
+    navigate(url);
+    props.onClose?.();
+  };
 
   return (
     <div
@@ -30,7 +36,7 @@ export default function AskAIMessage(props: Props) {
           <ul>
             {props.sources.map((s) => (
               <li>
-                <button type="button" onClick={() => navigate(s.url)}>
+                <button type="button" onClick={() => handleSourceClick(s.url)}>
                   {s.title}
                 </button>
               </li>
