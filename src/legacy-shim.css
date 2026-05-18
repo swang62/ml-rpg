@@ -4,8 +4,8 @@
 
 /* --- CSS vars (maps systemoverflow.com theme to our dark theme) --- */
 .lesson-content {
-  --text-primary: var(--text-heading);
-  --text-secondary: var(--text-muted);
+  --text-primary: var(--heading);
+  --text-secondary: var(--muted);
   --bg-primary: var(--bg);
   --bg-secondary: var(--surface);
   --bg-subtle: var(--surface-hover);
@@ -26,24 +26,19 @@
 }
 
 .lesson-content {
-  color: var(--text);
+  color: var(--base);
   margin-bottom: 40px;
 }
 
 /* --- Inline callout boxes with border-left (Core Concept, notes, etc.) --- */
-.lesson-content div[style*="border-left: 4"] {
-  background: #fef9e7;
-  color: #111;
-}
-
-.lesson-content p[style*="border-left: 4"] {
+.lesson-content [style*="border-left: 4"] {
   background: #fef9e7;
   color: #111;
 }
 
 /* --- Inline uppercase labels (Core Concept label, section headings, etc.) --- */
 .lesson-content [style*="text-transform: upper"] {
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 /* --- Bootstrap utility classes (only those used in scraped content) --- */
@@ -97,7 +92,7 @@
   font-weight: 700;
 }
 .lesson-content .text-dark {
-  color: var(--text-heading);
+  color: var(--heading);
 }
 .lesson-content .text-decoration-none {
   text-decoration: none;
@@ -207,7 +202,7 @@
 
 .lesson-content .Learn_keyTakeawaysItem {
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 6px;
   border: 1px solid transparent;
   transition: all 0.15s ease;
@@ -240,7 +235,7 @@
 
 .lesson-content .Learn_exampleItem {
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 6px;
   border: 1px solid transparent;
   transition: all 0.15s ease;

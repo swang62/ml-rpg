@@ -1,6 +1,10 @@
 import { query } from "@solidjs/router";
 import type { Database } from "better-sqlite3";
-import { getCategoriesByCourse, getCategoryBySlug } from "~/db/category_sql";
+import {
+  getCategoriesByCourse,
+  getCategoryBySlug,
+  getCategoryLessonCounts,
+} from "~/db/category_sql";
 import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
 import { getLessonBySlug, getLessonsBySection } from "~/db/lesson_sql";
 import { getSectionBySlug, getSectionsByCategory } from "~/db/section_sql";
@@ -13,11 +17,17 @@ export const getCourseMetaQuery = query(async (courseSlug: string) => {
   if (!course) return null;
 
   const categories = await getCategoriesByCourse(db, { courseId: course.id });
+  const counts = await getCategoryLessonCounts(db, { courseId: course.id });
+  const countMap: Record<string, number> = {};
+  for (const row of counts) {
+    countMap[row.categoryslug as string] = row.lessoncount;
+  }
   return {
     title: course.title,
     categories: categories.map((cat) => ({
       category: cat.slug,
       title: cat.title,
+      lessonCount: countMap[cat.slug as string] ?? 0,
     })),
   };
 }, "course-meta");

@@ -1,55 +1,59 @@
 import { useAction } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
 import { markLessonReadAction } from "~/server/mutations";
-
-// Persists across component re-renders and effect re-runs so that
-// query invalidation from the action doesn't trigger an infinite loop
-const lessonReadState = new Map<string, boolean>();
+import { markAnonLessonRead } from "~/utils/client-storage";
 
 interface Props {
   course?: string;
+  category?: string;
   subsection?: string;
   lesson?: string;
+  lessonOrder?: number;
   alreadyRead?: boolean;
   onRead?: () => void;
 }
 
 export default function LessonTracker(props: Props) {
+  const { signedIn } = useAuth();
   const markRead = useAction(markLessonReadAction);
   let sentinelRef: HTMLDivElement | undefined;
 
   createEffect(() => {
     const course = props.course;
+    const category = props.category;
     const subsection = props.subsection;
     const lesson = props.lesson;
 
     if (!course || !subsection || !lesson) return;
-
-    const key = `${course}/${subsection}/${lesson}`;
-
-    // Already read on the server — no need to observe or re-mark
+    // signedIn() is read here so it becomes a reactive dependency —
+    // if the user logs in/out the observer resets correctly
+    const isAuthed = signedIn();
     if (props.alreadyRead) return;
-    // Already marked in this session
-    if (lessonReadState.has(key)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          lessonReadState.set(key, true);
           observer.disconnect();
-          markRead(course, subsection, lesson).then(() => {
+          if (isAuthed) {
+            markRead(course, subsection, lesson).then(() => props.onRead?.());
+          } else {
+            markAnonLessonRead(
+              course,
+              category ?? "",
+              subsection,
+              lesson,
+              props.lessonOrder ?? 0,
+            );
             props.onRead?.();
-          });
+          }
         }
       },
       { threshold: 0 },
     );
 
     if (sentinelRef) observer.observe(sentinelRef);
-
-    onCleanup(() => {
-      observer.disconnect();
-    });
+    onCleanup(() => observer.disconnect());
   });
 
   return <div ref={sentinelRef} aria-hidden="true" style={{ height: "1px" }} />;

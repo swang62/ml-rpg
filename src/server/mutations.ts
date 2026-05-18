@@ -1,17 +1,16 @@
 import { action } from "@solidjs/router";
 import { markLessonRead, resetSectionProgress } from "~/db/progress_sql";
-import { getUserById } from "~/db/users_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
-import { USER_ID } from "~/utils/constants";
+import { getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
 
 export const markLessonReadAction = action(
   async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
     "use server";
-    const db = getDb();
-    const user = await getUserById(db, { id: USER_ID });
-    if (!user) return;
+    const session = await getSession();
+    if (!session.data.id) return;
 
+    const db = getDb();
     const lesson = await findLessonByPath(
       db,
       courseSlug,
@@ -20,7 +19,7 @@ export const markLessonReadAction = action(
     );
     if (!lesson) return;
 
-    await markLessonRead(db, { lessonId: lesson.id, userId: user.id });
+    await markLessonRead(db, { lessonId: lesson.id, userId: session.data.id });
   },
   "mark-lesson-read",
 );
@@ -28,14 +27,17 @@ export const markLessonReadAction = action(
 export const resetSectionAction = action(
   async (courseSlug: string, subsectionSlug: string) => {
     "use server";
-    const db = getDb();
-    const user = await getUserById(db, { id: USER_ID });
-    if (!user) return;
+    const session = await getSession();
+    if (!session.data.id) return;
 
+    const db = getDb();
     const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
     if (!sec) return;
 
-    await resetSectionProgress(db, { userId: user.id, sectionId: sec.id });
+    await resetSectionProgress(db, {
+      userId: session.data.id,
+      sectionId: sec.id,
+    });
   },
   "reset-section",
 );

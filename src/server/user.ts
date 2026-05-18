@@ -1,20 +1,13 @@
-import { action, query } from "@solidjs/router";
-
-import { getUserById, updateDisplayName } from "~/db/users_sql";
-import { USER_ID } from "~/utils/constants";
+import { action } from "@solidjs/router";
+import { updateDisplayName } from "~/db/users_sql";
+import { getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
-
-export const getUser = query(async () => {
-  "use server";
-  const db = getDb();
-  const user = await getUserById(db, { id: USER_ID });
-  if (!user) return null;
-
-  return user;
-}, "current-user");
 
 export const updateUserNameAction = action(async (displayName: string) => {
   "use server";
+  const session = await getSession();
+  if (!session.data.id) return;
+
   const db = getDb();
-  await updateDisplayName(db, { displayName, id: USER_ID });
+  await updateDisplayName(db, { displayName, id: session.data.id });
 }, "update-display-name");

@@ -1,8 +1,8 @@
 import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
-import Check from "lucide-solid/icons/check";
 import ExternalLink from "lucide-solid/icons/external-link";
 
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
+import { useAuth } from "~/components/AuthContext";
 import BackToQuest from "~/components/BackToQuest";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
@@ -10,6 +10,7 @@ import PageTitle from "~/components/PageTitle";
 import { getLessonNavQuery } from "~/server/course";
 import { getLessonHTMLQuery } from "~/server/lesson";
 import { getLessonReadStatusQuery } from "~/server/progress";
+import { isAnonLessonRead, version } from "~/utils/client-storage";
 import { BASE_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export const route = {
@@ -25,6 +26,8 @@ export const route = {
 export default function LessonPage() {
   const params = useParams();
   if (!params.category || !params.subsection || !params.lesson) return;
+
+  const { signedIn } = useAuth();
 
   const nav = createAsync(() =>
     getLessonNavQuery(
@@ -45,15 +48,26 @@ export default function LessonPage() {
     { initialValue: "" },
   );
 
-  // Preloaded via route.preload, auto-invalidated by markLessonReadAction via
-  // single-flight mutation — no manual refetching needed
-  const isRead = createAsync(() =>
-    getLessonReadStatusQuery(
+  const serverReadStatus = createAsync(() =>
+    signedIn()
+      ? getLessonReadStatusQuery(
+          params.course as string,
+          params.subsection as string,
+          params.lesson as string,
+        )
+      : Promise.resolve(false),
+  );
+
+  const isRead = createMemo(() => {
+    if (signedIn()) return serverReadStatus();
+    version(); // reactively re-read localStorage on version bumps (e.g. lesson marked read)
+    return isAnonLessonRead(
       params.course as string,
+      params.category as string,
       params.subsection as string,
       params.lesson as string,
-    ),
-  );
+    );
+  });
 
   const [toastVisible, setToastVisible] = createSignal(false);
 
@@ -106,8 +120,10 @@ export default function LessonPage() {
         <div innerHTML={lessonHtml()} />
         <LessonTracker
           course={params.course}
+          category={params.category}
           subsection={params.subsection}
           lesson={nav()?.currentLesson?.slug}
+          lessonOrder={nav()?.currentLesson?.lessonorder}
           alreadyRead={isRead()}
           onRead={handleRead}
         />
@@ -119,17 +135,16 @@ export default function LessonPage() {
           subsection={params.subsection as string}
         />
 
-        <div class="lesson-back-link-bottom">
+        {/* <div class="lesson-back-link-bottom">
           <BackToQuest
             href={`/${params.course}/${params.category}/${params.subsection}`}
             isRead={!!isRead()}
           />
-        </div>
+        </div> */}
 
         <Show when={toastVisible()}>
-          <div class="lesson-read-toast">
-            <Check size={14} />
-            <span>Complete</span>
+          <div class="lesson-read-toast font-pixel">
+            +{(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE} XP
           </div>
         </Show>
       </div>

@@ -1,6 +1,6 @@
 "use server";
 
-import MiniSearch from "minisearch";
+import MiniSearch, { type SearchResult } from "minisearch";
 
 import { getAllCategories } from "~/db/category_sql";
 import { getAllCourses } from "~/db/course_sql";
@@ -13,9 +13,46 @@ function cleanHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&[a-z]+;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+    .replace(/\s+/g, " ");
+}
+
+/**
+ * Extract search-relevant text from a lesson's HTML.
+ *
+ * 1. Find elements with `border-left: 4px` in style (callout/highlight sections).
+ *    If any exist, use only their content for indexing.
+ * 2. If none found, extract text from all `<strong>` tags instead.
+ * 3. If neither exist, extract the first `<p>` element with content.
+ */
+function extractSearchText(html: string): string {
+  return cleanHtml(html);
+
+  // // Match any element with border-left: 4px in its style attribute
+  // const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
+  // const borderSections = html.match(borderPattern);
+
+  // if (borderSections?.length) {
+  //   const combined = borderSections.join(" ");
+  //   return cleanHtml(combined);
+  // }
+
+  // // Fallback: extract all <strong> content
+  // const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
+  // const strongMatches = html.match(strongPattern);
+
+  // if (strongMatches?.length) {
+  //   const combined = strongMatches.join(" ");
+  //   return cleanHtml(combined);
+  // }
+
+  // // Fallback: extract the first <p> element with visible content
+  // const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
+  // if (firstParagraph?.length) {
+  //   const cleaned = cleanHtml(firstParagraph[0]);
+  //   if (cleaned.length > 0) return cleaned;
+  // }
+
+  // return "";
 }
 
 interface SearchDocument {
@@ -27,7 +64,7 @@ interface SearchDocument {
   url: string;
 }
 
-export type MiniSearchResult = Omit<SearchDocument, "id" | "lessonContent">;
+export type MiniSearchResult = SearchResult & Omit<SearchDocument, "id">;
 
 let _engine: MiniSearch<SearchDocument> | null = null;
 
@@ -58,7 +95,7 @@ async function buildIndex() {
     const course = courses.get(cat.courseid);
     if (!course) continue;
 
-    const lessonContent = cleanHtml(lesson.html);
+    const lessonContent = extractSearchText(lesson.html);
     if (!lessonContent) continue;
 
     docs.push({
@@ -73,7 +110,13 @@ async function buildIndex() {
 
   const engine = new MiniSearch<SearchDocument>({
     fields: ["lessonTitle", "lessonContent"],
-    storeFields: ["lessonTitle", "categoryTitle", "sectionTitle", "url"],
+    storeFields: [
+      "lessonTitle",
+      "lessonContent",
+      "categoryTitle",
+      "sectionTitle",
+      "url",
+    ],
     processTerm: (term) => {
       const t = term.toLowerCase();
       if (t.length < 3 || /^[0-9\s]+$/.test(t)) return null;
@@ -102,5 +145,5 @@ export async function searchLessons(searchQuery: string) {
 
   if (!raw?.length) return [];
 
-  return raw.slice(0, SEARCH_MAX_RESULTS) as unknown as MiniSearchResult[];
+  return raw.slice(0, SEARCH_MAX_RESULTS) as MiniSearchResult[];
 }

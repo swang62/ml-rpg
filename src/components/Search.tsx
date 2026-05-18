@@ -7,6 +7,56 @@ import {
   SEARCH_MIN_QUERY_LENGTH,
 } from "~/utils/constants";
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Bold query terms in text (text must already be HTML-escaped). */
+function boldTerms(text: string, terms: string[]): string {
+  let result = text;
+  for (const term of terms) {
+    result = result.replace(
+      new RegExp(`(${escapeRegex(term)})`, "gi"),
+      "<strong>$1</strong>",
+    );
+  }
+  return result;
+}
+
+// function computeBlurb(query: string, lessonContent: string) {
+//   const terms = query
+//     .toLowerCase()
+//     .split(/\s+/)
+//     .filter((t) => t.length >= 2);
+//   if (terms.length === 0) return { blurb: "", titleNeedsBold: false };
+
+//   const sentences = lessonContent.match(/[^.!?\n]+[.!?]?/g) ?? [lessonContent];
+
+//   const matchingSentences = sentences.filter((s) =>
+//     terms.some((t) => s.toLowerCase().includes(t)),
+//   );
+
+//   if (matchingSentences.length > 0) {
+//     const snippet = matchingSentences.slice(0, 2).join(" ");
+//     return {
+//       blurb: boldTerms(escapeHtml(snippet), terms),
+//       titleNeedsBold: false,
+//     };
+//   }
+
+//   // Title-only match: include first sentence of content, bold title
+//   const firstSentence = sentences[0] || lessonContent;
+//   return { blurb: escapeHtml(firstSentence), titleNeedsBold: true };
+// }
+
 export default function Search() {
   const navigate = useNavigate();
   const [query, setQuery] = createSignal("");
@@ -156,7 +206,7 @@ export default function Search() {
           id="search-input"
           name="search"
           class="search__input"
-          placeholder="Search objectives..."
+          placeholder="Search topics..."
           value={query()}
           onInput={handleInput}
           onkeydown={handleKeydown}
@@ -174,27 +224,39 @@ export default function Search() {
           {results().length === 0 ? (
             <div class="search__empty"></div>
           ) : (
-            results().map((result, i) => (
-              <a
-                href={result.url}
-                class={`search__result ${i === activeIndex() ? "search__result--active" : ""}`}
-                role="option"
-                aria-selected={i === activeIndex()}
-                onClick={() => {
-                  navigate(result.url);
-                  setIsOpen(false);
-                  setQuery("");
-                  setResults([]);
-                  setMobileOpen(false);
-                }}
-              >
-                <span class="search__result-title">{result.lessonTitle}</span>
-                <span class="search__result-meta">
-                  <span>{result.categoryTitle}</span>
-                  <span>{result.sectionTitle}</span>
-                </span>
-              </a>
-            ))
+            results().map((result, i) => {
+              const q = query();
+              const terms = q
+                .toLowerCase()
+                .split(/\s+/)
+                .filter((t) => t.length >= SEARCH_MIN_QUERY_LENGTH);
+              const titleHtml = boldTerms(
+                escapeHtml(result.lessonTitle),
+                terms,
+              );
+              return (
+                <a
+                  href={result.url}
+                  class={`search__result ${i === activeIndex() ? "search__result--active" : ""}`}
+                  role="option"
+                  aria-selected={i === activeIndex()}
+                  onClick={() => {
+                    navigate(result.url);
+                    setIsOpen(false);
+                    setQuery("");
+                    setResults([]);
+                    setMobileOpen(false);
+                  }}
+                >
+                  <span class="search__result-title" innerHTML={titleHtml} />
+                  <span class="search__result-meta">
+                    <span>{result.categoryTitle}</span>
+                    <span>{result.sectionTitle}</span>
+                    {/* <span>Relevance: {Math.round(result.score)}</span> */}
+                  </span>
+                </a>
+              );
+            })
           )}
         </div>
       )}

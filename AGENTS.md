@@ -35,6 +35,7 @@ No test framework is configured.
 
 - **All database queries MUST use sqlc.** Raw SQL in TypeScript files is forbidden. Add or modify queries in `src/db/raw/*.sql`, then run `pnpm generate:types` (`sqlc generate`) to produce typed functions in `src/db/*_sql.ts`.
 - The sqlc config is at `sqlc.yaml`: schema from `src/db/raw/base.sql`, queries from `src/db/raw/`, output to `src/db/`.
+- **sqlc bug — snake_case alias rule:** The `ts` plugin with `better-sqlite3` driver cannot handle snake_case column names. It strips underscores and lowercases everything. `user_password` becomes `userpassword`, NOT `userPassword`. To work around this, all snake_case columns MUST be aliased to all-lowercase with no underscores. Example: `users.user_password AS userpassword`, `users.display_name AS displayname`. CamelCase aliases (`userPassword`, `displayName`) will be rejected by the type checker.
 
 ### Reactive Signals
 

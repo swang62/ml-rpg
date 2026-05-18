@@ -7,6 +7,7 @@ import { MetaProvider, Title } from "@solidjs/meta";
 import { Router, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { onCleanup, onMount, Suspense } from "solid-js";
+import Auth from "~/components/AuthContext";
 import ParallaxBackground from "~/components/ParallaxBackground";
 import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
@@ -51,21 +52,23 @@ export default function App() {
       root={(props) => (
         <MetaProvider>
           <Title>{SITE_NAME}</Title>
-          <GlobalBackspaceHandler />
-          <ParallaxBackground />
-          <div class="app-layout">
-            <header class="app-header">
-              <div class="app-header__inner">
-                <Suspense>
-                  <PlayerHUD />
-                  <Search />
-                </Suspense>
+          <Auth>
+            <GlobalBackspaceHandler />
+            <ParallaxBackground />
+            <div class="app-layout">
+              <header class="app-header">
+                <div class="app-header__inner">
+                  <Suspense>
+                    <PlayerHUD />
+                    <Search />
+                  </Suspense>
+                </div>
+              </header>
+              <div class="app-content">
+                <Suspense>{props.children}</Suspense>
               </div>
-            </header>
-            <div class="app-content">
-              <Suspense>{props.children}</Suspense>
             </div>
-          </div>
+          </Auth>
         </MetaProvider>
       )}
     >
