@@ -1,5 +1,5 @@
 {
-  "name": "system-overflow",
+  "name": "ml-rpg",
   "type": "module",
   "scripts": {
     "build": "vinxi build",

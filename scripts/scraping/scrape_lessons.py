@@ -23,8 +23,8 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup, Comment
 
-LESSONS_DIR = Path(__file__).resolve().parent.parent / "src" / "data" / "lessons"
-SITE_DATA = Path(__file__).resolve().parent.parent / "src" / "data" / "site-data.ts"
+LESSONS_DIR = Path(__file__).resolve().parent.parent / "src" / ".data" / "lessons"
+SITE_DATA = Path(__file__).resolve().parent.parent / "src" / ".data" / "site-data.ts"
 TRACKER_PATH = LESSONS_DIR / ".scrape_progress.json"
 BASE_URL = "https://www.systemoverflow.com/learn"
 
@@ -46,7 +46,7 @@ def parse_lessons_from_ts(filepath: Path) -> list[dict]:
     cat_pat = re.compile(r'category:\s*"(?P<slug>[^"]+)"')
     sub_pat = re.compile(r'subsection:\s*"(?P<slug>[^"]+)"')
     les_single = re.compile(r'lesson:\s*"(?P<slug>[^"]+)"')
-    les_bare = re.compile(r'\blesson:\s*$')
+    les_bare = re.compile(r"\blesson:\s*$")
     slug_pat = re.compile(r'"(?P<slug>[^"]+)"')
     lines = text.split("\n")
 
@@ -338,9 +338,7 @@ def main_agent_browser(output_dir: Path, redo_failed: bool):
     already = sum(
         1
         for l in all_lessons
-        if (
-            output_dir / l["course"] / f"{l['subsection']}__{l['slug']}.tsx"
-        ).exists()
+        if (output_dir / l["course"] / f"{l['subsection']}__{l['slug']}.tsx").exists()
     )
     remaining = (
         total
@@ -363,9 +361,7 @@ def main_agent_browser(output_dir: Path, redo_failed: bool):
     for lesson in all_lessons:
         slug = lesson["slug"]
         output_path = (
-            output_dir
-            / lesson["course"]
-            / f"{lesson['subsection']}__{slug}.tsx"
+            output_dir / lesson["course"] / f"{lesson['subsection']}__{slug}.tsx"
         )
 
         if output_path.exists():

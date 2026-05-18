@@ -1,12 +1,18 @@
 services:
-  system-overflow:
-    container_name: system-overflow
-    image: swang62/system-overflow
+  ml-rpg:
+    container_name: ml-rpg
+    image: swang62/ml-rpg
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3333:3000"
+      - ${PORT:-3333}:${PORT:-3333}
+    volumes:
+      - course-data:/app/.data
     environment:
       - SESSION_SECRET=${SESSION_SECRET}
+      - PORT=${PORT:-3333}
+
+volumes:
+  course-data:
