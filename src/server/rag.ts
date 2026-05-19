@@ -186,20 +186,17 @@ function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
     .slice(0, RAG_MAX_SOURCES);
 }
 
-////////////////////////////////////////////////////////
-
-const JAILBREAK_MODEL = "meta-llama/llama-prompt-guard-2-22m";
-const JAILBREAK_THRESHOLD = 0.5;
+// Entrypoint
 
 async function detectJailbreak(query: string): Promise<boolean> {
   try {
     const completion = await groq.chat.completions.create({
-      model: JAILBREAK_MODEL,
+      model: "meta-llama/llama-prompt-guard-2-22m",
       messages: [{ role: "user", content: query }],
     });
     const raw = completion.choices[0]?.message?.content?.trim() ?? "0";
     const score = Number.parseFloat(raw);
-    return !Number.isNaN(score) && score > JAILBREAK_THRESHOLD;
+    return !Number.isNaN(score) && score > 0.5;
   } catch {
     return false;
   }

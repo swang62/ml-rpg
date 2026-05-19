@@ -92,9 +92,6 @@ export default function SectionPage() {
       backLabel="Level"
       extra={
         <div class="flex flex-nowrap gap-2 items-center">
-          <span class="subtitle-xp-counter">
-            {readLessons().length} / {section()?.lessons.length} completed
-          </span>
           <ResetButton
             onClick={async () => {
               if (signedIn()) {

@@ -2,15 +2,12 @@
 
 ## Tech Stack / Libraries
 
-- **SolidStart** - meta-framework (SolidJS) with `@solidjs/router`
-- **Vinxi** - build tool and dev server with HMR
-- **SSR mode** - via a Nitro node-server
-- **better-sqlite3** — fast synchronous persistence layer for course & user data
-- **sqlc** — fully type-safe TS generator for handling sql queries/mutations
-- **LanceDB** — vector store for RAG (semantic search + chat)
-- **Groq SDK** — LLM provider (`llama-3.1-8b-instant`)
-- **Voyage AI** — contextualized embedding model (`voyage-context-3`)
-- **MiniSearch** — client-side instant BM25 full-text search for lesson content
+- **SolidStart** - SSR meta-framework (SolidJS) with `@solidjs/router`
+- **Vinxi** - Backend/build tool and dev server with HMR (Nitro/Vite)
+- **Better-sqlite3** — Synchronous persistence layer for course & user data
+- **Sqlc** — Type-safe generator for handling sql queries/mutations with pure TS
+- **RAG/AI chat** — Hybrid semantic/keyword search with vector store for RAG, built-in jailbreak detection
+- **MiniSearch** — Alternative client-side document search for lesson pages
 - **Docker** — CI/CD containerized deployment to VPS
 
 ## Commands

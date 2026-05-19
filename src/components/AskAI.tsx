@@ -155,12 +155,12 @@ export default function AskAI() {
               <span class="askai-header__title">Talk with a local</span>
               <button
                 type="button"
-                class="askai-header__close"
+                class="absolute top-3 right-3 inline-flex items-center gap-1.5 z-10 cursor-pointer bg-transparent border-none text-muted hover:text-heading transition-colors duration-150"
                 onClick={() => setIsOpen(false)}
                 aria-label="Close"
               >
-                <X size={14} />
-                <kbd>esc</kbd>
+                <kbd class="shortcut-kbd">esc</kbd>
+                <X size={16} />
               </button>
             </div>
 
