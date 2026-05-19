@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { extractRelevantText } from "~/server/search";
@@ -8,13 +8,12 @@ import {
   EMPTY_DB_PATH,
   GITHUB_REPO_URL,
   LANCEDB_PATH,
+  RAG_BATCH_SIZE,
+  RAG_CHUNK_OVERLAP,
+  RAG_CHUNK_SIZE,
   VOYAGE_MODEL,
 } from "~/utils/constants";
 import { getDb } from "~/utils/storage";
-
-const BATCH_SIZE = 100;
-const CHUNK_SIZE = 512;
-const CHUNK_OVERLAP = 0;
 
 interface LessonRow {
   slug: string;
@@ -75,11 +74,15 @@ type ChunkData = Record<string, any> & {
 let _buildPromise: Promise<void> | null = null;
 
 export function ensureCourseDb(): void {
-  if (!existsSync(COURSE_DB_PATH)) {
-    console.error(
-      `[startup] Course DB not found at ${COURSE_DB_PATH}. Copy ${EMPTY_DB_PATH} to that location or set COURSE_DB_PATH env var.`,
-    );
+  if (existsSync(COURSE_DB_PATH)) return;
+  if (existsSync(EMPTY_DB_PATH)) {
+    copyFileSync(EMPTY_DB_PATH, COURSE_DB_PATH);
+    console.log(`[startup] Copied ${EMPTY_DB_PATH} → ${COURSE_DB_PATH}`);
+    return;
   }
+  console.error(
+    `[startup] Neither ${COURSE_DB_PATH} nor ${EMPTY_DB_PATH} found. Copy ${EMPTY_DB_PATH} to the latter or set COURSE_DB_PATH env var.`,
+  );
 }
 
 export async function ensureVectorStore(): Promise<void> {
@@ -125,8 +128,8 @@ async function buildVectorIndex(): Promise<void> {
   console.log(`[startup] ${lessonRows.length} lessons found`);
 
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: CHUNK_SIZE,
-    chunkOverlap: CHUNK_OVERLAP,
+    chunkSize: RAG_CHUNK_SIZE,
+    chunkOverlap: RAG_CHUNK_OVERLAP,
   });
 
   const lessonGroups: LessonGroup[] = [];
@@ -205,8 +208,8 @@ async function buildVectorIndex(): Promise<void> {
 
   let embeddedCount = 0;
 
-  for (let gi = 0; gi < lessonGroups.length; gi += BATCH_SIZE) {
-    const batch = lessonGroups.slice(gi, gi + BATCH_SIZE);
+  for (let gi = 0; gi < lessonGroups.length; gi += RAG_BATCH_SIZE) {
+    const batch = lessonGroups.slice(gi, gi + RAG_BATCH_SIZE);
     const inputs = batch.map((g) => g.texts);
 
     const response = await fetch(
