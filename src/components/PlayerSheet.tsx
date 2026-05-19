@@ -170,7 +170,8 @@ export default function PlayerSheet(props: Props) {
               class="absolute top-4 right-4 inline-flex items-center gap-1.5 z-10 cursor-pointer bg-transparent border-none text-muted hover:text-heading transition-colors duration-150"
               aria-label="Close"
             >
-              <kbd class="shortcut-kbd">esc</kbd>
+              <kbd class="shortcut-kbd hidden md:inline-flex">esc</kbd>
+              <X size={18} class="inline-flex md:hidden" />
             </button>
             {/* Player info */}
             <div class="flex flex-col gap-2 items-center">
