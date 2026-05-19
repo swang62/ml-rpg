@@ -8,7 +8,7 @@ import {
 import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
 import { getLessonBySlug, getLessonsBySection } from "~/db/lesson_sql";
 import { getSectionBySlug, getSectionsByCategory } from "~/db/section_sql";
-import { getDb } from "~/utils/storage";
+import { getDb } from "~/server/storage";
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
   "use server";

@@ -13,12 +13,12 @@ import ResetButton from "~/components/ResetButton";
 import { getSectionMetaQuery } from "~/server/course";
 import { resetSectionAction } from "~/server/mutations";
 import { getSectionReadCountsQuery } from "~/server/progress";
+import { XP_VALUE } from "~/utils/constants";
 import {
   getAnonSectionReadSlugs,
   resetAnonSection,
   version,
-} from "~/utils/client-storage";
-import { XP_VALUE } from "~/utils/constants";
+} from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {

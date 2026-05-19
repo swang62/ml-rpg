@@ -6,7 +6,7 @@ import {
   upsertUser,
 } from "~/db/users_sql";
 import { checkPassword, createHash, getSession } from "~/server/session";
-import { getDb } from "~/utils/storage";
+import { getDb } from "~/server/storage";
 
 export const querySession = query(async () => {
   "use server";

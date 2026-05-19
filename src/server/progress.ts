@@ -11,8 +11,8 @@ import {
 import { getSectionsByCategory } from "~/db/section_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
+import { getDb } from "~/server/storage";
 import { XP_VALUE } from "~/utils/constants";
-import { getDb } from "~/utils/storage";
 
 export const getTotalXpQuery = query(async () => {
   "use server";

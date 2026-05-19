@@ -6,7 +6,7 @@ import {
 } from "~/db/progress_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
-import { getDb } from "~/utils/storage";
+import { getDb } from "~/server/storage";
 
 export const markLessonReadAction = action(
   async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {

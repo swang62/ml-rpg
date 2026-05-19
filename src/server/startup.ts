@@ -4,6 +4,7 @@ import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { extractRelevantText } from "~/server/search";
+import { getDb } from "~/server/storage";
 import {
   COURSE_DB_PATH,
   COURSE_INFO_PATH,
@@ -15,7 +16,6 @@ import {
   RAG_CHUNK_SIZE,
   RAG_EMBEDDING_MODEL,
 } from "~/utils/constants";
-import { getDb } from "~/utils/storage";
 
 interface LessonRow {
   slug: string;
@@ -74,20 +74,6 @@ type ChunkData = Record<string, any> & {
 };
 
 let _buildPromise: Promise<void> | null = null;
-
-export function ensureCourseDb(): void {
-  if (existsSync(COURSE_DB_PATH)) return;
-  if (existsSync(EMPTY_DB_PATH)) {
-    copyFileSync(EMPTY_DB_PATH, COURSE_DB_PATH);
-    console.log(
-      `[startup] Initialized ${COURSE_DB_PATH}, make sure to create a first user!`,
-    );
-    return;
-  }
-  console.error(
-    `[startup] Neither ${COURSE_DB_PATH} nor ${EMPTY_DB_PATH} found. Copy ${EMPTY_DB_PATH} to the latter or set COURSE_DB_PATH env var.`,
-  );
-}
 
 export async function ensureVectorStore(): Promise<void> {
   if (existsSync(`${LANCEDB_PATH}/chunks.lance`)) return;

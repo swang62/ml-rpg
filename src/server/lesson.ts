@@ -1,6 +1,6 @@
 import { getLessonHtml } from "~/db/lesson_sql";
 import { cleanLessonHtml, findLessonByPath } from "~/server/course";
-import { getDb } from "~/utils/storage";
+import { getDb } from "~/server/storage";
 
 export async function getLessonHTMLQuery(
   courseSlug: string,

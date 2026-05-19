@@ -16,7 +16,7 @@ import {
   getAnonDisplayName,
   getAnonTotalXp,
   version,
-} from "~/utils/client-storage";
+} from "~/utils/local-storage";
 import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
 
 export default function PlayerHUD() {

@@ -6,8 +6,8 @@ import { getAllCategories } from "~/db/category_sql";
 import { getAllCourses } from "~/db/course_sql";
 import { getSearchLessons } from "~/db/lesson_sql";
 import { getAllSections } from "~/db/section_sql";
+import { getDb } from "~/server/storage";
 import { SEARCH_MAX_RESULTS } from "~/utils/constants";
-import { getDb } from "~/utils/storage";
 
 function stripHtmlTags(html: string): string {
   return html

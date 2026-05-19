@@ -10,8 +10,8 @@ import PageTitle from "~/components/PageTitle";
 import { getLessonNavQuery } from "~/server/course";
 import { getLessonHTMLQuery } from "~/server/lesson";
 import { getLessonReadStatusQuery } from "~/server/progress";
-import { isAnonLessonRead, version } from "~/utils/client-storage";
 import { EXTERNAL_URL, XP_TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
+import { isAnonLessonRead, version } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {

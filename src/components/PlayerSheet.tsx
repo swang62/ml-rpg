@@ -17,11 +17,11 @@ import { Portal } from "solid-js/web";
 import { formLogin, logoutAction } from "~/server/auth";
 import { resetAllProgressAction } from "~/server/mutations";
 import { updateUserNameAction } from "~/server/user";
+import { LEVELS, type LevelDef } from "~/utils/constants";
 import {
   resetAnonAllProgress,
   setAnonDisplayName,
-} from "~/utils/client-storage";
-import { LEVELS, type LevelDef } from "~/utils/constants";
+} from "~/utils/local-storage";
 import { getAvatarStyle, getLevel } from "~/utils/xp";
 
 interface Props {

@@ -10,8 +10,8 @@ import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCategoryMetaQuery } from "~/server/course";
 import { getCategoryReadCountsQuery } from "~/server/progress";
-import { getAnonCategoryReadCounts } from "~/utils/client-storage";
-import { onCardLeave, onCardMove } from "~/utils/tilt";
+import { onCardLeave, onCardMove } from "~/utils/card";
+import { getAnonCategoryReadCounts } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {

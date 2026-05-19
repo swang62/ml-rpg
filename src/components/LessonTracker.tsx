@@ -2,7 +2,7 @@ import { useAction } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import { markLessonReadAction } from "~/server/mutations";
-import { markAnonLessonRead } from "~/utils/client-storage";
+import { markAnonLessonRead } from "~/utils/local-storage";
 
 interface Props {
   course?: string;
