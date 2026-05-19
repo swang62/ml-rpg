@@ -101,8 +101,8 @@ export default function AskAI() {
         onClick={toggleOpen}
         aria-label="Ask AI for help"
       >
-        <span class="hidden md:inline">Ask for help</span>
         <MessageBox size={18} />
+        <span class="hidden md:inline">Ask for help</span>
       </button>
 
       <Show when={isOpen()}>
@@ -115,7 +115,7 @@ export default function AskAI() {
           />
           <div class="askai-panel" role="dialog" aria-label="Ask a local guide">
             <div class="askai-header">
-              <span class="askai-header__title">Talk to a local</span>
+              <span class="askai-header__title">Talk with a local</span>
               <button
                 type="button"
                 class="askai-header__close"
@@ -140,9 +140,7 @@ export default function AskAI() {
 
               <Show when={isLoading()}>
                 <div class="askai-message askai-message--assistant">
-                  <div class="askai-message__label">
-                    {AI_BOT_NAME} the Guide
-                  </div>
+                  <div class="askai-message__label">{AI_BOT_NAME}</div>
                   <div class="askai-loading">
                     <span class="askai-loading__dot">.</span>
                     <span class="askai-loading__dot">.</span>

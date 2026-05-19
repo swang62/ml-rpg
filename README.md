@@ -2,7 +2,7 @@
 
 ![Homepage screenshot](public/assets/screenshot-homepage.png)
 
-A gamified learning course platform for ML & Data Engineering content. Built on SolidStart.
+A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, fully mobile-responsive, supports full keyboard navigation on desktop.
 
 ## Summary
 
@@ -19,11 +19,11 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ### Course Information
 
-- Currently only 2 courses, machine learning engineering and data engineering
+- Currently only 2 courses, machine learning and data engineering
 - Each world has roughly 10-20 categories/levels
 - Each level contains 5-10 sections/quests
 - Each section contains 5-7 lessons/objectives
-- Total lessons is about ~1000 lessons
+- Total lessons are about ~1000 lessons
   
 ### XP & Leveling system
 

@@ -1218,7 +1218,6 @@ a {
 .askai-trigger:hover {
   border-color: var(--level-category);
   color: var(--level-category);
-  background: var(--tint-category);
 }
 
 .askai-backdrop {
@@ -1363,11 +1362,11 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: var(--tint-course);
-  border: 1px solid var(--border-glow-course);
+  background: var(--tint-section-hover);
+  border: 1px solid var(--border-glow-section);
   border-radius: 6px;
   padding: 3px 8px;
-  color: var(--level-course);
+  color: var(--level-section);
   cursor: pointer;
   font-size: 0.75rem;
   font-family: inherit;
@@ -1377,8 +1376,8 @@ a {
 }
 
 .askai-message__sources button:hover {
-  background: var(--tint-course-hover);
-  border-color: var(--level-course);
+  background: var(--tint-section);
+  border-color: var(--level-section);
 }
 
 .askai-message__source-meta {
