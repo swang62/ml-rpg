@@ -8,7 +8,7 @@ import CornerDownLeft from "lucide-solid/icons/corner-down-left";
 import { createMemo } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { getCoursesQuery } from "~/server/course";
-import { onCardLeave, onCardMove } from "~/utils/card";
+import { onCardLeave, onCardMove } from "~/utils/animation";
 import { SITE_NAME } from "~/utils/constants";
 
 export default function HomePage() {

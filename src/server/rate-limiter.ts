@@ -1,9 +1,9 @@
+"use server";
+
 /**
  * Simple in-memory rate limiter for Vinxi/SolidStart middleware.
  * Tracks request timestamps per key (IP address) and enforces
  * configurable limits within sliding windows.
- *
- * Different rate limits can be applied per URL pattern.
  */
 
 interface RateLimitEntry {

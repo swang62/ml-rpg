@@ -10,7 +10,7 @@ import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCourseMetaQuery } from "~/server/course";
 import { getCourseReadCountsQuery } from "~/server/progress";
-import { onCardLeave, onCardMove } from "~/utils/card";
+import { onCardLeave, onCardMove } from "~/utils/animation";
 import { getAnonCategoryReadCounts } from "~/utils/local-storage";
 
 export const route = {
