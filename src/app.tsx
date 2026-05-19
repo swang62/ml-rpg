@@ -23,6 +23,7 @@ import { SITE_NAME } from "./utils/constants";
 function KeyboardNavHandler() {
   const [cards, setCards] = createSignal<HTMLElement[]>([]);
   const [activeIndex, setActiveIndex] = createSignal(-1);
+  let wasActive = false;
 
   const collectCards = () => {
     const found = document.querySelectorAll<HTMLElement>(
@@ -31,13 +32,44 @@ function KeyboardNavHandler() {
     setCards(Array.from(found));
   };
 
+  const focusCard = (index: number) => {
+    const c = cards();
+    if (index < 0 || index >= c.length) return;
+    c[index]?.focus();
+    setActiveIndex(index);
+  };
+
   createEffect(() => {
-    if (cards().length > 0) return;
-    collectCards();
+    const c = cards();
+    if (c.length > 0 && wasActive && activeIndex() === -1) {
+      c[0]?.focus();
+      setActiveIndex(0);
+    }
   });
 
   onMount(() => {
-    const observer = new MutationObserver(() => collectCards());
+    let navTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const observer = new MutationObserver(() => {
+      const prev = cards();
+      collectCards();
+      const next = cards();
+      // Detect page navigation (card list changed significantly)
+      if (
+        prev.length > 0 &&
+        (prev.length !== next.length || prev[0] !== next[0])
+      ) {
+        wasActive = activeIndex() >= 0;
+        setActiveIndex(-1);
+        (document.activeElement as HTMLElement)?.blur();
+        clearTimeout(navTimeout);
+        navTimeout = setTimeout(() => {
+          if (wasActive && cards().length > 0) {
+            focusCard(0);
+          }
+        }, 50);
+      }
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,20 +91,29 @@ function KeyboardNavHandler() {
         "ArrowLeft",
         "ArrowRight",
       ].includes(e.key);
-      if (!isArrow && e.key !== "Enter") return;
-      if (isArrow && activeIndex() === -1) {
+
+      if (e.key === "Escape" && activeIndex() >= 0) {
         e.preventDefault();
-        setActiveIndex(0);
-        current[0]?.focus();
-        current[0]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        setActiveIndex(-1);
+        (document.activeElement as HTMLElement)?.blur();
         return;
       }
 
+      if (!isArrow && e.key !== "Enter") return;
+
+      const idx = activeIndex();
+
       if (isArrow) {
         e.preventDefault();
-        const idx = activeIndex();
+
+        if (idx === -1) {
+          focusCard(0);
+          current[0]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          return;
+        }
+
         const rects = current.map((el) => el.getBoundingClientRect());
-        const centerX = rects[idx].left + rects[idx].width / 2;
+        const cx = rects[idx].left + rects[idx].width / 2;
         let next = idx;
 
         if (e.key === "ArrowRight") {
@@ -80,41 +121,45 @@ function KeyboardNavHandler() {
         } else if (e.key === "ArrowLeft") {
           next = Math.max(idx - 1, 0);
         } else if (e.key === "ArrowDown") {
-          const sameRow = rects
-            .map((r, i) => ({ i, dist: Math.abs(r.top - rects[idx].top) }))
-            .filter((r) => r.dist < 10 && r.i !== idx);
-          if (sameRow.length > 0) {
-            const lastInRow = sameRow[sameRow.length - 1].i;
-            next = Math.min(lastInRow + 1, current.length - 1);
-          } else {
-            const below = rects
-              .map((r, i) => ({ i, dist: r.top - rects[idx].top }))
-              .filter((r) => r.dist > 5)
-              .sort((a, b) => a.dist - b.dist);
-            if (below.length > 0) next = below[0].i;
+          const below = rects
+            .map((r, i) => ({ i, d: r.top - rects[idx].top }))
+            .filter((r) => r.d > 5)
+            .sort((a, b) => a.d - b.d);
+          if (below.length > 0) {
+            const rowTop = below[0].d;
+            const row = below.filter((r) => Math.abs(r.d - rowTop) < 5);
+            const first = row[0].i;
+            next = row.reduce<number>(
+              (best, r) =>
+                Math.abs(rects[r.i].left + rects[r.i].width / 2 - cx) <
+                Math.abs(rects[best].left + rects[best].width / 2 - cx)
+                  ? r.i
+                  : best,
+              first,
+            );
           }
         } else if (e.key === "ArrowUp") {
           const above = rects
-            .map((r, i) => ({ i, dist: rects[idx].top - r.top }))
-            .filter((r) => r.dist > 5)
-            .sort((a, b) => a.dist - b.dist);
+            .map((r, i) => ({ i, d: rects[idx].top - r.top }))
+            .filter((r) => r.d > 5)
+            .sort((a, b) => a.d - b.d);
           if (above.length > 0) {
-            const candidates = above.filter(
-              (r) => Math.abs(r.dist - above[0].dist) < 5,
+            const rowTop = above[0].d;
+            const row = above.filter((r) => Math.abs(r.d - rowTop) < 5);
+            const first = row[0].i;
+            next = row.reduce<number>(
+              (best, r) =>
+                Math.abs(rects[r.i].left + rects[r.i].width / 2 - cx) <
+                Math.abs(rects[best].left + rects[best].width / 2 - cx)
+                  ? r.i
+                  : best,
+              first,
             );
-            next = candidates.reduce((best, r) => {
-              const cx = rects[r.i].left + rects[r.i].width / 2;
-              return Math.abs(cx - centerX) <
-                Math.abs(rects[best].left + rects[best].width / 2 - centerX)
-                ? r.i
-                : best;
-            }, candidates[0].i);
           }
         }
 
         if (next !== idx) {
-          setActiveIndex(next);
-          current[next]?.focus();
+          focusCard(next);
           current[next]?.scrollIntoView({
             behavior: "smooth",
             block: "nearest",
@@ -122,9 +167,9 @@ function KeyboardNavHandler() {
         }
       }
 
-      if (e.key === "Enter" && activeIndex() >= 0) {
+      if (e.key === "Enter" && idx >= 0) {
         e.preventDefault();
-        current[activeIndex()]?.click();
+        current[idx]?.click();
       }
     };
 
@@ -132,6 +177,7 @@ function KeyboardNavHandler() {
     onCleanup(() => {
       document.removeEventListener("keydown", handleKeyDown);
       observer.disconnect();
+      clearTimeout(navTimeout);
     });
   });
 
