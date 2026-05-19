@@ -1136,7 +1136,7 @@ a {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-hover);
   border-radius: 4px;
-  font-family: inherit;
+  font-family: var(--font-pixel);
   font-size: 0.65rem;
   color: var(--base);
 }
@@ -1323,7 +1323,36 @@ a {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-hover);
   border-radius: 4px;
-  font-family: inherit;
+  font-family: var(--font-pixel);
+  font-size: 0.65rem;
+  color: var(--base);
+  line-height: 1;
+}
+
+.hud-shortcut {
+  display: none;
+  align-items: center;
+  margin-left: 6px;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .hud-shortcut {
+    display: inline-flex;
+  }
+}
+
+.hud-shortcut kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  font-family: var(--font-pixel);
   font-size: 0.65rem;
   color: var(--base);
   line-height: 1;
@@ -1377,6 +1406,10 @@ a {
 .shortcuts-bar__item .kbd--icon,
 .back-link .kbd--icon {
   font-family: inherit;
+  min-width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 0.7rem;
 }
 
 .kbd--icon {
