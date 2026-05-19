@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import ChevronLeft from "lucide-solid/icons/chevron-left";
+import Delete from "lucide-solid/icons/delete";
 
 interface Props {
   href: string;
@@ -15,7 +15,7 @@ export default function BackToQuest(props: Props) {
         "lesson-back-link--unread": !props.isRead,
       }}
     >
-      <ChevronLeft size={16} />
+      <Delete size={16} />
       {props.isRead ? "Back to Quest" : "Run Away..."}
     </A>
   );

@@ -125,6 +125,21 @@ function KeyboardNavHandler() {
         return;
       }
 
+      // Lesson page left/right navigation
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const lessonNav = document.querySelector(".lesson-nav");
+        if (lessonNav) {
+          const links = lessonNav.querySelectorAll<HTMLElement>("a[href]");
+          const target =
+            e.key === "ArrowLeft" ? links[0] : links[links.length - 1];
+          if (target) {
+            e.preventDefault();
+            target.click();
+            return;
+          }
+        }
+      }
+
       const idx = activeIndex();
 
       if (isArrow) {
