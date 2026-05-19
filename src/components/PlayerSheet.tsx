@@ -86,6 +86,9 @@ function ResetButton(props: { onClick: () => void }) {
 export default function PlayerSheet(props: Props) {
   const [editing, setEditing] = createSignal(false);
   const [draftName, setDraftName] = createSignal(props.displayName ?? "");
+  const [pendingReset, setPendingReset] = createSignal<(() => void) | null>(
+    null,
+  );
   const updateName = useAction(updateUserNameAction);
   const submission = useSubmission(updateUserNameAction);
   const resetAllProgress = useAction(resetAllProgressAction);
@@ -278,13 +281,9 @@ export default function PlayerSheet(props: Props) {
                         Sign In
                       </button>
                       <ResetButton
-                        onClick={() => {
-                          const confirmed = window.confirm(
-                            "Reset ALL progress? This cannot be undone.",
-                          );
-                          if (!confirmed) return;
-                          resetAnonAllProgress();
-                        }}
+                        onClick={() =>
+                          setPendingReset(() => resetAnonAllProgress)
+                        }
                       />
                     </div>
                     <span class="font-pixel text-[0.75rem] text-muted text-right">
@@ -305,13 +304,7 @@ export default function PlayerSheet(props: Props) {
                       </button>
                     </form>
                     <ResetButton
-                      onClick={() => {
-                        const confirmed = window.confirm(
-                          "Reset ALL progress? This cannot be undone.",
-                        );
-                        if (!confirmed) return;
-                        resetAllProgress();
-                      }}
+                      onClick={() => setPendingReset(() => resetAllProgress)}
                     />
                   </div>
                   <span class="font-pixel text-[0.75rem] text-muted text-right">
@@ -323,6 +316,47 @@ export default function PlayerSheet(props: Props) {
             </div>
           </div>
         </div>
+
+        <Show when={pendingReset()}>
+          {(action) => (
+            <>
+              <button
+                type="button"
+                class="fixed inset-0 z-15000 bg-[rgba(0,0,0,0.6)] appearance-none border-none cursor-default"
+                aria-label="Close"
+              />
+              <div class="fixed inset-0 z-16000 flex items-center justify-center pointer-events-none">
+                <div class="pointer-events-auto w-[min(360px,80vw)] bg-surface border-[3px] border-border rounded-lg p-6 flex flex-col gap-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
+                  <p class="font-pixel text-[0.75rem] text-heading text-center leading-relaxed">
+                    Reset ALL progress?
+                    <br />
+                    <span class="text-red-400">This cannot be undone.</span>
+                  </p>
+                  <div class="flex justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        action();
+                        setPendingReset(null);
+                      }}
+                      class="inline-flex items-center gap-2 px-5 py-2 border-2 border-red-500 rounded font-pixel text-[0.6rem] text-red-400 hover:bg-[rgba(239,68,68,0.15)] hover:text-red-300 transition-colors duration-150 cursor-pointer"
+                    >
+                      <RotateCcw size={13} />
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingReset(null)}
+                      class="inline-flex items-center gap-2 px-5 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-heading hover:border-accent transition-colors duration-150 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </Show>
       </Portal>
     </Show>
   );
