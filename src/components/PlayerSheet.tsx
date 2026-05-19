@@ -91,6 +91,9 @@ export default function PlayerSheet(props: Props) {
   const submission = useSubmission(updateUserNameAction);
   const resetAllProgress = useAction(resetAllProgressAction);
 
+  const isMac = () =>
+    typeof navigator !== "undefined" && navigator.platform.includes("Mac");
+
   const currentLevel = createMemo(() => getLevel(props.totalXp));
 
   const handleSave = () => {
@@ -305,6 +308,46 @@ export default function PlayerSheet(props: Props) {
                   </span>
                 </div>
               </Show>
+            </div>
+
+            {/* Keyboard Shortcuts */}
+            <div class="border-t border-border pt-4 mt-2">
+              <div class="font-pixel text-[0.55rem] text-muted tracking-[0.06em] uppercase text-center mb-3">
+                Keyboard Shortcuts
+              </div>
+              <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
+                  <kbd class="shortcut-key">⌫</kbd>
+                  <span>Go back</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
+                  <kbd class="shortcut-key">{isMac() ? "⌘" : "Ctrl"}</kbd>
+                  <span class="text-muted">+</span>
+                  <kbd class="shortcut-key">K</kbd>
+                  <span>Search</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
+                  <kbd class="shortcut-key">{isMac() ? "⌘" : "Ctrl"}</kbd>
+                  <span class="text-muted">+</span>
+                  <kbd class="shortcut-key">H</kbd>
+                  <span>Ask AI</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
+                  <kbd class="shortcut-key">←</kbd>
+                  <kbd class="shortcut-key">→</kbd>
+                  <kbd class="shortcut-key">↑</kbd>
+                  <kbd class="shortcut-key">↓</kbd>
+                  <span>Navigate</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
+                  <kbd class="shortcut-key">↵</kbd>
+                  <span>Select</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
+                  <kbd class="shortcut-key">Esc</kbd>
+                  <span>Close</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>

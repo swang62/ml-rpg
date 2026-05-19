@@ -616,6 +616,14 @@ a {
     transform var(--tilt-duration, 0.2s) ease;
 }
 
+.card:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px rgba(96, 165, 250, 0.3),
+    var(--shadow-card);
+}
+
 /* Subtle inner top highlight for a raised/3D look */
 .card::after {
   content: "";
@@ -1218,6 +1226,52 @@ a {
 .askai-trigger:hover {
   border-color: var(--level-category);
   color: var(--level-category);
+}
+
+.askai-shortcut {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .askai-shortcut {
+    display: inline-flex;
+  }
+}
+
+.askai-shortcut kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-hover);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.6rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.6rem;
+  color: var(--base);
+  line-height: 1;
 }
 
 .askai-backdrop {
