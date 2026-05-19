@@ -675,12 +675,6 @@ a {
     0 0 24px var(--glow-section);
 }
 
-.card--course:hover {
-  box-shadow:
-    var(--shadow-card-hover),
-    0 0 24px var(--glow-course);
-}
-
 /* ===== Category card (course-level grid) ===== */
 
 .card--category {
@@ -704,11 +698,6 @@ a {
   color: var(--heading);
   line-height: 1.3;
   font-family: var(--font-display);
-}
-
-.card--category .meta {
-  font-size: 0.8rem;
-  color: var(--muted);
 }
 
 /* ===== Category grid ===== */
@@ -765,11 +754,6 @@ a {
   font-weight: 600;
   color: var(--heading);
   font-family: var(--font-display);
-}
-
-.card--section .meta {
-  font-size: 0.8rem;
-  color: var(--muted);
 }
 
 /* ===== lesson list (section page) ===== */
@@ -868,13 +852,6 @@ a {
 .card--lesson--read {
   color: var(--muted);
   background: rgba(0, 0, 0, 0.4);
-}
-
-/* ===== Game icons base style ===== */
-
-.icon {
-  display: inline-block;
-  vertical-align: middle;
 }
 
 /* ===== Back link ===== */
@@ -977,26 +954,6 @@ a {
 .nav-shortcuts-bottom {
   margin-top: auto;
   padding: var(--nav-height) 0;
-}
-
-.hero-course-card__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--tint-course);
-  color: var(--level-course);
-  flex-shrink: 0;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.hero-course-card:hover .hero-course-card__icon {
-  background: var(--tint-course-hover);
-  transform: scale(1.05);
 }
 
 .hero-course-card:hover {
@@ -1655,41 +1612,6 @@ a {
   cursor: not-allowed;
 }
 
-/* ===== Footer ===== */
-
-.app-footer {
-  border-top: 1px solid var(--border);
-  padding: 20px 24px;
-  display: flex;
-  justify-content: center;
-  margin-top: 48px;
-}
-
-.app-footer__inner {
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-family: var(--font-display);
-}
-
-.app-footer__links {
-  display: flex;
-  gap: 16px;
-}
-
-.app-footer__links a {
-  color: var(--muted);
-  transition: color 0.15s ease;
-}
-
-.app-footer__links a:hover {
-  color: var(--accent);
-}
-
 /* ===== 404 page ===== */
 
 .not-found {
@@ -1800,10 +1722,6 @@ main {
 
 .hero .subtitle {
   animation: slide-up 0.4s ease-out 0.2s both;
-}
-
-.stats-bar {
-  animation: slide-up 0.4s ease-out 0.25s both;
 }
 
 .hero-course-card {
@@ -1921,31 +1839,6 @@ main {
   justify-content: flex-end;
 }
 
-.lesson-nav__order {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--base);
-  background: var(--tint-section);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  flex-shrink: 0;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.lesson-nav__link:hover .lesson-nav__order {
-  background: var(--tint-section);
-  border-color: var(--border-glow-section);
-  color: var(--level-section);
-}
-
 .lesson-nav__title {
   flex: 1;
   min-width: 0;
@@ -1960,50 +1853,6 @@ main {
 
 .lesson-nav__link--next .lesson-nav__title {
   text-align: right;
-}
-
-/* ===== Lesson source button ===== */
-
-.lesson-source-btn {
-  position: relative;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 20px;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 4px;
-  box-shadow: var(--shadow-card);
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    background 0.15s,
-    box-shadow 0.2s ease;
-  text-decoration: none;
-}
-
-.lesson-source-btn::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.lesson-source-btn:hover {
-  border-color: var(--accent);
-  background: var(--surface-hover);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-glow-accent);
 }
 
 /* ===== Lesson page chrome ===== */
@@ -2057,20 +1906,6 @@ main {
     filter 0.3s ease;
 }
 
-/* Bottom back-to-quest link (static position inside the lesson card) */
-.lesson-back-link-bottom {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
-  padding-top: 16px;
-}
-
-.lesson-back-link-bottom .lesson-back-link {
-  position: static;
-  top: auto;
-  left: auto;
-}
-
 /* ===== Read status toast ===== */
 
 .lesson-read-toast {
@@ -2121,14 +1956,6 @@ main {
 
   .hero {
     padding: 40px 16px 32px;
-  }
-
-  .stats-bar {
-    gap: 20px;
-  }
-
-  .stat__value {
-    font-size: 1.3rem;
   }
 
   .hero-course-card {
@@ -2232,11 +2059,6 @@ main {
     left: 50%;
     transform: translateX(-50%);
     top: 12px;
-  }
-
-  .app-footer__inner {
-    flex-direction: column;
-    text-align: center;
   }
 
   .app-content {

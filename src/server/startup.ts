@@ -1,6 +1,6 @@
 "use server";
 
-import { copyFileSync, existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { extractRelevantText } from "~/server/search";
@@ -8,7 +8,6 @@ import { getDb } from "~/server/storage";
 import {
   COURSE_DB_PATH,
   COURSE_INFO_PATH,
-  EMPTY_DB_PATH,
   GITHUB_REPO_URL,
   LANCEDB_PATH,
   RAG_BATCH_SIZE,

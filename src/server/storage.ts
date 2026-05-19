@@ -1,5 +1,5 @@
-import Database from "better-sqlite3";
 import { copyFileSync, existsSync } from "node:fs";
+import Database from "better-sqlite3";
 import { COURSE_DB_PATH, EMPTY_DB_PATH } from "~/utils/constants";
 
 let _db: Database.Database | null = null;

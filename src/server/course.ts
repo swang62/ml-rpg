@@ -36,13 +36,10 @@ export const getCategoryMetaQuery = query(
   async (courseSlug: string, categorySlug: string) => {
     "use server";
     const db = getDb();
-    const course = await getCourseBySlug(db, { slug: courseSlug });
+    const course = await resolveCourse(db, courseSlug);
     if (!course) return null;
 
-    const cat = await getCategoryBySlug(db, {
-      slug: categorySlug,
-      courseId: course.id,
-    });
+    const cat = await resolveCategory(db, course.id, categorySlug);
     if (!cat) return null;
 
     const sectionsRaw = await getSectionsByCategory(db, { categoryId: cat.id });
@@ -66,20 +63,14 @@ export const getSectionMetaQuery = query(
   async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
     "use server";
     const db = getDb();
-    const course = await getCourseBySlug(db, { slug: courseSlug });
-    if (!course) return null;
-
-    const cat = await getCategoryBySlug(db, {
-      slug: categorySlug,
-      courseId: course.id,
-    });
-    if (!cat) return null;
-
-    const sec = await getSectionBySlug(db, {
-      slug: sectionSlug,
-      categoryId: cat.id,
-    });
-    if (!sec) return null;
+    const chain = await resolveCourseCategorySection(
+      db,
+      courseSlug,
+      categorySlug,
+      sectionSlug,
+    );
+    if (!chain) return null;
+    const { sec } = chain;
 
     const lessons = await getLessonsBySection(db, { sectionId: sec.id });
     return {
@@ -148,20 +139,14 @@ export async function getLessonNavQuery(
   "use server";
   const db = getDb();
 
-  const course = await getCourseBySlug(db, { slug: courseSlug });
-  if (!course) return null;
-
-  const cat = await getCategoryBySlug(db, {
-    slug: categorySlug,
-    courseId: course.id,
-  });
-  if (!cat) return null;
-
-  const sec = await getSectionBySlug(db, {
-    slug: sectionSlug,
-    categoryId: cat.id,
-  });
-  if (!sec) return null;
+  const chain = await resolveCourseCategorySection(
+    db,
+    courseSlug,
+    categorySlug,
+    sectionSlug,
+  );
+  if (!chain) return null;
+  const { sec } = chain;
 
   const lessons = await getLessonsBySection(db, { sectionId: sec.id });
   const idx = lessons.findIndex((l) => l.slug === lessonSlug);
@@ -177,6 +162,57 @@ export async function getLessonNavQuery(
 // ---------------------------------------------------------------------------
 // Internal helpers (shared across other server modules)
 // ---------------------------------------------------------------------------
+
+async function resolveCourse(db: Database, courseSlug: string) {
+  const course = await getCourseBySlug(db, { slug: courseSlug });
+  if (!course) return null;
+  return course;
+}
+
+async function resolveCategory(
+  db: Database,
+  courseId: number,
+  categorySlug: string,
+) {
+  const cat = await getCategoryBySlug(db, {
+    slug: categorySlug,
+    courseId,
+  });
+  if (!cat) return null;
+  return cat;
+}
+
+async function resolveSection(
+  db: Database,
+  categoryId: number,
+  sectionSlug: string,
+) {
+  const sec = await getSectionBySlug(db, {
+    slug: sectionSlug,
+    categoryId,
+  });
+  if (!sec) return null;
+  return sec;
+}
+
+/** Resolve course → category → section chain. Returns null if any link is missing. */
+async function resolveCourseCategorySection(
+  db: Database,
+  courseSlug: string,
+  categorySlug: string,
+  sectionSlug: string,
+) {
+  const course = await resolveCourse(db, courseSlug);
+  if (!course) return null;
+
+  const cat = await resolveCategory(db, course.id, categorySlug);
+  if (!cat) return null;
+
+  const sec = await resolveSection(db, cat.id, sectionSlug);
+  if (!sec) return null;
+
+  return { course, cat, sec };
+}
 
 export async function findSectionBySlugInCourse(
   db: Database,
