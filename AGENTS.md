@@ -1,22 +1,21 @@
 # AGENTS.md
 
-## Tech Stack
+## Tech Stack / Libraries
 
-- **SolidStart** meta-framework (SolidJS) with `@solidjs/router` and `@solidjs/meta`
-- **Vinxi** (not Vite directly): build tool and dev server with HMR `vinxi dev` / `vinxi build`
-- **SSR mode** (`ssr: true`) via a Nitro node-server
+- **SolidStart** - meta-framework (SolidJS) with `@solidjs/router`
+- **Vinxi** - build tool and dev server with HMR
+- **SSR mode** - via a Nitro node-server
 - **better-sqlite3** — fast synchronous persistence layer for course & user data
 - **sqlc** — fully type-safe TS generator for handling sql queries/mutations
-- **LanceDB** (`@lancedb/lancedb`) — vector store for RAG (hybrid vector + BM25 search)
-- **Groq SDK** — LLM provider for RAG answers (`llama-3.1-8b-instant`)
+- **LanceDB** — vector store for RAG (semantic search + chat)
+- **Groq SDK** — LLM provider (`llama-3.1-8b-instant`)
 - **Voyage AI** — contextualized embedding model (`voyage-context-3`)
-- **MiniSearch** — client-side style full-text search for lesson content
-- **Docker** — CI/CD containerized deployment to any VPS
-- **lucide-solid** — icon library
+- **MiniSearch** — client-side instant BM25 full-text search for lesson content
+- **Docker** — CI/CD containerized deployment to VPS
 
 ## Commands
 
-Package manager is pnpm, Node >= 22
+Package manager is pnpm, Node.js >= 22
 
 ```bash
 pnpm dev              # dev server (HMR enabled — use for inspection)
@@ -35,7 +34,7 @@ pnpm typecheck        # pnpm tsc --noEmit
 ## Folder Structure
 
 ```
-├── .data/                      # Persistent storage folder, lancedb and course db files
+├── .data/                      # Persistent storage folder, sqlite db files
 ├── scripts/                    # One-time utilities (Python and TS) for scraping/migration
 ├── public/
 │   └── assets/                 # Icons and backgrounds
@@ -43,14 +42,14 @@ pnpm typecheck        # pnpm tsc --noEmit
 │   ├── components/             # Reusable UI components
 │   ├── db/                     # SQL files for sqlc and generated query functions
 │   │   ├── raw/                #   Raw .sql files (schema + queries)
-│   │   ├── empty.db            #   Pre-seeded empty course database template
+│   │   ├── empty.db            #   Pre-seeded course database template
 │   │   └── *_sql.ts            #   Generated typed query functions (DO NOT EDIT)
 │   ├── routes/                 # File-system routing
-│   │   ├── index.tsx           # Homepage (world/course selection)
+│   │   ├── index.tsx           # Homepage
 │   │   ├── [course]/           # Dynamic course routes
 │   │   └── [...404].tsx        # 404 catch-all
-│   ├── server/                 # SSR functions ("use server")
-│   │   ├── startup.ts          #   Startup checks (ensureCourseDb, ensureVectorStore)
+│   ├── server/                 # SSR functions
+│   │   ├── startup.ts          #   Startup DB checks
 │   │   ├── auth.ts             #   Login/logout actions
 │   │   ├── course.ts           #   Course/category/section/lesson queries
 │   │   ├── lesson.ts           #   Lesson HTML query
@@ -58,7 +57,7 @@ pnpm typecheck        # pnpm tsc --noEmit
 │   │   ├── progress.ts         #   XP & read status queries
 │   │   ├── rag.ts              #   RAG (Retrieval-Augmented Generation) via LanceDB + Groq
 │   │   ├── search.ts           #   Full-text search via MiniSearch
-│   │   ├── session.ts          #   Session management (PBKDF2)
+│   │   ├── session.ts          #   Session management
 │   │   └── user.ts             #   User profile actions
 │   └── utils/
 │       ├── constants.ts        #   All app constants and configuration
@@ -97,51 +96,31 @@ Rendered via dynamic routes at `/[course]/[category]/[section]/[lesson]`.
 
 ### Game terminology
 
-| UI Label   | Internal | Route Param    |
-|------------|----------|----------------|
-| WORLD      | course   | `[course]`     |
-| LEVEL      | category | `[category]`   |
-| QUEST      | section  | `[section]`    |
-| Objective  | lesson   | `[lesson]`     |
+| UI Label   | Internal |
+|------------|----------|
+| World      | course   |
+| Level      | category |
+| Quest      | section  |
+| Objective  | lesson   |
 
 ### Persistence
 
 - **Signed-in users:** All progress stored server-side in a `better-sqlite3` database at `COURSE_DB_PATH`. Login is optional — purely for cross-device progress saving.
 - **Anonymous users:** Progress stored in `localStorage` under `read:{course}:{category}:{section}:{lesson}` keys, managed via `src/utils/client-storage.ts`. A reactive `version` signal triggers UI updates on any change.
 
-### Database location
+### Environmental variables
 
-Configured entirely via environment variables (no dev/prod auto-detection):
+Configured entirely via environment variables:
 
 | Env var           | Default             | Purpose                           |
 |-------------------|---------------------|-----------------------------------|
-| `COURSE_DB_PATH`  | `./.data/course.db` | SQLite database path              |
-| `LANCEDB_PATH`    | `./.data/search`    | LanceDB vector store directory    |
+| `COURSE_DB_PATH`  | `.data/course.db`   | SQLite course database            |
+| `LANCEDB_PATH`    | `.data/search/`     | LanceDB vector store directory    |
 | `SESSION_SECRET`  | —                   | Session encryption key            |
 
-Hardcoded references (set at build time):
+Hardcoded references:
 - `EMPTY_DB_PATH = "src/db/empty.db"` — template DB copied on first run if `COURSE_DB_PATH` is missing
 - `COURSE_INFO_PATH = "README.md"` — site info document embedded into the vector index
-
-### Server modules
-
-All data access goes through `"use server"` functions in `src/server/`. The `getDb()` singleton in `src/utils/storage.ts` manages the `better-sqlite3` connection with WAL mode.
-
-#### Module overview
-
-| File            | Exports                                           |
-|-----------------|---------------------------------------------------|
-| `storage.ts`    | `getDb()` — singleton SQLite connection           |
-| `startup.ts`    | `ensureCourseDb()`, `ensureVectorStore()`         |
-| `course.ts`     | Course/category/section/lesson metadata queries   |
-| `lesson.ts`     | `getLessonHTMLQuery()`                            |
-| `progress.ts`   | XP totals, read status, completion counts         |
-| `mutations.ts`  | `markLessonReadAction`, `resetSectionAction`, `resetAllProgressAction` |
-| `auth.ts`       | `formLogin`, `logoutAction`, `querySession`       |
-| `session.ts`    | Session cookie management, PBKDF2 password hashing |
-| `user.ts`       | `updateUserNameAction`                            |
-| `search.ts`     | Full-text search via MiniSearch                   |
-| `rag.ts`        | RAG via LanceDB hybrid search + Groq LLM          |
 
 ### Startup initialization
 
@@ -162,9 +141,9 @@ This means both the course DB and vector store are self-healing — no manual se
 
 ### XP & Leveling system
 
-- Each lesson awards `lesson_order * 25 XP` (lesson 1 = 25 XP, lesson 6 = 150 XP)
+- Each lesson awards `lesson_order * XP_VALUE` (lesson 1 = 25 XP, lesson 6 = 150 XP)
 - 20 ranks: Novice (0) → Eternal (20), with increasing difficulty
-- Level 20 requires 70,000 XP (~87,000 total available across all ~1000 lessons)
+- Level 20 requires 60,000 XP (~87,000 total available across all ~1000 lessons)
 - XP levels and avatar tiers defined in `src/utils/constants.ts`
 - The `PlayerHUD` component shows an animated XP counter that smoothly counts up on change
 - Rank tiers have distinct avatar border colors and glow effects
@@ -183,7 +162,7 @@ This means both the course DB and vector store are self-healing — no manual se
 - Indexes lesson title + extracted relevant text (h1, strong tags, key takeaways, border-left blocks)
 - Title boosted at 1.2x weight
 - Prefix + fuzzy matching (0.2)
-- Capped at `SEARCH_MAX_RESULTS` (5) results
+- Capped at `SEARCH_MAX_RESULTS` 
 
 ### RAG (Ask AI / "Bob")
 
@@ -192,8 +171,6 @@ This means both the course DB and vector store are self-healing — no manual se
 - Top chunks passed as context to Groq (`llama-3.1-8b-instant`)
 - Results include source lesson links
 - Chat history limited to `RAG_MAX_HISTORY` (3) exchanges
-- Input auto-focuses on open and after every send
-- Send button styled with green accent (`--level-category`)
 
 ### Client-side state (anonymous users)
 
