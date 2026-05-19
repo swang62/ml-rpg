@@ -16,12 +16,12 @@ import { XP_VALUE } from "~/utils/constants";
 
 export const getTotalXpQuery = query(async () => {
   "use server";
-  const session = await getSession();
-  if (!session.data.id) return { count: 0, percent: 0 };
+  const userId = await getSessionUserId();
+  if (!userId) return { count: 0, percent: 0 };
 
   const db = getDb();
   const totalLessons = await getAllLessons(db);
-  const result = await getAllReadLessons(db, { userId: session.data.id });
+  const result = await getAllReadLessons(db, { userId });
 
   const totalCalculatedXP =
     result.map((r) => r.lessonorder).reduce((prev, curr) => prev + curr, 0) *
@@ -36,8 +36,8 @@ export const getTotalXpQuery = query(async () => {
 export const getLessonReadStatusQuery = query(
   async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {
     "use server";
-    const session = await getSession();
-    if (!session.data.id) return false;
+    const userId = await getSessionUserId();
+    if (!userId) return false;
 
     const db = getDb();
     const lesson = await findLessonByPath(
@@ -50,7 +50,7 @@ export const getLessonReadStatusQuery = query(
 
     const result = await isLessonRead(db, {
       lessonId: lesson.id,
-      userId: session.data.id,
+      userId,
     });
     return result?.isread ?? false;
   },
@@ -60,15 +60,15 @@ export const getLessonReadStatusQuery = query(
 export const getSectionReadCountsQuery = query(
   async (courseSlug: string, sectionSlug: string) => {
     "use server";
-    const session = await getSession();
-    if (!session.data.id) return [];
+    const userId = await getSessionUserId();
+    if (!userId) return [];
 
     const db = getDb();
     const sec = await findSectionBySlugInCourse(db, courseSlug, sectionSlug);
     if (!sec) return [];
 
     const rows = await getReadLessonsBySection(db, {
-      userId: session.data.id,
+      userId,
       sectionId: sec.id,
     });
     return rows.map((r) => r.slug);
@@ -76,17 +76,22 @@ export const getSectionReadCountsQuery = query(
   "section-counts",
 );
 
+async function getSessionUserId(): Promise<number | null> {
+  const session = await getSession();
+  return session.data.id ?? null;
+}
+
 export const getCategoryReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
-  const session = await getSession();
-  if (!session.data.id) return {};
+  const userId = await getSessionUserId();
+  if (!userId) return {};
 
   const db = getDb();
   const course = await getCourseBySlug(db, { slug: courseSlug });
   if (!course) return {};
 
   const rows = await getReadCountsByCourse(db, {
-    userId: session.data.id,
+    userId,
     courseId: course.id,
   });
 
@@ -111,14 +116,14 @@ export const getCategoryReadCountsQuery = query(async (courseSlug: string) => {
 
 export const getCourseReadCountsQuery = query(async (courseSlug: string) => {
   "use server";
-  const session = await getSession();
-  if (!session.data.id) return {};
+  const userId = await getSessionUserId();
+  if (!userId) return {};
 
   const db = getDb();
   const course = await getCourseBySlug(db, { slug: courseSlug });
   if (!course) return {};
 
-  const allRead = await getAllReadLessons(db, { userId: session.data.id });
+  const allRead = await getAllReadLessons(db, { userId });
   const readSet = new Set(allRead.map((r) => r.lessonid));
 
   const categories = await getCategoriesByCourse(db, { courseId: course.id });

@@ -2,9 +2,9 @@
 
 import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
-import { AI_BOT_NAME } from "~/components/AskAI";
 import { ensureVectorStore } from "~/server/startup";
 import {
+  AI_BOT_NAME,
   GITHUB_REPO_URL,
   LANCEDB_PATH,
   RAG_EMBEDDING_MODEL,

@@ -45,6 +45,10 @@ function keys(): string[] {
   return result;
 }
 
+function keysWithPrefix(prefix: string): string[] {
+  return keys().filter((k) => k.startsWith(prefix));
+}
+
 export function getAnonDisplayName(): string {
   let value = getItem(DISPLAYNAME_KEY);
   if (value === null) {
@@ -94,8 +98,7 @@ export function getAnonSectionReadSlugs(
 ): string[] {
   const prefix = `read:${course}:`;
   const slugs: string[] = [];
-  for (const key of keys()) {
-    if (!key.startsWith(prefix)) continue;
+  for (const key of keysWithPrefix(prefix)) {
     const parts = key.slice(prefix.length).split(":");
     if (parts[1] === section) {
       slugs.push(parts.slice(2).join(":"));
@@ -109,8 +112,7 @@ export function getAnonCategoryReadCounts(
 ): Record<string, number> {
   const prefix = `read:${course}:`;
   const result: Record<string, number> = {};
-  for (const key of keys()) {
-    if (!key.startsWith(prefix)) continue;
+  for (const key of keysWithPrefix(prefix)) {
     const parts = key.slice(prefix.length).split(":");
     result[parts[1]] = (result[parts[1]] ?? 0) + 1;
   }
@@ -118,18 +120,15 @@ export function getAnonCategoryReadCounts(
 }
 
 export function resetAnonAllProgress(): void {
-  for (const key of keys()) {
-    if (key.startsWith("read:")) {
-      removeItem(key);
-    }
+  for (const key of keysWithPrefix("read:")) {
+    removeItem(key);
   }
   bumpVersion((v: number) => v + 1);
 }
 
 export function resetAnonSection(course: string, section: string): void {
   const prefix = `read:${course}:`;
-  for (const key of keys()) {
-    if (!key.startsWith(prefix)) continue;
+  for (const key of keysWithPrefix(prefix)) {
     const parts = key.slice(prefix.length).split(":");
     if (parts[1] === section) {
       removeItem(key);
@@ -139,10 +138,9 @@ export function resetAnonSection(course: string, section: string): void {
 }
 
 export function getAnonTotalXp(): { count: number; percent: number } {
-  const prefix = `read:`;
+  const prefix = "read:";
   let sum = 0;
-  for (const key of keys()) {
-    if (!key.startsWith(prefix)) continue;
+  for (const key of keysWithPrefix(prefix)) {
     const value = getItem(key);
     const num = Number(value);
     if (!Number.isNaN(num)) {

@@ -142,32 +142,15 @@ export function KeyboardNavHandler() {
           next = Math.min(idx + 1, current.length - 1);
         } else if (e.key === "ArrowLeft") {
           next = Math.max(idx - 1, 0);
-        } else if (e.key === "ArrowDown") {
-          const below = rects
-            .map((r, i) => ({ i, d: r.top - rects[idx].top }))
+        } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          const sign = e.key === "ArrowDown" ? 1 : -1;
+          const candidates = rects
+            .map((r, i) => ({ i, d: sign * (r.top - rects[idx].top) }))
             .filter((r) => r.d > 5)
             .sort((a, b) => a.d - b.d);
-          if (below.length > 0) {
-            const rowTop = below[0].d;
-            const row = below.filter((r) => Math.abs(r.d - rowTop) < 5);
-            const first = row[0].i;
-            next = row.reduce<number>(
-              (best, r) =>
-                Math.abs(rects[r.i].left + rects[r.i].width / 2 - cx) <
-                Math.abs(rects[best].left + rects[best].width / 2 - cx)
-                  ? r.i
-                  : best,
-              first,
-            );
-          }
-        } else if (e.key === "ArrowUp") {
-          const above = rects
-            .map((r, i) => ({ i, d: rects[idx].top - r.top }))
-            .filter((r) => r.d > 5)
-            .sort((a, b) => a.d - b.d);
-          if (above.length > 0) {
-            const rowTop = above[0].d;
-            const row = above.filter((r) => Math.abs(r.d - rowTop) < 5);
+          if (candidates.length > 0) {
+            const rowTop = candidates[0].d;
+            const row = candidates.filter((r) => Math.abs(r.d - rowTop) < 5);
             const first = row[0].i;
             next = row.reduce<number>(
               (best, r) =>

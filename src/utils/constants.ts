@@ -16,6 +16,7 @@ export const RAG_CHUNK_OVERLAP = 0;
 export const RAG_CHUNK_SIZE = 512;
 export const RAG_MAX_HISTORY = 2;
 export const RAG_MAX_SOURCES = 3;
+export const AI_BOT_NAME = "Bob";
 
 // Database / Storage paths — configurable via env vars
 export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "";

@@ -11,7 +11,7 @@ import {
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG, type SourceResult } from "~/server/rag";
-import { RAG_MAX_HISTORY } from "~/utils/constants";
+import { AI_BOT_NAME, RAG_MAX_HISTORY } from "~/utils/constants";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -19,7 +19,6 @@ interface ChatMessage {
   sources?: SourceResult[];
 }
 
-export const AI_BOT_NAME = "Bob";
 const GREETING: ChatMessage = {
   role: "assistant",
   content: `Hi I'm ${AI_BOT_NAME}, your friendly guide, what can I help you with?`,
