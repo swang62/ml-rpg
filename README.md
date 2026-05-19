@@ -1,6 +1,8 @@
 # Machine Learning (the RPG)
 
-A gamified learning course platform for ML & Data Engineering content. Built on SolidStart. 
+![Homepage screenshot](public/assets/screenshot-homepage.png)
+
+A gamified learning course platform for ML & Data Engineering content. Built on SolidStart.
 
 ## Summary
 
@@ -48,6 +50,10 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 I created this repo to initially learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new web development libraries and RAG/agentic workflows and implementation. Also practicing my frontend design UI/UX skills. Truly meta-level learning.
 
+## Development
+
+For a full breakdown of the repo architecture, tech stack, configuration, and development commands, see [AGENTS.md](AGENTS.md).
+
 ## License
 
-MIT license, do whatever you want. 
+MIT. See [LICENSE.md](LICENSE.md). 
