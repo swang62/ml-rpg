@@ -1363,6 +1363,7 @@ a {
   font-family: var(--font-pixel);
 }
 
+.shortcut-kbd,
 .shortcuts-bar__item kbd {
   display: inline-flex;
   align-items: center;
@@ -1433,6 +1434,25 @@ a {
   font-size: 1.4rem;
   line-height: 1;
   padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.askai-header__close kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  font-family: var(--font-pixel);
+  font-size: 0.65rem;
+  color: var(--base);
+  line-height: 1;
 }
 
 .askai-header__close:hover {

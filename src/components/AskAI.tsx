@@ -1,4 +1,5 @@
 import MessageBox from "lucide-solid/icons/message-square-text";
+import X from "lucide-solid/icons/x";
 import {
   createEffect,
   createSignal,
@@ -158,7 +159,8 @@ export default function AskAI() {
                 onClick={() => setIsOpen(false)}
                 aria-label="Close"
               >
-                &times;
+                <X size={14} />
+                <kbd>esc</kbd>
               </button>
             </div>
 
