@@ -8,30 +8,39 @@ A retro video game-themed (Hyperlight Drifter inspired) content-navigation site 
 
 1. **World** (course) — a high-level curriculum
 2. **Level** (category) — a topical category within a world
-3. **Quest** (subsection) — a specific subject within a level
+3. **Quest** (section) — a specific subject within a level
 4. **Objective** (lesson) — an individual lesson with its own page and external links
 
-Each objective awards XP when completed. Players level up through 20 ranks (Novice → Eternal). Progress is tracked server-side or locally in the browser if no login is detected. No paywall or restricted content, login is purely for global "saves".
+Each objective/lesson awards XP when completed. Players level up gradually through 20 ranks as lessons are completed. Progress is tracked server-side, or locally in the browser if no login is detected. No paywall or restricted content, login is purely for global "saving".
 
-## Features
+## Core Features
 
-### XP & Leveling
+### Course Information
 
-- Each objective awards `order * 25 XP` (objective 1 = 25 XP, objective 6 = 150 XP)
+- Currently only 2 courses, machine learning engineering and data engineering
+- Each world has roughly 10-20 categories/levels
+- Each level contains 5-10 sections/quests
+- Each section contains 5-7 lessons/objectives
+- Total lessons is about ~1000 lessons
+  
+### XP & Leveling system
+
+- Each objective awards a multiple of `25 XP` (objective 1 = 25 XP, objective 6 = 150 XP)
 - 20 ranks from Novice (0) to Eternal (20), gradual increasing difficulty curve
-- Level 20 requires 60,000 XP (~87,000 is total available XP if all lessons are completed)
+- Level 20 requires 60,000 XP (~87,000 is total available XP if all ~1000 lessons are completed)
 
-### Player HUD
+### Player Tracking
 
-- Login is completely optional, default user is Anon using local storage tracking
-- Rendered as player profile in bottom bar, fetches and shows dynamic XP stats and leveling
-- Custom avatars with each rank, border glow scales with higher levels
+- Login is completely optional, default user is Anon.
+- For guest/anonymous users, all data is tracked in the browser, fully local.
+- Player stats are rendered as RPG-style player HUD, shows dynamic XP and level status
+- Custom avatars with each rank, border glows at higher ranks
 
 ### Read Tracking
 
-- Objectives are marked read immediately when completed
-- "Reset All" button clears read status for the current quest
-- XP earned animations (+XP) just like in Mario
+- Objectives are marked complete when a user reads the full lesson
+- Users can manually reset progress on the quest page, or in the Player HUD detailed stats section
+- XP earned animations (+XP)
 
 ---
 
@@ -42,17 +51,3 @@ Each objective awards XP when completed. Players level up through 20 ranks (Novi
 - **better-sqlite3** — fast synchronous persistence layer for course & user data
 - **sqlc** - fully type-safe TS generator for handling sql queries/mutations
 - **Docker** - full production-ready CI/CD deployment from github hooks
-
-## Folder Structure
-
-```
-├── scripts/                    # Build-time utilities (Python and TS)
-├── public/
-│   └── assets/                 # Icons and backgrounds
-├── src/
-│   ├── components/             # Reusable UI components
-│   ├── db/                     # SQL files for sqlc and generated queries
-│   ├── routes/                 # File-system routing
-│   ├── server/                 # SSR functions (Nitro)
-│   └── utils/                  # Shared utilities, types, and constants
-```

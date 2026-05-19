@@ -62,11 +62,12 @@ export default function AskAI() {
       ]);
     } catch (err) {
       const error = err as Error;
+      console.error(JSON.stringify(error));
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `Oops! Something ain't right, come back later... ${JSON.stringify(error)}`,
+          content: `Oops! Something ain't right, come back later...}`,
         },
       ]);
     } finally {

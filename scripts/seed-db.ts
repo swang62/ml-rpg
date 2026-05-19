@@ -1,4 +1,4 @@
-import { copyFileSync, globSync, readFileSync } from "node:fs";
+import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import de from "../.data/scraped/courses/data-engineering.ts";
 import mlSysDesign from "../.data/scraped/courses/ml-system-design.ts";
@@ -16,7 +16,7 @@ import { createLesson, deleteAllLessons } from "../src/db/lesson_sql.ts";
 import { deleteAllProgress } from "../src/db/progress_sql.ts";
 import { createSection, deleteAllSections } from "../src/db/section_sql.ts";
 import { deleteAllUsers } from "../src/db/users_sql.ts";
-import { COURSE_DB_PATH, EMPTY_DB_PATH } from "../src/utils/constants";
+import { EMPTY_DB_PATH } from "../src/utils/constants.ts";
 
 const COURSES: Record<
   string,
@@ -39,7 +39,7 @@ const COURSES: Record<
 
 // ENTRY POINT
 async function main() {
-  const db = new Database(COURSE_DB_PATH);
+  const db = new Database(EMPTY_DB_PATH);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
 
@@ -81,8 +81,7 @@ async function main() {
   console.log(`Imported lessons: ${validLessons} containing valid HTML`);
   db.close();
 
-  copyFileSync(COURSE_DB_PATH, EMPTY_DB_PATH);
-  console.log("\nSeed complete.");
+  console.log(`\nSeed ${EMPTY_DB_PATH} complete.`);
 }
 
 function countLessonFiles(): number {
