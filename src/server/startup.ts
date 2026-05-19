@@ -1,3 +1,5 @@
+"use server";
+
 import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";

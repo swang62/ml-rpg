@@ -62,7 +62,7 @@ pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 
 ### Data hierarchy
 
-`Course → Category → Subsection → Lesson` (rendered via dynamic routes)
+`Course → Category → Section → Lesson` (rendered via dynamic routes)
 
 ### Game terminology
 
@@ -70,7 +70,7 @@ pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 |----------|----------|-------------|
 | WORLD | course | `[course]` |
 | LEVEL | category | `[category]` |
-| QUEST | subsection | `[subsection]` |
+| QUEST | section | `[section]` |
 | Objective | lesson | `[lesson]` |
 
 ### XP & tracking system
