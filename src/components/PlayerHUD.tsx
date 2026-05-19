@@ -160,6 +160,9 @@ export default function PlayerHUD() {
             </div>
           </Show>
         </div>
+        <span class="hud-shortcut" aria-hidden="true">
+          <kbd>P</kbd>
+        </span>
       </button>
 
       <PlayerSheet
