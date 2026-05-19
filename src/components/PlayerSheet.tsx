@@ -1,5 +1,7 @@
 import { useAction, useSubmission } from "@solidjs/router";
 import Check from "lucide-solid/icons/check";
+import CornerDownLeft from "lucide-solid/icons/corner-down-left";
+import Delete from "lucide-solid/icons/delete";
 import LogIn from "lucide-solid/icons/log-in";
 import LogOut from "lucide-solid/icons/log-out";
 import Pencil from "lucide-solid/icons/pencil";
@@ -310,31 +312,28 @@ export default function PlayerSheet(props: Props) {
             {/* Keyboard Shortcuts */}
             <div class="shortcuts-bar">
               <span class="shortcuts-bar__item">
-                <kbd>S</kbd>
-                <span class="shortcuts-bar__label">search</span>
-              </span>
-              <span class="shortcuts-bar__item">
                 <kbd>H</kbd>
-                <span class="shortcuts-bar__label">help</span>
+                <span class="shortcuts-bar__label">chat</span>
               </span>
               <span class="shortcuts-bar__item">
                 <kbd>P</kbd>
                 <span class="shortcuts-bar__label">profile</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd class="kbd--icon">←</kbd>
-                <kbd class="kbd--icon">→</kbd>
-                <kbd class="kbd--icon">↑</kbd>
-                <kbd class="kbd--icon">↓</kbd>
-                <span class="shortcuts-bar__label">nav</span>
+                <kbd>S</kbd>
+                <span class="shortcuts-bar__label">search</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd class="kbd--icon">↵</kbd>
+                <CornerDownLeft size={14} />
                 <span class="shortcuts-bar__label">select</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd class="kbd--icon">Esc</kbd>
-                <span class="shortcuts-bar__label">close</span>
+                <Delete size={14} />
+                <span class="shortcuts-bar__label">back</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd>Esc</kbd>
+                <span class="shortcuts-bar__label">cancel</span>
               </span>
             </div>
           </div>
