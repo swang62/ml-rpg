@@ -48,12 +48,12 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ## Motivation
 
-I created this repo to initially learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new web development libraries and RAG/agentic workflows and implementation. Also practicing my frontend design UI/UX skills. Truly meta-level learning.
+I created this repo to initially learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new web development libraries and RAG/agentic workflows and implementation. Also practicing my frontend design UI/UX skills. Truly meta-level learning on learning action.
 
 ## Development
 
-For a full breakdown of the repo architecture, tech stack, configuration, and development commands, see [AGENTS.md](AGENTS.md).
+For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
 
 ## License
 
-MIT. See [LICENSE.md](LICENSE.md). 
+MIT. Do what you will. [LICENSE.md](LICENSE.md). 
