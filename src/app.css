@@ -801,6 +801,11 @@ a {
   flex: 1;
   min-width: 0;
   font-family: var(--font-display);
+  text-align: left;
+  text-transform: none;
+  font-weight: 400;
+  margin: 0;
+  color: var(--heading);
 }
 
 .card--lesson .lesson-order {
@@ -1660,9 +1665,9 @@ main {
   }
 }
 
-/* ===== Lesson header ===== */
+/* ===== Lesson header (scoped to lesson page) ===== */
 
-.lesson-title {
+.lesson-card .lesson-title {
   text-align: center;
   display: flex;
   justify-content: center;
@@ -1681,25 +1686,25 @@ main {
   color: var(--muted);
 }
 
-.lesson-title:not(.lesson-title--read):hover {
+.lesson-card .lesson-title:not(.lesson-title--read):hover {
   transform: scale(1.1);
 }
 
-.lesson-title__ext-link {
+.lesson-card .lesson-title__ext-link {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
-.lesson-title:hover .lesson-title__ext-link {
+.lesson-card .lesson-title:hover .lesson-title__ext-link {
   opacity: 1;
 }
 
-.lesson-title--read {
+.lesson-card .lesson-title--read {
   color: var(--muted);
   opacity: 0.5;
 }
 
-.lesson-title--read .lesson-xp-badge {
+.lesson-card .lesson-title--read .lesson-xp-badge {
   opacity: 1;
 }
 
