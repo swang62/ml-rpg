@@ -7,10 +7,10 @@ import { ensureVectorStore } from "~/server/startup";
 import {
   GITHUB_REPO_URL,
   LANCEDB_PATH,
-  MIN_HYBRID_SCORE,
   RAG_BM25_WEIGHT,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
+  RAG_MIN_SCORE,
   RAG_VECTOR_WEIGHT,
   VOYAGE_MODEL,
 } from "~/utils/constants";
@@ -155,7 +155,7 @@ async function hybridSearch(
   }
 
   return merged
-    .filter((c) => c.score >= MIN_HYBRID_SCORE)
+    .filter((c) => c.score >= RAG_MIN_SCORE)
     .sort((a, b) => b.score - a.score)
     .slice(0, RAG_MAX_SOURCES);
 }

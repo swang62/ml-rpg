@@ -11,12 +11,12 @@ services:
     volumes:
       - course-data:/app/.data
     environment:
-      - SESSION_SECRET=${SESSION_SECRET}
-      - PORT=${PORT:-3333}
-      - COURSE_DB_PATH=/app/.data/course.db
-      - LANCEDB_PATH=/app/.data/search
-      - VOYAGE_API_KEY=${VOYAGE_API_KEY}
+      - COURSE_DB_PATH=${COURSE_DB_PATH:-./.data/course.db}
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - LANCEDB_PATH=${LANCEDB_PATH:-./.data/search}
+      - PORT=${PORT:-3333}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - VOYAGE_API_KEY=${VOYAGE_API_KEY}
 
 volumes:
   course-data:

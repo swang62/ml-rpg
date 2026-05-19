@@ -77,7 +77,9 @@ export function ensureCourseDb(): void {
   if (existsSync(COURSE_DB_PATH)) return;
   if (existsSync(EMPTY_DB_PATH)) {
     copyFileSync(EMPTY_DB_PATH, COURSE_DB_PATH);
-    console.log(`[startup] Copied ${EMPTY_DB_PATH} → ${COURSE_DB_PATH}`);
+    console.log(
+      `[startup] Initialized ${COURSE_DB_PATH}, make sure to create a first user!`,
+    );
     return;
   }
   console.error(

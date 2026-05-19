@@ -14,12 +14,16 @@ export const RAG_MAX_HISTORY = 3;
 export const RAG_MAX_SOURCES = 3;
 export const RAG_BM25_WEIGHT = 0.6;
 export const RAG_VECTOR_WEIGHT = 0.4;
-export const MIN_HYBRID_SCORE = 0.2;
+export const RAG_MIN_SCORE = 0.2;
+export const RAG_BATCH_SIZE = 100;
+export const RAG_CHUNK_SIZE = 512;
+export const RAG_CHUNK_OVERLAP = 0;
+
 export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
 
 // Database / Storage paths — configurable via env vars
-export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "./.data/course.db";
-export const LANCEDB_PATH = process.env.LANCEDB_PATH || "./.data/search";
+export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "";
+export const LANCEDB_PATH = process.env.LANCEDB_PATH || "";
 export const EMPTY_DB_PATH = "src/db/empty.db";
 export const COURSE_INFO_PATH = "README.md";
 

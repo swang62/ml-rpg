@@ -2,7 +2,7 @@
 
 ## Stack
 
-- **SolidStart** (not React/Next.js) with `@solidjs/router` and `@solidjs/meta`
+- **SolidStart** with `@solidjs/router` and `@solidjs/meta`
 - Build via **Vinxi** (not Vite directly): `vinxi dev` / `vinxi build`
 - **SSR mode** (`ssr: true`) via a Nitro node-server
 - Lesson content loaded server-side via `"use server"` functions
@@ -18,11 +18,23 @@ pnpm preview    # serve built app via node .output/server/index.mjs
 pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 ```
 
+## Folder Structure
+
+```
+├── scripts/                    # Build-time utilities (Python and TS)
+├── public/
+│   └── assets/                 # Icons and backgrounds
+├── src/
+│   ├── components/             # Reusable UI components
+│   ├── db/                     # SQL files for sqlc and generated queries
+│   ├── routes/                 # File-system routing
+│   ├── server/                 # SSR functions (Nitro)
+│   └── utils/                  # Shared utilities, types, and constants
+```
+
 > **The user controls the dev server.** Never kill, restart, reload, start, or stop `pnpm dev`. The user starts it manually and it has HMR — edits are reflected instantly without a restart. If the page at `localhost:3000` shows stale content, wait for HMR to pick up the change. You can run linting and building to check things if needed.
 > Run `pnpm lint` before pushing — it handles formatting, linting, type checking in one pass.
-> Run `fallow` only when checking for dead code / duplication / complexity.
-
-No test framework is configured.
+> Run `fallow` when checking for dead code / duplication / complexity.
 
 ## Code Style & Linting
 

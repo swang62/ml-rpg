@@ -40,11 +40,11 @@
   --surface-glass: rgba(13, 15, 20, 0.65);
 
   /* Hierarchy tints and glows */
-  --tint-course: rgba(167, 139, 250, 0.1);
-  --tint-course-hover: rgba(167, 139, 250, 0.15);
-  --tint-category: rgba(52, 211, 153, 0.1);
-  --tint-section: rgba(251, 191, 36, 0.1);
-  --tint-accent: rgba(96, 165, 250, 0.1);
+  --tint-course: rgba(167, 139, 250, 0.2);
+  --tint-course-hover: rgba(167, 139, 250, 0.3);
+  --tint-category: rgba(52, 211, 153, 0.2);
+  --tint-section: rgba(251, 191, 36, 0.2);
+  --tint-accent: rgba(96, 165, 250, 0.2);
   --border-glow-course: rgba(167, 139, 250, 0.3);
   --border-glow-category: rgba(52, 211, 153, 0.25);
   --border-glow-section: rgba(251, 191, 36, 0.2);
@@ -1196,7 +1196,7 @@ a {
   height: 36px;
   padding: 0 14px;
   border: 2px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
