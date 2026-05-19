@@ -1281,18 +1281,43 @@ a {
   line-height: 1;
 }
 
-.shortcut-key {
+.shortcuts-bar {
+  position: absolute;
+  top: 10px;
+  right: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .shortcuts-bar {
+    display: none;
+  }
+}
+
+.shortcuts-bar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.55rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.shortcuts-bar__item kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 5px;
-  background: rgba(255, 255, 255, 0.08);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-hover);
-  border-radius: 4px;
+  border-radius: 3px;
   font-family: inherit;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: var(--base);
   line-height: 1;
 }

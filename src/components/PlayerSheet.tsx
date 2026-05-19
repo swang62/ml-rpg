@@ -142,7 +142,7 @@ export default function PlayerSheet(props: Props) {
         />
 
         <div class="fixed inset-0 z-10000 flex items-center justify-center pointer-events-none">
-          <div class="pointer-events-auto w-[min(740px,88vw)] max-h-[min(85vh,720px)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
+          <div class="pointer-events-auto w-[min(740px,88vw)] max-h-[min(85vh,720px)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
             {/* Player info */}
             <div class="flex flex-col gap-2 items-center">
               <div class="grid grid-cols-2 md:grid-cols-5 items-center gap-8 w-full">
@@ -311,43 +311,38 @@ export default function PlayerSheet(props: Props) {
             </div>
 
             {/* Keyboard Shortcuts */}
-            <div class="border-t border-border pt-4 mt-2">
-              <div class="font-pixel text-[0.55rem] text-muted tracking-[0.06em] uppercase text-center mb-3">
-                Keyboard Shortcuts
-              </div>
-              <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
-                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
-                  <kbd class="shortcut-key">⌫</kbd>
-                  <span>Go back</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
-                  <kbd class="shortcut-key">{isMac() ? "⌘" : "Ctrl"}</kbd>
-                  <span class="text-muted">+</span>
-                  <kbd class="shortcut-key">K</kbd>
-                  <span>Search</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
-                  <kbd class="shortcut-key">{isMac() ? "⌘" : "Ctrl"}</kbd>
-                  <span class="text-muted">+</span>
-                  <kbd class="shortcut-key">H</kbd>
-                  <span>Ask AI</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
-                  <kbd class="shortcut-key">←</kbd>
-                  <kbd class="shortcut-key">→</kbd>
-                  <kbd class="shortcut-key">↑</kbd>
-                  <kbd class="shortcut-key">↓</kbd>
-                  <span>Navigate</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
-                  <kbd class="shortcut-key">↵</kbd>
-                  <span>Select</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 font-pixel text-[0.6rem] text-base">
-                  <kbd class="shortcut-key">Esc</kbd>
-                  <span>Close</span>
-                </span>
-              </div>
+            <div class="shortcuts-bar">
+              <span class="shortcuts-bar__item">
+                <kbd>⌫</kbd>
+                <span>back</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd>{isMac() ? "⌘" : "Ctrl"}</kbd>
+                <span>+</span>
+                <kbd>K</kbd>
+                <span>search</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd>{isMac() ? "⌘" : "Ctrl"}</kbd>
+                <span>+</span>
+                <kbd>H</kbd>
+                <span>AI</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd>←</kbd>
+                <kbd>→</kbd>
+                <kbd>↑</kbd>
+                <kbd>↓</kbd>
+                <span>nav</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd>↵</kbd>
+                <span>select</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd>Esc</kbd>
+                <span>close</span>
+              </span>
             </div>
           </div>
         </div>
