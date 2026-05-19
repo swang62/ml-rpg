@@ -188,10 +188,31 @@ function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
 
 ////////////////////////////////////////////////////////
 
+const JAILBREAK_MODEL = "meta-llama/llama-prompt-guard-2-22m";
+const JAILBREAK_THRESHOLD = 0.5;
+
+async function detectJailbreak(query: string): Promise<boolean> {
+  try {
+    const completion = await groq.chat.completions.create({
+      model: JAILBREAK_MODEL,
+      messages: [{ role: "user", content: query }],
+    });
+    const raw = completion.choices[0]?.message?.content?.trim() ?? "0";
+    const score = Number.parseFloat(raw);
+    return !Number.isNaN(score) && score > JAILBREAK_THRESHOLD;
+  } catch {
+    return false;
+  }
+}
+
 export async function queryRAG({
   query,
   history = [],
 }: QueryRAGInput): Promise<QueryRAGResult> {
+  if (await detectJailbreak(query)) {
+    return { answer: "Sorry, I can't help with that.", sources: [] };
+  }
+
   const embedding = await embedQuery(query);
   const chunks = await hybridSearch(query, embedding);
   const sources = deduplicateSources(chunks);
