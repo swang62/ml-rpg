@@ -1,47 +1,77 @@
 # AGENTS.md
 
-## Stack
+## Tech Stack
 
-- **SolidStart** with `@solidjs/router` and `@solidjs/meta`
-- Build via **Vinxi** (not Vite directly): `vinxi dev` / `vinxi build`
+- **SolidStart** meta-framework (SolidJS) with `@solidjs/router` and `@solidjs/meta`
+- **Vinxi** (not Vite directly): build tool and dev server with HMR `vinxi dev` / `vinxi build`
 - **SSR mode** (`ssr: true`) via a Nitro node-server
-- Lesson content loaded server-side via `"use server"` functions
-- Package manager: **pnpm**
-- Node >= 22
+- **better-sqlite3** — fast synchronous persistence layer for course & user data
+- **sqlc** — fully type-safe TS generator for handling sql queries/mutations
+- **LanceDB** (`@lancedb/lancedb`) — vector store for RAG (hybrid vector + BM25 search)
+- **Groq SDK** — LLM provider for RAG answers (`llama-3.1-8b-instant`)
+- **Voyage AI** — contextualized embedding model (`voyage-context-3`)
+- **MiniSearch** — client-side style full-text search for lesson content
+- **Docker** — CI/CD containerized deployment to any VPS
+- **lucide-solid** — icon library
 
 ## Commands
 
+Package manager is pnpm, Node >= 22
+
 ```bash
-pnpm dev        # dev server (HMR enabled — use for inspection)
-pnpm build      # production build → Nitro server
-pnpm preview    # serve built app via node .output/server/index.mjs
-pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
-```
-
-## Folder Structure
-
-```
-├── scripts/                    # Build-time utilities (Python and TS)
-├── public/
-│   └── assets/                 # Icons and backgrounds
-├── src/
-│   ├── components/             # Reusable UI components
-│   ├── db/                     # SQL files for sqlc and generated queries
-│   ├── routes/                 # File-system routing
-│   ├── server/                 # SSR functions (Nitro)
-│   └── utils/                  # Shared utilities, types, and constants
+pnpm dev              # dev server (HMR enabled — use for inspection)
+pnpm build            # production build → Nitro server
+pnpm preview          # serve built app via node .output/server/index.mjs
+pnpm lint             # biome check --write . && pnpm typecheck
+pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
+pnpm seed             # tsx ./scripts/seed-db.ts — re-seed course.db from scraped lesson files
+pnpm build:docker     # docker compose up --build --force-recreate -d
+pnpm typecheck        # pnpm tsc --noEmit
 ```
 
 > **The user controls the dev server.** Never kill, restart, reload, start, or stop `pnpm dev`. The user starts it manually and it has HMR — edits are reflected instantly without a restart. If the page at `localhost:3000` shows stale content, wait for HMR to pick up the change. You can run linting and building to check things if needed.
 > Run `pnpm lint` before pushing — it handles formatting, linting, type checking in one pass.
-> Run `fallow` when checking for dead code / duplication / complexity.
+
+## Folder Structure
+
+```
+├── scripts/                    # One-time utilities (Python and TS) for scraping/migration
+├── public/
+│   └── assets/                 # Icons and backgrounds
+├── src/
+│   ├── components/             # Reusable UI components
+│   ├── db/                     # SQL files for sqlc and generated query functions
+│   │   ├── raw/                #   Raw .sql files (schema + queries)
+│   │   ├── empty.db            #   Pre-seeded empty course database template
+│   │   └── *_sql.ts            #   Generated typed query functions (DO NOT EDIT)
+│   ├── routes/                 # File-system routing
+│   │   ├── index.tsx           # Homepage (world/course selection)
+│   │   ├── [course]/           # Dynamic course routes
+│   │   └── [...404].tsx        # 404 catch-all
+│   ├── server/                 # SSR functions ("use server")
+│   │   ├── startup.ts          #   Startup checks (ensureCourseDb, ensureVectorStore)
+│   │   ├── auth.ts             #   Login/logout actions
+│   │   ├── course.ts           #   Course/category/section/lesson queries
+│   │   ├── lesson.ts           #   Lesson HTML query
+│   │   ├── mutations.ts        #   Progress mutations (mark read, reset)
+│   │   ├── progress.ts         #   XP & read status queries
+│   │   ├── rag.ts              #   RAG (Retrieval-Augmented Generation) via LanceDB + Groq
+│   │   ├── search.ts           #   Full-text search via MiniSearch
+│   │   ├── session.ts          #   Session management (PBKDF2)
+│   │   └── user.ts             #   User profile actions
+│   └── utils/
+│       ├── constants.ts        #   All app constants and configuration
+│       ├── storage.ts          #   better-sqlite3 singleton connection
+│       ├── client-storage.ts   #   Anonymous user localStorage persistence
+│       └── xp.ts               #   XP/level calculation helpers
+```
 
 ## Code Style & Linting
 
 - **Biome** handles both linting and formatting (no ESLint/Prettier)
 - Double quotes, 2-space indent, organize imports on save
 - Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
-- `pnpm lint` includes Biome checks, TypeScript type checking, and a fallow audit (dead code, complexity, duplication) all in one command.
+- `pnpm lint` includes Biome checks and TypeScript type checking in one pass.
 
 ### Database Queries
 
@@ -56,31 +86,195 @@ pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 
 ## Architecture
 
-- Lesson content and course metadata are loaded server-side via `"use server"` functions from a `better-sqlite3` database
-- Lessons use `innerHTML` for content — global CSS in `app.css` styles everything
-- Database location is configured via `COURSE_DB_PATH` env var (defaults to `./.data/course.db`)
-
 ### Data hierarchy
 
-`Course → Category → Section → Lesson` (rendered via dynamic routes)
+```
+Course → Category → Section → Lesson
+```
+
+Rendered via dynamic routes at `/[course]/[category]/[section]/[lesson]`.
 
 ### Game terminology
 
-| UI Label | Internal | Route Param |
-|----------|----------|-------------|
-| WORLD | course | `[course]` |
-| LEVEL | category | `[category]` |
-| QUEST | section | `[section]` |
-| Objective | lesson | `[lesson]` |
+| UI Label   | Internal | Route Param    |
+|------------|----------|----------------|
+| WORLD      | course   | `[course]`     |
+| LEVEL      | category | `[category]`   |
+| QUEST      | section  | `[section]`    |
+| Objective  | lesson   | `[lesson]`     |
 
-### XP & tracking system
+### Persistence
 
-- XP, read status, and lesson content stored server-side in a `better-sqlite3` database at `COURSE_DB_PATH`
-- Vector store (LanceDB) for RAG is auto-rebuilt on first request if missing via `src/server/startup.ts`
-- `"use server"` functions in `src/server/` handle all persistence
-- Data is fetched once on page load — no polling for lesson content or read status
-- Read status is tracked via an `IntersectionObserver` sentinel in `LessonTracker`; when the sentinel scrolls into view, the lesson is immediately marked read
-- Toast notification ("Objective Complete") appears briefly at the bottom-center of the lesson page
+- **Signed-in users:** All progress stored server-side in a `better-sqlite3` database at `COURSE_DB_PATH`. Login is optional — purely for cross-device progress saving.
+- **Anonymous users:** Progress stored in `localStorage` under `read:{course}:{category}:{section}:{lesson}` keys, managed via `src/utils/client-storage.ts`. A reactive `version` signal triggers UI updates on any change.
+
+### Database location
+
+Configured entirely via environment variables (no dev/prod auto-detection):
+
+| Env var           | Default             | Purpose                           |
+|-------------------|---------------------|-----------------------------------|
+| `COURSE_DB_PATH`  | `./.data/course.db` | SQLite database path              |
+| `LANCEDB_PATH`    | `./.data/search`    | LanceDB vector store directory    |
+| `SESSION_SECRET`  | —                   | Session encryption key            |
+
+Hardcoded references (set at build time):
+- `EMPTY_DB_PATH = "src/db/empty.db"` — template DB copied on first run if `COURSE_DB_PATH` is missing
+- `COURSE_INFO_PATH = "README.md"` — site info document embedded into the vector index
+
+### Server modules
+
+All data access goes through `"use server"` functions in `src/server/`. The `getDb()` singleton in `src/utils/storage.ts` manages the `better-sqlite3` connection with WAL mode.
+
+#### Module overview
+
+| File            | Exports                                           |
+|-----------------|---------------------------------------------------|
+| `storage.ts`    | `getDb()` — singleton SQLite connection           |
+| `startup.ts`    | `ensureCourseDb()`, `ensureVectorStore()`         |
+| `course.ts`     | Course/category/section/lesson metadata queries   |
+| `lesson.ts`     | `getLessonHTMLQuery()`                            |
+| `progress.ts`   | XP totals, read status, completion counts         |
+| `mutations.ts`  | `markLessonReadAction`, `resetSectionAction`, `resetAllProgressAction` |
+| `auth.ts`       | `formLogin`, `logoutAction`, `querySession`       |
+| `session.ts`    | Session cookie management, PBKDF2 password hashing |
+| `user.ts`       | `updateUserNameAction`                            |
+| `search.ts`     | Full-text search via MiniSearch                   |
+| `rag.ts`        | RAG via LanceDB hybrid search + Groq LLM          |
+
+### Startup initialization
+
+On first database access (lazy, inside `getDb()` in `storage.ts`):
+
+1. **`ensureCourseDb()`** — checks if `COURSE_DB_PATH` exists. If not, copies `EMPTY_DB_PATH` to it. If `EMPTY_DB_PATH` also missing, logs an error with guidance.
+
+On first RAG request (lazy, inside `getChunksTable()` in `rag.ts`):
+
+2. **`ensureVectorStore()`** — checks if `<LANCEDB_PATH>/chunks.lance` exists. If missing (or empty dir), rebuilds the entire vector index:
+   - Reads all lessons from the course DB
+   - Chunks text via `RecursiveCharacterTextSplitter` (512 chars, 0 overlap)
+   - Generates contextualized embeddings via Voyage AI API (batched 100 groups at a time)
+   - Writes to LanceDB with FTS (BM25) index
+   - Also embeds `COURSE_INFO_PATH` (README.md) as a site overview document
+
+This means both the course DB and vector store are self-healing — no manual setup steps.
+
+### XP & Leveling system
+
+- Each lesson awards `lesson_order * 25 XP` (lesson 1 = 25 XP, lesson 6 = 150 XP)
+- 20 ranks: Novice (0) → Eternal (20), with increasing difficulty
+- Level 20 requires 70,000 XP (~87,000 total available across all ~1000 lessons)
+- XP levels and avatar tiers defined in `src/utils/constants.ts`
+- The `PlayerHUD` component shows an animated XP counter that smoothly counts up on change
+- Rank tiers have distinct avatar border colors and glow effects
+
+### Read tracking
+
+- Read status tracked via an `IntersectionObserver` sentinel in `LessonTracker` — when the lesson bottom scrolls into view, it's immediately marked read
+- A toast notification ("Objective Complete") appears briefly at the bottom-center of the lesson page
+- Data fetched once on page load — no polling
+- `createAsync` with SolidStart's router cache ensures fresh data after mutations
+- Users can reset progress per-section (quest page) or globally (Player Sheet)
+
+### Search (full-text)
+
+- `MiniSearch` index built in-memory on first search request
+- Indexes lesson title + extracted relevant text (h1, strong tags, key takeaways, border-left blocks)
+- Title boosted at 1.2x weight
+- Prefix + fuzzy matching (0.2)
+- Capped at `SEARCH_MAX_RESULTS` (5) results
+
+### RAG (Ask AI / "Bob")
+
+- Button in header opens an in-page chat panel with "Bob the Guide"
+- Hybrid search across LanceDB: vector cosine similarity (weighted) + BM25 FTS
+- Top chunks passed as context to Groq (`llama-3.1-8b-instant`)
+- Results include source lesson links
+- Chat history limited to `RAG_MAX_HISTORY` (3) exchanges
+- Input auto-focuses on open and after every send
+- Send button styled with green accent (`--level-category`)
+
+### Client-side state (anonymous users)
+
+- All `read:*` keys in localStorage
+- Display name stored under `user:displayName`
+- A global `version` signal in `client-storage.ts` is bumped on any mutation — components read `version()` in memos/effects to reactively re-evaluate from localStorage
+- Mark lesson read, reset section, reset all progress — all bump the version signal
+
+### Reset All Progress
+
+- Red "Reset All" button in the Player Sheet, inline with Sign In/Out
+- Opens a confirmation modal with "This cannot be undone" warning
+- **Signed-in users:** calls `resetAllProgressAction` which deletes all `progress` rows for the session user
+- **Anonymous users:** calls `resetAnonAllProgress()` which removes all `read:*` localStorage keys and bumps the version signal
+- Player Sheet closes after reset to show the updated HUD
+
+## Environment Variables
+
+| Variable           | Required | Default             | Purpose                                |
+|--------------------|----------|---------------------|----------------------------------------|
+| `COURSE_DB_PATH`   | No       | `./.data/course.db` | Path to SQLite database                |
+| `LANCEDB_PATH`     | No       | `./.data/search`    | Path to LanceDB vector store           |
+| `SESSION_SECRET`   | Yes*     | —                   | Session encryption (random string)     |
+| `VOYAGE_API_KEY`   | Yes*     | —                   | Embedding API (for vector store build) |
+| `GROQ_API_KEY`     | Yes*     | —                   | LLM API for RAG answers                |
+| `PORT`             | No       | `3333`              | Server port (Docker)                   |
+| `HOST`             | No       | `0.0.0.0`           | Server host (Docker)                   |
+
+*Session/API keys required for full functionality. The app runs without them — RAG and login simply disable.
+
+## Docker Deployment
+
+### Build process
+
+```yaml
+# docker-compose.yaml
+services:
+  ml-rpg:
+    build: .
+    ports:
+      - "${PORT:-3333}:${PORT:-3333}"
+    volumes:
+      - course-data:/app/.data      # Persist database + vector store
+    environment:
+      - COURSE_DB_PATH=./.data/course.db
+      - LANCEDB_PATH=./.data/search
+      - SESSION_SECRET=...
+      - VOYAGE_API_KEY=...
+      - GROQ_API_KEY=...
+```
+
+### Dockerfile stages
+
+1. **Build stage** (`node:26-alpine`): installs pnpm, copies deps, runs `pnpm build` → produces `.output/` Nitro server
+2. **Runtime stage** (`node:26-alpine`):
+   - Copies `src/db/empty.db` to `.data/course.db` as initial seed
+   - Copies `README.md` for vector index site info
+   - Sets `COURSE_DB_PATH` and `LANCEDB_PATH` defaults
+   - Runs as non-root `www` user
+   - Volume at `/app/.data` persists the SQLite DB and LanceDB across restarts
+
+### First start behavior
+
+1. `ensureCourseDb()` finds the pre-seeded `course.db` → no-op
+2. On first RAG request: `ensureVectorStore()` finds no `chunks.lance` → auto-builds vector index from course content using Voyage AI (requires `VOYAGE_API_KEY`)
+3. Subsequent starts: both DB and vector store are already present from the volume
+
+### Local development
+
+```bash
+# Default: DB auto-seeded from src/db/empty.db on first getDb() call
+pnpm dev
+
+# Override DB path
+COURSE_DB_PATH=/custom/path/course.db pnpm dev
+
+# Re-seed from scraped lesson files (requires .data/scraped/ directory)
+pnpm seed
+
+# Run the built production server
+pnpm build && pnpm preview
+```
 
 ## Path Alias
 
@@ -88,7 +282,11 @@ pnpm lint       # biome check --write . && pnpm typecheck && fallow audit
 
 ## Scripts
 
-`scripts/` contains one-off utilities (Python and TS/JS) for extracting/migrating URL data — not part of the build.
+`scripts/` contains one-off utilities for data pipeline — not part of the build:
+
+- `scripts/seed-db.ts` — Re-seeds `COURSE_DB_PATH` from scraped lesson HTML files in `.data/scraped/`
+- `scripts/scraping/*.py` — Python scripts for extracting sitemap URLs and scraping lesson HTML
+- `scripts/scraping/extract_orders.ts` — Fetches lesson order metadata
 
 ## Commits
 
