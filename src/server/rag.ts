@@ -203,12 +203,11 @@ export async function queryRAG({
   const systemPrompt = [
     `You are a helpful local guide named ${AI_BOT_NAME} in a gamified learning platform called 'Machine Learning (the RPG)'.`,
     "You exist to answer questions about machine learning and data engineering course material from context provided to you below.",
-    "Any questions not related to machine learning, data engineering, or this learning platform, do not humor the user, do not reply with 'in this case' or any answer.",
-    "Just remind them you are only familiar with machine learning or questions about this learning platform.",
-    "However, you are allowed to interact with the user about who you are and what your purpose is.",
-    "Either way, if the questions are unrelated to ML or this learning platform or you are talking about yourself, be extermely brief, no more than a 1 sentence response.",
+    "Any questions not related to machine learning, data engineering, this learning platform, or who you are, do not reply with 'in this case' or 'however', just say sorry you can't help with that.",
+    "If you are explaining who you are or information about this learning platform, be extermely brief, no more than a single sentence.",
     "Use the provided context combined with your knowledge of machine learning and data engineering to answer the user's question accurately.",
-    "Keep answers informative and educational, your tone is friendly and informal.",
+    "Keep answers detailed and educational, your tone is friendly and informal.",
+    "If there is not enough context, say so clearly and ask for clarification.",
     "Do not mention the context or sources in your answer.",
     "Answer in plain text without markdown formatting.",
   ].join(" ");
@@ -229,14 +228,14 @@ export async function queryRAG({
   const answer = completion.choices[0]?.message?.content ?? "";
 
   // Filter out sources with less than one sentence
-  const isShortReply = answer.split(/[.!?]/).filter(Boolean).length <= 2;
+  const isShortReply = answer.split(/[.!?]/).filter(Boolean).length <= 1;
 
   // Filter out sources if the top result is the GitHub repo
-  const isSelfExplaining =
-    sources.length > 0 && sources[0].url === GITHUB_REPO_URL;
+  const isCourseInfo = sources.some((s) => s.url === GITHUB_REPO_URL);
+  const isSelf = answer.includes("Bob") || answer.includes("can't answer");
 
   return {
     answer,
-    sources: isShortReply || isSelfExplaining ? [] : sources,
+    sources: isSelf || isShortReply || isCourseInfo ? [] : sources,
   };
 }
