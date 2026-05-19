@@ -1,5 +1,12 @@
 import MessageBox from "lucide-solid/icons/message-square-text";
-import { createEffect, createSignal, For, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG, type SourceResult } from "~/server/rag";
@@ -39,6 +46,24 @@ export default function AskAI() {
     if (isOpen()) {
       requestAnimationFrame(() => inputRef?.focus());
     }
+  });
+
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.includes("Mac");
+
+  onMount(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "h") {
+        e.preventDefault();
+        if (isOpen()) {
+          requestAnimationFrame(() => inputRef?.focus());
+        } else {
+          setIsOpen(true);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
+    onCleanup(() => document.removeEventListener("keydown", handleKeydown));
   });
 
   const toggleOpen = () => {
@@ -97,12 +122,16 @@ export default function AskAI() {
     <>
       <button
         type="button"
-        class="askai-trigger justify-center gap-2"
+        class="askai-trigger"
         onClick={toggleOpen}
         aria-label="Ask AI for help"
       >
         <MessageBox size={18} />
         <span class="hidden md:inline">Ask for help</span>
+        <span class="askai-shortcut" aria-hidden="true">
+          <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>
+          <kbd>H</kbd>
+        </span>
       </button>
 
       <Show when={isOpen()}>
