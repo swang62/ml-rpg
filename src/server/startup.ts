@@ -86,7 +86,7 @@ export function ensureCourseDb(): void {
 }
 
 export async function ensureVectorStore(): Promise<void> {
-  if (existsSync(LANCEDB_PATH)) return;
+  if (existsSync(`${LANCEDB_PATH}/chunks.lance`)) return;
   if (_buildPromise) return _buildPromise;
   _buildPromise = buildVectorIndex();
   return _buildPromise;
