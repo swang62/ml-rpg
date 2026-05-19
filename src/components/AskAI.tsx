@@ -48,9 +48,6 @@ export default function AskAI() {
     }
   });
 
-  const isMac =
-    typeof navigator !== "undefined" && navigator.platform.includes("Mac");
-
   onMount(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "h") {
@@ -62,8 +59,19 @@ export default function AskAI() {
         }
       }
     };
+    const handleShortcut = () => {
+      if (isOpen()) {
+        requestAnimationFrame(() => inputRef?.focus());
+      } else {
+        setIsOpen(true);
+      }
+    };
     document.addEventListener("keydown", handleKeydown);
-    onCleanup(() => document.removeEventListener("keydown", handleKeydown));
+    document.addEventListener("shortcut:askai", handleShortcut);
+    onCleanup(() => {
+      document.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("shortcut:askai", handleShortcut);
+    });
   });
 
   const toggleOpen = () => {
@@ -122,14 +130,13 @@ export default function AskAI() {
     <>
       <button
         type="button"
-        class="askai-trigger"
+        class="askai-trigger gap-2"
         onClick={toggleOpen}
         aria-label="Ask AI for help"
       >
         <MessageBox size={18} />
         <span class="hidden md:inline">Ask for help</span>
         <span class="askai-shortcut" aria-hidden="true">
-          <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>
           <kbd>H</kbd>
         </span>
       </button>

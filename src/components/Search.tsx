@@ -49,8 +49,15 @@ export default function Search() {
         inputRef?.focus();
       }
     };
+    const handleShortcut = () => {
+      inputRef?.focus();
+    };
     document.addEventListener("keydown", handleKeydown);
-    return () => document.removeEventListener("keydown", handleKeydown);
+    document.addEventListener("shortcut:search", handleShortcut);
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("shortcut:search", handleShortcut);
+    };
   });
 
   const handleInput: JSX.EventHandler<HTMLInputElement, InputEvent> = (e) => {
@@ -124,8 +131,6 @@ export default function Search() {
     });
   };
 
-  const isMac = navigator.platform.includes("Mac");
-
   return (
     <>
       <button
@@ -178,8 +183,7 @@ export default function Search() {
             aria-label="Search objectives"
           />
           <span class="search__shortcut" aria-hidden="true">
-            <kbd>{isMac ? "\u2318" : "Ctrl"}</kbd>
-            <kbd>K</kbd>
+            <kbd>S</kbd>
           </span>
         </div>
         {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (

@@ -99,7 +99,31 @@ function KeyboardNavHandler() {
         return;
       }
 
-      if (!isArrow && e.key !== "Enter") return;
+      if (
+        !isArrow &&
+        e.key !== "Enter" &&
+        e.key !== "s" &&
+        e.key !== "h" &&
+        e.key !== "p"
+      )
+        return;
+
+      // Single-letter global shortcuts
+      if (e.key === "s") {
+        e.preventDefault();
+        document.dispatchEvent(new CustomEvent("shortcut:search"));
+        return;
+      }
+      if (e.key === "h") {
+        e.preventDefault();
+        document.dispatchEvent(new CustomEvent("shortcut:askai"));
+        return;
+      }
+      if (e.key === "p") {
+        e.preventDefault();
+        document.dispatchEvent(new CustomEvent("shortcut:profile"));
+        return;
+      }
 
       const idx = activeIndex();
 

@@ -894,6 +894,54 @@ a {
   color: var(--accent-hover);
 }
 
+.back-link .kbd--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.nav-shortcuts {
+  display: none;
+  align-items: center;
+  gap: 2px;
+}
+
+@media (min-width: 768px) {
+  .nav-shortcuts {
+    display: inline-flex;
+  }
+}
+
+.nav-shortcuts .kbd--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-hover);
+  border-radius: 3px;
+  font-size: 0.55rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.nav-shortcuts .shortcuts-bar__label {
+  margin-left: 2px;
+  font-size: 0.55rem;
+  color: var(--muted);
+}
+
 /* ===== Hero (homepage) ===== */
 
 .hero {
@@ -1269,15 +1317,15 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 3px;
-  background: rgba(255, 255, 255, 0.08);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-hover);
-  border-radius: 3px;
+  border-radius: 4px;
   font-family: inherit;
-  font-size: 0.6rem;
-  color: var(--muted);
+  font-size: 0.65rem;
+  color: var(--base);
   line-height: 1;
 }
 
@@ -1306,6 +1354,10 @@ a {
   white-space: nowrap;
 }
 
+.shortcuts-bar__label {
+  font-family: var(--font-pixel);
+}
+
 .shortcuts-bar__item kbd {
   display: inline-flex;
   align-items: center;
@@ -1316,10 +1368,19 @@ a {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-hover);
   border-radius: 4px;
-  font-family: inherit;
+  font-family: var(--font-pixel);
   font-size: 0.65rem;
   color: var(--base);
   line-height: 1;
+}
+
+.shortcuts-bar__item .kbd--icon,
+.back-link .kbd--icon {
+  font-family: inherit;
+}
+
+.kbd--icon {
+  font-family: inherit;
 }
 
 .askai-backdrop {

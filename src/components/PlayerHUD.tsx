@@ -51,6 +51,11 @@ export default function PlayerHUD() {
   onMount(() => {
     setMounted(true);
     if (!signedIn()) bumpVersion((v) => v + 1);
+    const handleProfile = () => setShowSheet(true);
+    document.addEventListener("shortcut:profile", handleProfile);
+    onCleanup(() =>
+      document.removeEventListener("shortcut:profile", handleProfile),
+    );
   });
 
   const xp = createMemo(() => {
