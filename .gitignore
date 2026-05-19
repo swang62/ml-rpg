@@ -29,6 +29,8 @@ dist
 # System Files
 .DS_Store
 Thumbs.db
+*.db-wal
+*.db-shm
 
 # sqlc
 sqlc-gen-typescript.wasm

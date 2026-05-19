@@ -21,32 +21,35 @@ function stripHtmlTags(html: string): string {
 
 /**
  * Extract search-relevant text from a lesson's HTML.
+ * Builds content step by step: h1 → key takeaways → strong tags → border-left blocks.
  */
 export function extractRelevantText(html: string): string {
-  // Match any element with border-left: 4px in its style attribute
-  const borderPattern = /<(\w+)[^>]*border-left:\s*4px[^"]*"[^>]*>.*?<\/\1>/gis;
-  const borderSections = html.match(borderPattern);
-  if (borderSections?.length) {
-    const combined = borderSections.join(" ");
-    return stripHtmlTags(combined);
+  const parts: string[] = [];
+
+  const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (h1Match) parts.push(h1Match[1]);
+
+  const strongPattern = /<strong[^>]*>([\s\S]*?)<\/strong>/gis;
+  const strongMatches = [...html.matchAll(strongPattern)];
+  for (const match of strongMatches) {
+    if (match[1].trim()) parts.push(match[1]);
   }
 
-  // Fallback: extract all <strong> content
-  const strongPattern = /<strong[^>]*>.*?<\/strong>/gis;
-  const strongMatches = html.match(strongPattern);
-  if (strongMatches?.length) {
-    const combined = strongMatches.join(" ");
-    return stripHtmlTags(combined);
+  const cardContentPattern =
+    /<span[^>]*class="[^"]*Learn_keyTakeaways[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
+  const cardMatches = [...html.matchAll(cardContentPattern)];
+  for (const match of cardMatches) {
+    if (match[1].trim()) parts.push(match[1]);
   }
 
-  // Fallback: extract the first element with visible content
-  const firstParagraph = html.match(/<div[^>]*>([\s\S]*?)<\/div>/i);
-  if (firstParagraph?.length) {
-    const cleaned = stripHtmlTags(firstParagraph[0]);
-    if (cleaned.length > 0) return cleaned;
+  const borderPattern =
+    /<(\w+)[^>]*border-left:\s*4px[^>]*>([\s\S]*?)<\/\1>/gis;
+  const borderMatches = [...html.matchAll(borderPattern)];
+  for (const match of borderMatches) {
+    if (match[2].trim()) parts.push(match[2]);
   }
 
-  return stripHtmlTags(html);
+  return stripHtmlTags(parts.join(" "));
 }
 
 interface SearchDocument {
