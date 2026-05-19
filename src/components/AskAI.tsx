@@ -1,4 +1,5 @@
 import MessageBox from "lucide-solid/icons/message-square-text";
+import X from "lucide-solid/icons/x";
 import {
   createEffect,
   createSignal,
@@ -158,7 +159,8 @@ export default function AskAI() {
                 onClick={() => setIsOpen(false)}
                 aria-label="Close"
               >
-                <kbd class="shortcut-kbd">esc</kbd>
+                <kbd class="shortcut-kbd hidden md:inline-flex">esc</kbd>
+                <X size={18} class="inline-flex md:hidden" />
               </button>
             </div>
 
