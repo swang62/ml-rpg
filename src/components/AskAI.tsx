@@ -189,13 +189,18 @@ export default function AskAI() {
                 onInput={(e) => setInputValue(e.currentTarget.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isLoading()}
+                maxLength={1000}
                 autofocus
               />
               <button
                 type="button"
                 class="askai-inputbar__send"
                 onClick={handleSend}
-                disabled={isLoading() || !inputValue().trim()}
+                disabled={
+                  isLoading() ||
+                  !inputValue().trim() ||
+                  inputValue().length > 1000
+                }
               >
                 Send
               </button>
