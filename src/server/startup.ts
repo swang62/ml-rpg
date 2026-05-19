@@ -153,25 +153,7 @@ async function buildVectorIndex(): Promise<void> {
   }
 
   try {
-    let readmeText = readFileSync(COURSE_INFO_PATH, "utf-8");
-
-    // Append site constants (excluding _PATH variables)
-    const constantsRaw = readFileSync("src/utils/constants.ts", "utf-8");
-    const constantLines: string[] = [];
-    for (const line of constantsRaw.split("\n")) {
-      const match = line.match(/^export const (\w+) = (.+);$/);
-      if (!match) continue;
-      if (match[1].endsWith("_PATH")) continue;
-      let value = match[2];
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      }
-      constantLines.push(`- ${match[1]} = ${value}`);
-    }
-    if (constantLines.length > 0) {
-      readmeText += `\n\n## Site Constants\n${constantLines.join("\n")}\n`;
-    }
-
+    const readmeText = readFileSync(COURSE_INFO_PATH, "utf-8");
     const readmeChunks = await splitter.splitText(readmeText);
     if (readmeChunks.length > 0) {
       lessonGroups.push({

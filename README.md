@@ -28,7 +28,7 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 ### XP & Leveling system
 
 - Each objective awards a multiple of `25 XP` (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
-- 20 ranks from Novice (0) to Eternal (20), gradual increasing difficulty curve
+- 20 ranks: Novice (0), Villager (1), Squire (2), Knight (3), Mage (4), Warlord (5), Champion (6), Legend (7), Mythic (8), Sage (9), Hero (10), Paladin (11), Warden (12), Overlord (13), Titan (14), Elder (15), Guardian (16), Sovereign (17), Celestial (18), Divine (19), Eternal (20) — increasing difficulty curve
 
 ### Player Tracking
 

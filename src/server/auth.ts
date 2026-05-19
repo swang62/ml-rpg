@@ -7,7 +7,6 @@ import {
 } from "~/db/users_sql";
 import { checkPassword, createHash, getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
-
 export const querySession = query(async () => {
   "use server";
   const { data } = await getSession();

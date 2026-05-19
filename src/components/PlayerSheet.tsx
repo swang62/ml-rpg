@@ -137,6 +137,17 @@ export default function PlayerSheet(props: Props) {
   });
 
   createEffect(() => {
+    // Close login modal when the user becomes signed in
+    // (handles both initial login and edge cases with submission state)
+    if (props.signedIn) {
+      if (showLogin()) {
+        setShowLogin(false);
+        props.onClose();
+      }
+      return;
+    }
+
+    // Close on successful form submission (belt-and-suspenders)
     if (
       loginSubmission.input &&
       !loginSubmission.pending &&
