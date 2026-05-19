@@ -12,13 +12,10 @@ export const SEARCH_MIN_QUERY_LENGTH = 3;
 
 export const RAG_EMBEDDING_MODEL = "voyage-context-3";
 export const RAG_BATCH_SIZE = 100;
-export const RAG_BM25_WEIGHT = 0.5;
-export const RAG_VECTOR_WEIGHT = 0.5;
 export const RAG_CHUNK_OVERLAP = 0;
 export const RAG_CHUNK_SIZE = 512;
 export const RAG_MAX_HISTORY = 2;
 export const RAG_MAX_SOURCES = 3;
-export const RAG_MIN_SCORE = 0.3;
 
 // Database / Storage paths — configurable via env vars
 export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "";

@@ -1,29 +1,35 @@
 "use server";
 
-import { connect, type Table } from "@lancedb/lancedb";
+import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import { AI_BOT_NAME } from "~/components/AskAI";
 import { ensureVectorStore } from "~/server/startup";
 import {
   GITHUB_REPO_URL,
   LANCEDB_PATH,
-  RAG_BM25_WEIGHT,
   RAG_EMBEDDING_MODEL,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
-  RAG_MIN_SCORE,
-  RAG_VECTOR_WEIGHT,
 } from "~/utils/constants";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 let _table: Table | null = null;
-async function getChunksTable(): Promise<Table> {
-  if (_table) return _table;
-  await ensureVectorStore();
-  const db = await connect(LANCEDB_PATH);
-  _table = await db.openTable("chunks");
+async function getChunksTable() {
+  if (!_table) {
+    await ensureVectorStore();
+    const db = await connect(LANCEDB_PATH);
+    _table = await db.openTable("chunks");
+  }
   return _table;
+}
+
+let _reranker: rerankers.RRFReranker | null = null;
+async function getReranker() {
+  if (!_reranker) {
+    _reranker = await rerankers.RRFReranker.create();
+  }
+  return _reranker;
 }
 
 export interface ChunkResult {
@@ -91,73 +97,30 @@ async function hybridSearch(
   embedding: number[],
 ): Promise<ChunkResult[]> {
   const table = await getChunksTable();
+  const reranker = await getReranker();
 
-  const [vectorResults, ftsResults] = await Promise.all([
-    table.query().nearestTo(embedding).limit(20).toArray(),
-    table.query().nearestToText(query).limit(20).toArray(),
-  ]);
+  const results = await table
+    .query()
+    .fullTextSearch(query)
+    .nearestTo(embedding)
+    .rerank(reranker)
+    .limit(RAG_MAX_SOURCES)
+    .toArray();
 
-  const vectDists = vectorResults.map(
-    (r) => (r as Record<string, unknown>)._distance as number,
-  );
-  const maxDist = Math.max(...vectDists);
-  const minDist = Math.min(...vectDists);
-
-  const vectorMap = new Map(
-    vectorResults.map((r) => {
-      const row = r as Record<string, unknown>;
-      const rawDist = row._distance as number;
-      const normScore =
-        maxDist === minDist ? 1 : 1 - (rawDist - minDist) / (maxDist - minDist);
-      return [row.id as string, { row, vectorScore: normScore }];
-    }),
-  );
-
-  const ftsScores = ftsResults.map(
-    (r) => (r as Record<string, unknown>)._score as number,
-  );
-  const maxFts = Math.max(...ftsScores);
-  const minFts = Math.min(...ftsScores);
-
-  const ftsMap = new Map(
-    ftsResults.map((r) => {
-      const row = r as Record<string, unknown>;
-      const rawScore = row._score as number;
-      const normScore =
-        maxFts === minFts ? 1 : (rawScore - minFts) / (maxFts - minFts);
-      return [row.id as string, { row, ftsScore: normScore }];
-    }),
-  );
-
-  const allIds = new Set([...vectorMap.keys(), ...ftsMap.keys()]);
-  const merged: ChunkResult[] = [];
-
-  for (const id of allIds) {
-    const v = vectorMap.get(id);
-    const f = ftsMap.get(id);
-    const source = (v?.row ?? f?.row) as Record<string, unknown>;
-
-    const bm25Score = f?.ftsScore ?? 0;
-    const vectorScore = v?.vectorScore ?? 0;
-    const score = RAG_BM25_WEIGHT * bm25Score + RAG_VECTOR_WEIGHT * vectorScore;
-
-    merged.push({
-      id: source.id as string,
-      text: source.text as string,
-      lessonTitle: source.lessonTitle as string,
-      lessonUrl: source.lessonUrl as string,
-      categoryTitle: source.categoryTitle as string,
-      sectionTitle: source.sectionTitle as string,
-      courseTitle: source.courseTitle as string,
-      chunkIndex: source.chunkIndex as number,
-      score,
-    });
-  }
-
-  return merged
-    .filter((c) => c.score >= RAG_MIN_SCORE)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, RAG_MAX_SOURCES);
+  return results.map((r) => {
+    const row = r as Record<string, unknown>;
+    return {
+      id: row.id as string,
+      text: row.text as string,
+      lessonTitle: row.lessonTitle as string,
+      lessonUrl: row.lessonUrl as string,
+      categoryTitle: row.categoryTitle as string,
+      sectionTitle: row.sectionTitle as string,
+      courseTitle: row.courseTitle as string,
+      chunkIndex: row.chunkIndex as number,
+      score: row._relevance_score as number,
+    };
+  });
 }
 
 function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
@@ -224,7 +187,7 @@ export async function queryRAG({
     "Any questions not related to machine learning, data engineering, this learning platform, or who you are, do not reply with 'in this case' or 'however', just say sorry you can't help with that.",
     "If you are explaining who you are or information about this learning platform, be extermely brief, no more than a single sentence.",
     "Use the provided context combined with your knowledge of machine learning and data engineering to answer the user's question accurately.",
-    "Keep answers detailed and educational, your tone is friendly and informal.",
+    "Keep answers concise yet informative, summarize core ideas. Remain educational yet friendly and informal.",
     "If there is not enough context, or the question doesn't match the context, say so clearly and concisely.",
     "Do not mention the context or sources in your answer.",
     "Answer in plain text without markdown formatting.",
