@@ -8,11 +8,11 @@ import {
   GITHUB_REPO_URL,
   LANCEDB_PATH,
   RAG_BM25_WEIGHT,
+  RAG_EMBEDDING_MODEL,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
   RAG_MIN_SCORE,
   RAG_VECTOR_WEIGHT,
-  VOYAGE_MODEL,
 } from "~/utils/constants";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -71,7 +71,7 @@ async function embedQuery(query: string): Promise<number[]> {
       },
       body: JSON.stringify({
         inputs: [[query]],
-        model: VOYAGE_MODEL,
+        model: RAG_EMBEDDING_MODEL,
         input_type: "query",
       }),
     },
@@ -225,7 +225,7 @@ export async function queryRAG({
     "If you are explaining who you are or information about this learning platform, be extermely brief, no more than a single sentence.",
     "Use the provided context combined with your knowledge of machine learning and data engineering to answer the user's question accurately.",
     "Keep answers detailed and educational, your tone is friendly and informal.",
-    "If there is not enough context, say so clearly and ask for clarification.",
+    "If there is not enough context, or the question doesn't match the context, say so clearly and concisely.",
     "Do not mention the context or sources in your answer.",
     "Answer in plain text without markdown formatting.",
   ].join(" ");
@@ -253,7 +253,9 @@ export async function queryRAG({
   const isNoResponse =
     answer.includes("Bob") ||
     answer.includes("can't answer") ||
+    answer.includes("can't help") ||
     answer.includes("here to help") ||
+    answer.includes("happy to chat") ||
     answer.includes("not enough context");
 
   return {

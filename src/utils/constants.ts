@@ -1,25 +1,24 @@
 export const SITE_NAME = "Machine Learning (the RPG)";
+export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
 export const EXTERNAL_URL = "https://www.systemoverflow.com/learn";
 
 export const XP_VALUE = 25;
+export const XP_TOAST_TIMEOUT = 3000;
 
 export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;
 export const SEARCH_MAX_RESULTS = 5;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
-export const TOAST_TIMEOUT = 5000;
 
-export const VOYAGE_MODEL = "voyage-context-3";
-export const RAG_MAX_HISTORY = 3;
-export const RAG_MAX_SOURCES = 3;
+export const RAG_EMBEDDING_MODEL = "voyage-context-3";
+export const RAG_BATCH_SIZE = 100;
 export const RAG_BM25_WEIGHT = 0.5;
 export const RAG_VECTOR_WEIGHT = 0.5;
-export const RAG_MIN_SCORE = 0.3;
-export const RAG_BATCH_SIZE = 100;
-export const RAG_CHUNK_SIZE = 512;
 export const RAG_CHUNK_OVERLAP = 0;
-
-export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
+export const RAG_CHUNK_SIZE = 512;
+export const RAG_MAX_HISTORY = 2;
+export const RAG_MAX_SOURCES = 3;
+export const RAG_MIN_SCORE = 0.3;
 
 // Database / Storage paths — configurable via env vars
 export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "";
@@ -95,110 +94,3 @@ export const AVATAR_TIERS: AvatarTier[] = [
     glow: "0 0 4px var(--accent-glow)",
   },
 ];
-
-export const STOP_WORDS = new Set([
-  "a",
-  "an",
-  "the",
-  "and",
-  "or",
-  "but",
-  "nor",
-  "not",
-  "if",
-  "so",
-  "in",
-  "on",
-  "at",
-  "to",
-  "for",
-  "of",
-  "by",
-  "with",
-  "up",
-  "as",
-  "is",
-  "are",
-  "was",
-  "were",
-  "be",
-  "been",
-  "being",
-  "have",
-  "has",
-  "had",
-  "do",
-  "does",
-  "did",
-  "will",
-  "would",
-  "can",
-  "could",
-  "shall",
-  "should",
-  "may",
-  "might",
-  "must",
-  "this",
-  "that",
-  "these",
-  "those",
-  "it",
-  "its",
-  "they",
-  "them",
-  "their",
-  "we",
-  "us",
-  "our",
-  "you",
-  "your",
-  "he",
-  "she",
-  "him",
-  "her",
-  "his",
-  "my",
-  "me",
-  "no",
-  "nor",
-  "also",
-  "than",
-  "all",
-  "any",
-  "each",
-  "few",
-  "some",
-  "every",
-  "about",
-  "above",
-  "after",
-  "again",
-  "before",
-  "between",
-  "both",
-  "because",
-  "into",
-  "more",
-  "most",
-  "much",
-  "now",
-  "only",
-  "other",
-  "own",
-  "over",
-  "same",
-  "such",
-  "through",
-  "until",
-  "very",
-  "just",
-  "what",
-  "when",
-  "where",
-  "which",
-  "while",
-  "who",
-  "why",
-  "how",
-]);

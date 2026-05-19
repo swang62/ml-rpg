@@ -1,5 +1,10 @@
 import { A, createAsync } from "@solidjs/router";
+import ArrowDown from "lucide-solid/icons/arrow-down";
+import ArrowLeft from "lucide-solid/icons/arrow-left";
+import ArrowRight from "lucide-solid/icons/arrow-right";
+import ArrowUp from "lucide-solid/icons/arrow-up";
 import ChevronRight from "lucide-solid/icons/chevron-right";
+import CornerDownLeft from "lucide-solid/icons/corner-down-left";
 import { createMemo } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { getCoursesQuery } from "~/server/course";
@@ -36,6 +41,18 @@ export default function HomePage() {
           ))}
         </section>
       </section>
+
+      <div class="flex justify-center nav-shortcuts-bottom">
+        <span class="nav-shortcuts">
+          <span class="shortcuts-bar__label">nav</span>
+          <ArrowLeft size={14} />
+          <ArrowRight size={14} />
+          <ArrowUp size={14} />
+          <ArrowDown size={14} />
+          <span class="shortcuts-bar__label">select</span>
+          <CornerDownLeft size={14} />
+        </span>
+      </div>
     </main>
   );
 }

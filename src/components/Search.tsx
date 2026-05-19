@@ -182,7 +182,7 @@ export default function Search() {
             onBlur={handleBlur}
             aria-label="Search objectives"
           />
-          <span class="search__shortcut" aria-hidden="true">
+          <span class="search__shortcut mr-2" aria-hidden="true">
             <kbd>S</kbd>
           </span>
         </div>
