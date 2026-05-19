@@ -21,6 +21,7 @@ export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
 export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "./.data/course.db";
 export const LANCEDB_PATH = process.env.LANCEDB_PATH || "./.data/search";
 export const EMPTY_DB_PATH = "src/db/empty.db";
+export const COURSE_INFO_PATH = "README.md";
 
 export interface LevelDef {
   level: number;

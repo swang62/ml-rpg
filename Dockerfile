@@ -36,5 +36,6 @@ USER www
 WORKDIR /app
 
 COPY --from=build /app/.output .
+COPY --from=build /app/README.md /app/README.md
 
 CMD ["node", "server/index.mjs"]
