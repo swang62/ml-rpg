@@ -16,9 +16,7 @@ import { createLesson, deleteAllLessons } from "../src/db/lesson_sql.ts";
 import { deleteAllProgress } from "../src/db/progress_sql.ts";
 import { createSection, deleteAllSections } from "../src/db/section_sql.ts";
 import { deleteAllUsers } from "../src/db/users_sql.ts";
-
-const DB_DEV = ".data/dev.db";
-const DB_EMPTY = "src/db/empty.db";
+import { COURSE_DB_PATH, EMPTY_DB_PATH } from "../src/utils/constants";
 
 const COURSES: Record<
   string,
@@ -41,7 +39,7 @@ const COURSES: Record<
 
 // ENTRY POINT
 async function main() {
-  const db = new Database(DB_DEV);
+  const db = new Database(COURSE_DB_PATH);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
 
@@ -83,7 +81,7 @@ async function main() {
   console.log(`Imported lessons: ${validLessons} containing valid HTML`);
   db.close();
 
-  copyFileSync(DB_DEV, DB_EMPTY);
+  copyFileSync(COURSE_DB_PATH, EMPTY_DB_PATH);
   console.log("\nSeed complete.");
 }
 

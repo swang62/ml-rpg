@@ -19,16 +19,17 @@ FROM node:26-alpine
 
 ARG PORT
 
-ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=$PORT
+ENV COURSE_DB_PATH=/app/.data/course.db
+ENV LANCEDB_PATH=/app/.data/search
 EXPOSE $PORT
 
 RUN adduser -D -H -h /app www
 
-# Create data directory writable by www user
-RUN mkdir -p /app/.data 
-COPY --from=build /app/src/db/empty.db /app/.data/prod.db
+# Seed empty DB and expose LanceDB directory
+RUN mkdir -p /app/.data
+COPY --from=build /app/src/db/empty.db /app/.data/course.db
 RUN chown -R www:www /app/.data
 
 USER www
