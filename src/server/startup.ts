@@ -5,6 +5,7 @@ import { extractRelevantText } from "~/server/search";
 import {
   COURSE_DB_PATH,
   COURSE_INFO_PATH,
+  EMPTY_DB_PATH,
   GITHUB_REPO_URL,
   LANCEDB_PATH,
   VOYAGE_MODEL,
@@ -72,6 +73,14 @@ type ChunkData = Record<string, any> & {
 };
 
 let _buildPromise: Promise<void> | null = null;
+
+export function ensureCourseDb(): void {
+  if (!existsSync(COURSE_DB_PATH)) {
+    console.error(
+      `[startup] Course DB not found at ${COURSE_DB_PATH}. Copy ${EMPTY_DB_PATH} to that location or set COURSE_DB_PATH env var.`,
+    );
+  }
+}
 
 export async function ensureVectorStore(): Promise<void> {
   if (existsSync(LANCEDB_PATH)) return;
