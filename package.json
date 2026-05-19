@@ -7,6 +7,7 @@
     "dev": "vinxi dev",
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
+    "test": "vitest run",
     "preview": "vinxi start",
     "prepare": "husky || true",
     "seed": "tsx ./scripts/seed-db.ts",
@@ -40,10 +41,12 @@
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.13"
+    "vite": "^8.0.13",
+    "vitest": "^4.1.6"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": "biome check --write --no-errors-on-unmatched",
+    "*.ts": "vitest related --run",
     "!src/db/*_sql.ts": ""
   },
   "engines": {
