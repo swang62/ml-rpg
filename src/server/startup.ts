@@ -4,6 +4,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { extractRelevantText } from "~/server/search";
 import {
   COURSE_DB_PATH,
+  COURSE_INFO_PATH,
   GITHUB_REPO_URL,
   LANCEDB_PATH,
   VOYAGE_MODEL,
@@ -151,7 +152,7 @@ async function buildVectorIndex(): Promise<void> {
   }
 
   try {
-    const readmeText = readFileSync("./README.md", "utf-8");
+    const readmeText = readFileSync(COURSE_INFO_PATH, "utf-8");
     const readmeChunks = await splitter.splitText(readmeText);
     if (readmeChunks.length > 0) {
       lessonGroups.push({
