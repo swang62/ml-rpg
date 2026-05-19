@@ -78,7 +78,7 @@ function ResetButton(props: { onClick: () => void }) {
       onClick={props.onClick}
     >
       <RotateCcw size={13} />
-      Reset All Progress
+      Reset All
     </button>
   );
 }
@@ -267,62 +267,59 @@ export default function PlayerSheet(props: Props) {
               <Show
                 when={props.signedIn}
                 fallback={
-                  <div class="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:cursor-pointer hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
-                      onClick={props.onLogin}
-                    >
-                      <LogIn size={13} />
-                      Sign In
-                    </button>
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:cursor-pointer hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
+                        onClick={props.onLogin}
+                      >
+                        <LogIn size={13} />
+                        Sign In
+                      </button>
+                      <ResetButton
+                        onClick={() => {
+                          const confirmed = window.confirm(
+                            "Reset ALL progress? This cannot be undone.",
+                          );
+                          if (!confirmed) return;
+                          resetAnonAllProgress();
+                        }}
+                      />
+                    </div>
                     <span class="font-pixel text-[0.75rem] text-muted text-right">
                       Logged out: <span class="text-accent">local-only</span>
                     </span>
                   </div>
                 }
               >
-                <div class="flex items-center justify-between">
-                  <form action={logoutAction} method="post">
-                    <button
-                      type="submit"
-                      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
-                    >
-                      <LogOut size={13} />
-                      Sign Out
-                    </button>
-                  </form>
+                <div class="flex items-center justify-between flex-wrap">
+                  <div class="flex items-center gap-2">
+                    <form action={logoutAction} method="post">
+                      <button
+                        type="submit"
+                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                      >
+                        <LogOut size={13} />
+                        Sign Out
+                      </button>
+                    </form>
+                    <ResetButton
+                      onClick={() => {
+                        const confirmed = window.confirm(
+                          "Reset ALL progress? This cannot be undone.",
+                        );
+                        if (!confirmed) return;
+                        resetAllProgress();
+                      }}
+                    />
+                  </div>
                   <span class="font-pixel text-[0.75rem] text-muted text-right">
                     Logged in as{" "}
                     <span class="text-accent">{props.userName}</span>
                   </span>
                 </div>
               </Show>
-
-              <div class="mt-4 flex justify-center">
-                <Show when={props.signedIn}>
-                  <ResetButton
-                    onClick={() => {
-                      const confirmed = window.confirm(
-                        "Reset ALL progress? This cannot be undone.",
-                      );
-                      if (!confirmed) return;
-                      resetAllProgress();
-                    }}
-                  />
-                </Show>
-                <Show when={!props.signedIn}>
-                  <ResetButton
-                    onClick={() => {
-                      const confirmed = window.confirm(
-                        "Reset ALL progress? This cannot be undone.",
-                      );
-                      if (!confirmed) return;
-                      resetAnonAllProgress();
-                    }}
-                  />
-                </Show>
-              </div>
             </div>
           </div>
         </div>
