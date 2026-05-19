@@ -1,5 +1,10 @@
 import { A } from "@solidjs/router";
+import ArrowDown from "lucide-solid/icons/arrow-down";
+import ArrowLeft from "lucide-solid/icons/arrow-left";
+import ArrowRight from "lucide-solid/icons/arrow-right";
+import ArrowUp from "lucide-solid/icons/arrow-up";
 import ChevronLeft from "lucide-solid/icons/chevron-left";
+import Delete from "lucide-solid/icons/delete";
 import { type JSX, Show } from "solid-js";
 import AutoBreadcrumbs from "~/components/AutoBreadcrumbs";
 import PageHeader from "~/components/PageHeader";
@@ -34,9 +39,7 @@ export default function CoursePageShell(props: CoursePageShellProps) {
         <A href={props.backHref} class="back-link">
           <ChevronLeft size={14} />
           Back to {props.backLabel}
-          <kbd class="kbd--icon" style="margin-left:6px">
-            ⌫
-          </kbd>
+          <Delete size={13} class="back-link__icon" />
         </A>
         <span class="flex items-center gap-3">
           <Show
@@ -47,10 +50,10 @@ export default function CoursePageShell(props: CoursePageShellProps) {
             }
           >
             <span class="nav-shortcuts">
-              <kbd class="kbd--icon">←</kbd>
-              <kbd class="kbd--icon">→</kbd>
-              <kbd class="kbd--icon">↑</kbd>
-              <kbd class="kbd--icon">↓</kbd>
+              <ArrowLeft size={12} />
+              <ArrowRight size={12} />
+              <ArrowUp size={12} />
+              <ArrowDown size={12} />
               <span class="shortcuts-bar__label">nav</span>
             </span>
           </Show>
