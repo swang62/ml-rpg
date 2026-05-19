@@ -91,9 +91,6 @@ export default function PlayerSheet(props: Props) {
   const submission = useSubmission(updateUserNameAction);
   const resetAllProgress = useAction(resetAllProgressAction);
 
-  const isMac = () =>
-    typeof navigator !== "undefined" && navigator.platform.includes("Mac");
-
   const currentLevel = createMemo(() => getLevel(props.totalXp));
 
   const handleSave = () => {
@@ -313,35 +310,31 @@ export default function PlayerSheet(props: Props) {
             {/* Keyboard Shortcuts */}
             <div class="shortcuts-bar">
               <span class="shortcuts-bar__item">
-                <kbd>⌫</kbd>
-                <span>back</span>
+                <kbd>S</kbd>
+                <span class="shortcuts-bar__label">search</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd>{isMac() ? "⌘" : "Ctrl"}</kbd>
-                <span>+</span>
-                <kbd>K</kbd>
-                <span>search</span>
-              </span>
-              <span class="shortcuts-bar__item">
-                <kbd>{isMac() ? "⌘" : "Ctrl"}</kbd>
-                <span>+</span>
                 <kbd>H</kbd>
-                <span>AI</span>
+                <span class="shortcuts-bar__label">help</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd>←</kbd>
-                <kbd>→</kbd>
-                <kbd>↑</kbd>
-                <kbd>↓</kbd>
-                <span>nav</span>
+                <kbd>P</kbd>
+                <span class="shortcuts-bar__label">profile</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd>↵</kbd>
-                <span>select</span>
+                <kbd class="kbd--icon">←</kbd>
+                <kbd class="kbd--icon">→</kbd>
+                <kbd class="kbd--icon">↑</kbd>
+                <kbd class="kbd--icon">↓</kbd>
+                <span class="shortcuts-bar__label">nav</span>
               </span>
               <span class="shortcuts-bar__item">
-                <kbd>Esc</kbd>
-                <span>close</span>
+                <kbd class="kbd--icon">↵</kbd>
+                <span class="shortcuts-bar__label">select</span>
+              </span>
+              <span class="shortcuts-bar__item">
+                <kbd class="kbd--icon">Esc</kbd>
+                <span class="shortcuts-bar__label">close</span>
               </span>
             </div>
           </div>
