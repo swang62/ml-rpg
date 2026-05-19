@@ -900,21 +900,16 @@ a {
 }
 
 .nav-shortcuts {
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   color: var(--muted);
-}
-
-@media (min-width: 768px) {
-  .nav-shortcuts {
-    display: inline-flex;
-  }
+  font-family: var(--font-pixel);
 }
 
 .nav-shortcuts .shortcuts-bar__label {
   margin-left: 2px;
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   color: var(--muted);
 }
 
@@ -1342,12 +1337,7 @@ a {
   flex-direction: column;
   gap: 4px;
   pointer-events: none;
-}
-
-@media (max-width: 768px) {
-  .shortcuts-bar {
-    display: none;
-  }
+  font-family: var(--font-pixel);
 }
 
 .shortcuts-bar__item {
@@ -1357,10 +1347,6 @@ a {
   font-size: 0.65rem;
   color: var(--muted);
   white-space: nowrap;
-}
-
-.shortcuts-bar__label {
-  font-family: var(--font-pixel);
 }
 
 .shortcut-kbd,
@@ -1446,8 +1432,8 @@ a {
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--border-hover);
+  background: rgba(255, 255, 255, 0.269);
+  border: 1px solid var(--border-accent-soft);
   border-radius: 4px;
   font-family: var(--font-pixel);
   font-size: 0.65rem;
@@ -2177,6 +2163,10 @@ main {
 
   .player-hud {
     margin-right: auto;
+  }
+
+  .nav-shortcuts {
+    display: none;
   }
 
   .search--mobile-open {

@@ -3,6 +3,7 @@ import ArrowDown from "lucide-solid/icons/arrow-down";
 import ArrowLeft from "lucide-solid/icons/arrow-left";
 import ArrowRight from "lucide-solid/icons/arrow-right";
 import ArrowUp from "lucide-solid/icons/arrow-up";
+import CornerDownLeft from "lucide-solid/icons/corner-down-left";
 import Delete from "lucide-solid/icons/delete";
 import { type JSX, Show } from "solid-js";
 import AutoBreadcrumbs from "~/components/AutoBreadcrumbs";
@@ -44,13 +45,15 @@ export default function CoursePageShell(props: CoursePageShellProps) {
             when={props.pageLevel !== "lesson" && props.pageLevel !== "world"}
           >
             <span class="nav-shortcuts">
-              <Show when={props.pageLevel !== "section"}>
-                <ArrowLeft size={12} />
-                <ArrowRight size={12} />
-              </Show>
-              <ArrowUp size={12} />
-              <ArrowDown size={12} />
               <span class="shortcuts-bar__label">nav</span>
+              <Show when={props.pageLevel !== "section"}>
+                <ArrowLeft size={14} />
+                <ArrowRight size={14} />
+              </Show>
+              <ArrowUp size={14} />
+              <ArrowDown size={14} />
+              <span class="shortcuts-bar__label">select</span>
+              <CornerDownLeft size={14} />
             </span>
           </Show>
           {props.extra}
