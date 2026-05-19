@@ -23,6 +23,7 @@ export default function AskAI() {
   const [inputValue, setInputValue] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   let messagesRef: HTMLDivElement | undefined;
+  let inputRef: HTMLInputElement | undefined;
 
   createEffect(() => {
     messages();
@@ -32,6 +33,12 @@ export default function AskAI() {
         messagesRef.scrollTop = messagesRef.scrollHeight;
       }
     });
+  });
+
+  createEffect(() => {
+    if (isOpen()) {
+      requestAnimationFrame(() => inputRef?.focus());
+    }
   });
 
   const toggleOpen = () => {
@@ -72,6 +79,7 @@ export default function AskAI() {
       ]);
     } finally {
       setIsLoading(false);
+      requestAnimationFrame(() => inputRef?.focus());
     }
   };
 
@@ -107,7 +115,7 @@ export default function AskAI() {
           />
           <div class="askai-panel" role="dialog" aria-label="Ask a local guide">
             <div class="askai-header">
-              <span class="askai-header__title">Talk with a local</span>
+              <span class="askai-header__title">Talk to a local</span>
               <button
                 type="button"
                 class="askai-header__close"
@@ -146,6 +154,7 @@ export default function AskAI() {
 
             <div class="askai-inputbar">
               <input
+                ref={inputRef}
                 type="text"
                 class="askai-inputbar__input"
                 placeholder="Ask a question..."
