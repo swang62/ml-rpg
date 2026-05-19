@@ -6,8 +6,8 @@ const CONCURRENCY = 20;
 const curriculum: {
   category: string;
   title: string;
-  subsections: {
-    subsection: string;
+  sections: {
+    section: string;
     title: string;
     lessons: { lesson: string; title: string; order: number; url: string }[];
   }[];
@@ -16,16 +16,16 @@ const curriculum: {
 // Build list of all lesson URLs
 const allLessons: {
   category: string;
-  subsection: string;
+  section: string;
   lesson: string;
   url: string;
 }[] = [];
 for (const cat of curriculum) {
-  for (const sub of cat.subsections) {
+  for (const sub of cat.sections) {
     for (const lesson of sub.lessons) {
       allLessons.push({
         category: cat.category,
-        subsection: sub.subsection,
+        section: sub.section,
         lesson: lesson.lesson,
         url: lesson.url,
       });
@@ -87,7 +87,7 @@ async function fetchAll() {
 
 const results = await fetchAll();
 
-// Build order map keyed by category/subsection/lesson
+// Build order map keyed by category/section/lesson
 const orderMap = new Map<string, number>();
 const errors: { url: string; error: string }[] = [];
 for (const r of results) {
@@ -112,7 +112,7 @@ if (errors.length > 0) {
 // Enrich curriculum with order numbers and save
 const enriched = curriculum.map((cat) => ({
   ...cat,
-  subsections: cat.subsections.map((sub) => ({
+  sections: cat.sections.map((sub) => ({
     ...sub,
     lessons: sub.lessons.map((lesson) => ({
       ...lesson,

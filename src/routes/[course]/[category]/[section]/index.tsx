@@ -10,7 +10,7 @@ import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ResetButton from "~/components/ResetButton";
-import { getSubsectionMetaQuery } from "~/server/course";
+import { getSectionMetaQuery } from "~/server/course";
 import { resetSectionAction } from "~/server/mutations";
 import { getSectionReadCountsQuery } from "~/server/progress";
 import {
@@ -22,29 +22,29 @@ import { XP_VALUE } from "~/utils/constants";
 
 export const route = {
   preload: ({ params }) => {
-    getSubsectionMetaQuery(
+    getSectionMetaQuery(
       params.course as string,
       params.category as string,
-      params.subsection as string,
+      params.section as string,
     );
     getSectionReadCountsQuery(
       params.course as string,
-      params.subsection as string,
+      params.section as string,
     );
   },
 } satisfies RouteDefinition;
 
-export default function SubsectionPage() {
+export default function SectionPage() {
   const params = useParams();
-  if (!params.category || !params.subsection) return;
+  if (!params.category || !params.section) return;
 
   const { signedIn } = useAuth();
 
-  const subsection = createAsync(() =>
-    getSubsectionMetaQuery(
+  const section = createAsync(() =>
+    getSectionMetaQuery(
       params.course as string,
       params.category as string,
-      params.subsection as string,
+      params.section as string,
     ),
   );
 
@@ -53,7 +53,7 @@ export default function SubsectionPage() {
       signedIn()
         ? getSectionReadCountsQuery(
             params.course as string,
-            params.subsection as string,
+            params.section as string,
           )
         : Promise.resolve([]),
     { initialValue: [] },
@@ -69,7 +69,7 @@ export default function SubsectionPage() {
       setAnonReadLessons(
         getAnonSectionReadSlugs(
           params.course as string,
-          params.subsection as string,
+          params.section as string,
         ),
       );
     }
@@ -83,7 +83,7 @@ export default function SubsectionPage() {
 
   return (
     <CoursePageShell
-      title={subsection()?.title}
+      title={section()?.title}
       subtitle="Complete all objectives to finish this quest"
       badge="QUEST"
       containerClass="container-narrow"
@@ -93,19 +93,16 @@ export default function SubsectionPage() {
       extra={
         <div class="flex flex-nowrap gap-2 items-center">
           <span class="subtitle-xp-counter">
-            {readLessons().length} / {subsection()?.lessons.length} completed
+            {readLessons().length} / {section()?.lessons.length} completed
           </span>
           <ResetButton
             onClick={async () => {
               if (signedIn()) {
-                await reset(
-                  params.course as string,
-                  params.subsection as string,
-                );
+                await reset(params.course as string, params.section as string);
               } else {
                 resetAnonSection(
                   params.course as string,
-                  params.subsection as string,
+                  params.section as string,
                 );
                 setAnonReadLessons([]);
               }
@@ -117,22 +114,22 @@ export default function SubsectionPage() {
         </div>
       }
     >
-      <section class="articles-list">
-        {subsection()?.lessons.map((lesson) => {
+      <section class="lessons-list">
+        {section()?.lessons.map((lesson) => {
           const isRead = readLessons().includes(lesson.slug);
           return (
             <A
-              href={`/${params.course}/${params.category}/${params.subsection}/${lesson.slug}`}
-              class={`card card--article${isRead ? " card--article--read" : ""}`}
+              href={`/${params.course}/${params.category}/${params.section}/${lesson.slug}`}
+              class={`card card--lesson${isRead ? " card--lesson--read" : ""}`}
             >
-              <span class="article-order">{lesson.lessonorder}</span>
-              <span class="article-title">{lesson.title}</span>
+              <span class="lesson-order">{lesson.lessonorder}</span>
+              <span class="lesson-title">{lesson.title}</span>
               <span
-                class="article-xp-badge"
-                classList={{ "article-xp-badge--read": isRead }}
+                class="lesson-xp-badge"
+                classList={{ "lesson-xp-badge--read": isRead }}
               >
                 {lesson.lessonorder * XP_VALUE}{" "}
-                <span class="article-xp-badge__label">XP</span>
+                <span class="lesson-xp-badge__label">XP</span>
               </span>
             </A>
           );

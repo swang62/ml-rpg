@@ -34,7 +34,7 @@ export const getTotalXpQuery = query(async () => {
 }, "total-xp");
 
 export const getLessonReadStatusQuery = query(
-  async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
+  async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {
     "use server";
     const session = await getSession();
     if (!session.data.id) return false;
@@ -43,7 +43,7 @@ export const getLessonReadStatusQuery = query(
     const lesson = await findLessonByPath(
       db,
       courseSlug,
-      subsectionSlug,
+      sectionSlug,
       lessonSlug,
     );
     if (!lesson) return false;
@@ -58,13 +58,13 @@ export const getLessonReadStatusQuery = query(
 );
 
 export const getSectionReadCountsQuery = query(
-  async (courseSlug: string, subsectionSlug: string) => {
+  async (courseSlug: string, sectionSlug: string) => {
     "use server";
     const session = await getSession();
     if (!session.data.id) return [];
 
     const db = getDb();
-    const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+    const sec = await findSectionBySlugInCourse(db, courseSlug, sectionSlug);
     if (!sec) return [];
 
     const rows = await getReadLessonsBySection(db, {

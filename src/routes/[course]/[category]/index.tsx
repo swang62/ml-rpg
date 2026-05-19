@@ -49,7 +49,7 @@ export default function CategoryPage() {
     signedIn() ? serverReadCounts() : anonReadCounts(),
   );
 
-  const subsections = createMemo(() => category()?.subsections ?? []);
+  const sections = createMemo(() => category()?.sections ?? []);
 
   return (
     <CoursePageShell
@@ -61,13 +61,13 @@ export default function CategoryPage() {
       backHref={`/${params.course}`}
       backLabel="World"
     >
-      <section class="subsections-list">
-        {subsections().map((section) => {
-          const readCount = readCounts()?.[section.subsection] ?? 0;
+      <section class="sections-list">
+        {sections().map((section) => {
+          const readCount = readCounts()?.[section.section] ?? 0;
           return (
             <A
-              href={`/${params.course}/${params.category}/${section.subsection}`}
-              class="card card--subsection"
+              href={`/${params.course}/${params.category}/${section.section}`}
+              class="card card--section"
               onMouseMove={onCardMove}
               onMouseLeave={onCardLeave}
             >

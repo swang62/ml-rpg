@@ -56,11 +56,11 @@ export default function CourseIndexPage() {
     >
       <section class="categories-grid">
         {categories().map((category) => {
-          const subsectionStatuses = signedIn()
+          const sectionStatuses = signedIn()
             ? (sectionReadStatus()?.[category.category] ?? [])
             : [];
-          const completed = subsectionStatuses.filter(Boolean).length;
-          const max = subsectionStatuses.length;
+          const completed = sectionStatuses.filter(Boolean).length;
+          const max = sectionStatuses.length;
 
           const anonRead = anonReadCounts()?.[category.category] ?? 0;
           const totalInCategory = category.lessonCount;

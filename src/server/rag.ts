@@ -232,10 +232,14 @@ export async function queryRAG({
 
   // Filter out sources if the top result is the GitHub repo
   const isCourseInfo = sources.some((s) => s.url === GITHUB_REPO_URL);
-  const isSelf = answer.includes("Bob") || answer.includes("can't answer");
+  const isNoResponse =
+    answer.includes("Bob") ||
+    answer.includes("can't answer") ||
+    answer.includes("here to help") ||
+    answer.includes("not enough context");
 
   return {
     answer,
-    sources: isSelf || isShortReply || isCourseInfo ? [] : sources,
+    sources: isNoResponse || isShortReply || isCourseInfo ? [] : sources,
   };
 }
