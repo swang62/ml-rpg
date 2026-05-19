@@ -3,6 +3,7 @@ import Check from "lucide-solid/icons/check";
 import LogIn from "lucide-solid/icons/log-in";
 import LogOut from "lucide-solid/icons/log-out";
 import Pencil from "lucide-solid/icons/pencil";
+import RotateCcw from "lucide-solid/icons/rotate-ccw";
 import X from "lucide-solid/icons/x";
 import {
   createEffect,
@@ -14,8 +15,12 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { logoutAction } from "~/server/auth";
+import { resetAllProgressAction } from "~/server/mutations";
 import { updateUserNameAction } from "~/server/user";
-import { setAnonDisplayName } from "~/utils/client-storage";
+import {
+  resetAnonAllProgress,
+  setAnonDisplayName,
+} from "~/utils/client-storage";
 import { LEVELS, type LevelDef } from "~/utils/constants";
 import { getAvatarStyle, getLevel } from "~/utils/xp";
 
@@ -65,11 +70,25 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
   );
 }
 
+function ResetButton(props: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+      onClick={props.onClick}
+    >
+      <RotateCcw size={13} />
+      Reset All Progress
+    </button>
+  );
+}
+
 export default function PlayerSheet(props: Props) {
   const [editing, setEditing] = createSignal(false);
   const [draftName, setDraftName] = createSignal(props.displayName ?? "");
   const updateName = useAction(updateUserNameAction);
   const submission = useSubmission(updateUserNameAction);
+  const resetAllProgress = useAction(resetAllProgressAction);
 
   const currentLevel = createMemo(() => getLevel(props.totalXp));
 
@@ -243,7 +262,7 @@ export default function PlayerSheet(props: Props) {
               </div>
             </div>
 
-            {/* Login / Logout */}
+            {/* Login / Logout / Reset Progress */}
             <div>
               <Show
                 when={props.signedIn}
@@ -279,6 +298,31 @@ export default function PlayerSheet(props: Props) {
                   </span>
                 </div>
               </Show>
+
+              <div class="mt-4 flex justify-center">
+                <Show when={props.signedIn}>
+                  <ResetButton
+                    onClick={() => {
+                      const confirmed = window.confirm(
+                        "Reset ALL progress? This cannot be undone.",
+                      );
+                      if (!confirmed) return;
+                      resetAllProgress();
+                    }}
+                  />
+                </Show>
+                <Show when={!props.signedIn}>
+                  <ResetButton
+                    onClick={() => {
+                      const confirmed = window.confirm(
+                        "Reset ALL progress? This cannot be undone.",
+                      );
+                      if (!confirmed) return;
+                      resetAnonAllProgress();
+                    }}
+                  />
+                </Show>
+              </div>
             </div>
           </div>
         </div>

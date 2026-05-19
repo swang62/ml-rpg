@@ -18,3 +18,6 @@ SELECT lesson.section_id AS sectionid, COUNT(*) AS readcount FROM progress INNER
 
 -- name: DeleteAllProgress :exec
 DELETE FROM progress;
+
+-- name: ResetUserProgress :exec
+DELETE FROM progress WHERE user_id = ?;

@@ -117,6 +117,15 @@ export function getAnonCategoryReadCounts(
   return result;
 }
 
+export function resetAnonAllProgress(): void {
+  for (const key of keys()) {
+    if (key.startsWith("read:")) {
+      removeItem(key);
+    }
+  }
+  bumpVersion((v: number) => v + 1);
+}
+
 export function resetAnonSection(course: string, subsection: string): void {
   const prefix = `read:${course}:`;
   for (const key of keys()) {

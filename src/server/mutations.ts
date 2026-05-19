@@ -1,5 +1,9 @@
 import { action } from "@solidjs/router";
-import { markLessonRead, resetSectionProgress } from "~/db/progress_sql";
+import {
+  markLessonRead,
+  resetSectionProgress,
+  resetUserProgress,
+} from "~/db/progress_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
@@ -41,3 +45,12 @@ export const resetSectionAction = action(
   },
   "reset-section",
 );
+
+export const resetAllProgressAction = action(async () => {
+  "use server";
+  const session = await getSession();
+  if (!session.data.id) return;
+
+  const db = getDb();
+  await resetUserProgress(db, { userId: session.data.id });
+}, "reset-all-progress");

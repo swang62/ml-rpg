@@ -112,3 +112,15 @@ export async function deleteAllProgress(database: Database): Promise<void> {
     await stmt.run();
 }
 
+export const resetUserProgressQuery = `-- name: ResetUserProgress :exec
+DELETE FROM progress WHERE user_id = ?`;
+
+export interface ResetUserProgressArgs {
+    userId: any;
+}
+
+export async function resetUserProgress(database: Database, args: ResetUserProgressArgs): Promise<void> {
+    const stmt = database.prepare(resetUserProgressQuery);
+    await stmt.run(args.userId);
+}
+
