@@ -4,7 +4,7 @@
   "scripts": {
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
-    "build:vector": "dotenv -- tsx ./scripts/build-index.ts",
+
     "dev": "vinxi dev",
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",

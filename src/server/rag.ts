@@ -3,6 +3,7 @@
 import { connect, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import { AI_BOT_NAME } from "~/components/AskAI";
+import { ensureVectorStore } from "~/server/startup";
 import {
   GITHUB_REPO_URL,
   LANCEDB_PATH,
@@ -19,6 +20,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 let _table: Table | null = null;
 async function getChunksTable(): Promise<Table> {
   if (_table) return _table;
+  await ensureVectorStore();
   const db = await connect(LANCEDB_PATH);
   _table = await db.openTable("chunks");
   return _table;
@@ -155,7 +157,7 @@ async function hybridSearch(
   return merged
     .filter((c) => c.score >= MIN_HYBRID_SCORE)
     .sort((a, b) => b.score - a.score)
-    .slice(0, RAG_MAX_SOURCES * 2);
+    .slice(0, RAG_MAX_SOURCES);
 }
 
 function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {

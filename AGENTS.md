@@ -46,7 +46,7 @@ No test framework is configured.
 
 - Lesson content and course metadata are loaded server-side via `"use server"` functions from a `better-sqlite3` database
 - Lessons use `innerHTML` for content — global CSS in `app.css` styles everything
-- Database is stored at `.data/dev.db` (dev) or `.data/prod.db` (prod)
+- Database location is configured via `COURSE_DB_PATH` env var (defaults to `./.data/course.db`)
 
 ### Data hierarchy
 
@@ -63,9 +63,9 @@ No test framework is configured.
 
 ### XP & tracking system
 
-- XP and read status stored server-side in a `better-sqlite3` database at `.data/{env}.db`
+- XP, read status, and lesson content stored server-side in a `better-sqlite3` database at `COURSE_DB_PATH`
+- Vector store (LanceDB) for RAG is auto-rebuilt on first request if missing via `src/server/startup.ts`
 - `"use server"` functions in `src/server/` handle all persistence
-- `NODE_ENV` determines dev vs prod database (via `src/utils/constants.ts`)
 - Data is fetched once on page load — no polling for lesson content or read status
 - Read status is tracked via an `IntersectionObserver` sentinel in `LessonTracker`; when the sentinel scrolls into view, the lesson is immediately marked read
 - Toast notification ("Objective Complete") appears briefly at the bottom-center of the lesson page

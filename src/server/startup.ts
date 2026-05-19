@@ -1,17 +1,18 @@
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import Database from "better-sqlite3";
 import { extractRelevantText } from "~/server/search";
-
-const COURSE_DB = "./src/db/empty.db";
-const LANCEDB_PATH = "./.data/search";
-
-const VOYAGE_MODEL = "voyage-context-3";
+import {
+  COURSE_DB_PATH,
+  GITHUB_REPO_URL,
+  LANCEDB_PATH,
+  VOYAGE_MODEL,
+} from "~/utils/constants";
+import { getDb } from "~/utils/storage";
 
 const BATCH_SIZE = 100;
-const CHUNK_OVERLAP = 0;
 const CHUNK_SIZE = 512;
+const CHUNK_OVERLAP = 0;
 
 interface LessonRow {
   slug: string;
@@ -69,12 +70,22 @@ type ChunkData = Record<string, any> & {
   chunkIndex: number;
 };
 
-async function buildIndex() {
-  console.log("[index] Opening DB:", COURSE_DB);
-  const db = new Database(COURSE_DB);
-  db.pragma("journal_mode = WAL");
+let _buildPromise: Promise<void> | null = null;
 
-  console.log("[index] Loading hierarchy data...");
+export async function ensureVectorStore(): Promise<void> {
+  if (existsSync(LANCEDB_PATH)) return;
+  if (_buildPromise) return _buildPromise;
+  _buildPromise = buildVectorIndex();
+  return _buildPromise;
+}
+
+async function buildVectorIndex(): Promise<void> {
+  console.log("[startup] Vector store missing, rebuilding...");
+  console.log("[startup] Opening DB:", COURSE_DB_PATH);
+
+  const db = getDb();
+
+  console.log("[startup] Loading hierarchy data...");
   const courses = new Map<number, CourseRow>(
     (db.prepare("SELECT id, slug, title FROM course").all() as CourseRow[]).map(
       (r) => [r.id, r],
@@ -101,7 +112,7 @@ async function buildIndex() {
     )
     .all() as LessonRow[];
 
-  console.log(`[index] ${lessonRows.length} lessons found`);
+  console.log(`[startup] ${lessonRows.length} lessons found`);
 
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: CHUNK_SIZE,
@@ -122,7 +133,6 @@ async function buildIndex() {
 
     const lessonUrl = `/${course.slug}/${category.slug}/${section.slug}/${lesson.slug}`;
     const chunks = await splitter.splitText(plainText);
-
     if (chunks.length === 0) continue;
 
     lessonGroups.push({
@@ -140,15 +150,13 @@ async function buildIndex() {
     totalChunks += chunks.length;
   }
 
-  // Add custom "Site Information" document from README.md
-  const repoUrl = "https://github.com/swang62/ml-rpg";
   try {
     const readmeText = readFileSync("./README.md", "utf-8");
     const readmeChunks = await splitter.splitText(readmeText);
     if (readmeChunks.length > 0) {
       lessonGroups.push({
         lessonTitle: "Site Information",
-        lessonUrl: repoUrl,
+        lessonUrl: GITHUB_REPO_URL,
         categoryTitle: "About",
         sectionTitle: "README",
         courseTitle: "Machine Learning (the RPG)",
@@ -161,28 +169,25 @@ async function buildIndex() {
       totalChunks += readmeChunks.length;
     }
   } catch {
-    console.warn("[index] Could not read README.md, skipping custom document");
+    console.warn("[startup] Could not read README.md, skipping");
   }
 
   console.log(
-    `[index] ${lessonGroups.length} lesson groups, ${totalChunks} total chunks`,
+    `[startup] ${lessonGroups.length} lesson groups, ${totalChunks} total chunks`,
   );
 
   if (lessonGroups.length === 0) {
-    console.log("[index] No content to index. Exiting.");
-    db.close();
+    console.log("[startup] No content to index. Skipping.");
     return;
   }
 
-  console.log("[index] Generating contextualized embeddings via Voyage AI...");
+  console.log("[startup] Generating embeddings via Voyage AI...");
   const apiKey = process.env.VOYAGE_API_KEY;
   if (!apiKey) {
-    console.error("[index] VOYAGE_API_KEY environment variable required");
-    process.exit(1);
-  }
-
-  if (existsSync(LANCEDB_PATH)) {
-    rmSync(LANCEDB_PATH, { recursive: true });
+    console.error(
+      "[startup] VOYAGE_API_KEY required, cannot build vector store",
+    );
+    return;
   }
 
   const lancedb = await connect(LANCEDB_PATH);
@@ -213,15 +218,16 @@ async function buildIndex() {
     if (!response.ok) {
       const errText = await response.text();
       console.error(
-        `[index] Voyage API error (batch ${gi}): ${response.status} ${errText}`,
+        `[startup] Voyage API error (batch ${gi}): ${response.status} ${errText}`,
       );
-      process.exit(1);
+      return;
     }
-    const { data } = await response.json();
+    const { data } = (await response.json()) as {
+      data: { data: { embedding: number[] }[] }[];
+    };
 
     batch.forEach((group, idx) => {
       const returnBatch: { embedding: number[] }[] = data[idx].data;
-
       returnBatch.forEach((embeddingGroup, ci) => {
         tableData.push({
           id: `${group.courseSlug}/${group.categorySlug}/${group.sectionSlug}/${group.lessonSlug}-chunk-${ci}`,
@@ -238,25 +244,17 @@ async function buildIndex() {
     });
 
     embeddedCount += batch.reduce((sum, g) => sum + g.texts.length, 0);
-    console.log(`[index]   > embedded ${embeddedCount}/${totalChunks} chunks`);
+    console.log(
+      `[startup]   > embedded ${embeddedCount}/${totalChunks} chunks`,
+    );
   }
 
-  console.log("[index] Writing to LanceDB...");
-
+  console.log("[startup] Writing to LanceDB...");
   const table = await lancedb.createTable("chunks", tableData);
 
-  console.log("[index] Creating FTS index for BM25...");
+  console.log("[startup] Creating FTS index for BM25...");
   await table.createIndex("text", { config: Index.fts() });
 
   const rowCount = await table.countRows();
-  console.log(
-    `[index] Done. ${rowCount} chunks indexed and stored at ${LANCEDB_PATH}`,
-  );
-
-  db.close();
+  console.log(`[startup] Done. ${rowCount} chunks indexed.`);
 }
-
-buildIndex().catch((err) => {
-  console.error("[index] Fatal error:", err);
-  process.exit(1);
-});

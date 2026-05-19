@@ -9,9 +9,6 @@ export const SEARCH_MAX_RESULTS = 5;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
 export const TOAST_TIMEOUT = 5000;
 
-export const IS_PROD = process.env.NODE_ENV === "production";
-
-export const LANCEDB_PATH = "./.data/search";
 export const VOYAGE_MODEL = "voyage-context-3";
 export const RAG_MAX_HISTORY = 3;
 export const RAG_MAX_SOURCES = 3;
@@ -19,6 +16,11 @@ export const RAG_BM25_WEIGHT = 0.6;
 export const RAG_VECTOR_WEIGHT = 0.4;
 export const MIN_HYBRID_SCORE = 0.2;
 export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
+
+// Database / Storage paths — configurable via env vars
+export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "./.data/course.db";
+export const LANCEDB_PATH = process.env.LANCEDB_PATH || "./.data/search";
+export const EMPTY_DB_PATH = "src/db/empty.db";
 
 export interface LevelDef {
   level: number;
