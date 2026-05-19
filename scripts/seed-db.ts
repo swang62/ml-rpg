@@ -25,8 +25,8 @@ const COURSES: Record<
     categories: {
       category: string;
       title: string;
-      subsections: {
-        subsection: string;
+      sections: {
+        section: string;
         title: string;
         lessons: { lesson: string; title: string; order: number }[];
       }[];
@@ -167,10 +167,10 @@ async function seedCourseData(db: Database.Database) {
         })
       )?.id as string;
 
-      for (const sub of cat.subsections) {
+      for (const sub of cat.sections) {
         const sid = (
           await createSection(db, {
-            slug: sub.subsection,
+            slug: sub.section,
             title: sub.title,
             courseId: cid,
             categoryId: catid,

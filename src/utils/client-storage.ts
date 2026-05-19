@@ -90,14 +90,14 @@ export function isAnonLessonRead(
 
 export function getAnonSectionReadSlugs(
   course: string,
-  subsection: string,
+  section: string,
 ): string[] {
   const prefix = `read:${course}:`;
   const slugs: string[] = [];
   for (const key of keys()) {
     if (!key.startsWith(prefix)) continue;
     const parts = key.slice(prefix.length).split(":");
-    if (parts[1] === subsection) {
+    if (parts[1] === section) {
       slugs.push(parts.slice(2).join(":"));
     }
   }
@@ -126,12 +126,12 @@ export function resetAnonAllProgress(): void {
   bumpVersion((v: number) => v + 1);
 }
 
-export function resetAnonSection(course: string, subsection: string): void {
+export function resetAnonSection(course: string, section: string): void {
   const prefix = `read:${course}:`;
   for (const key of keys()) {
     if (!key.startsWith(prefix)) continue;
     const parts = key.slice(prefix.length).split(":");
-    if (parts[1] === subsection) {
+    if (parts[1] === section) {
       removeItem(key);
     }
   }

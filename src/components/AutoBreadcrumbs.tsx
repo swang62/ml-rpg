@@ -10,7 +10,7 @@ export default function AutoBreadcrumbs() {
     getBreadcrumbsQuery(
       params.course as string,
       params.category as string | undefined,
-      params.subsection as string | undefined,
+      params.section as string | undefined,
     ),
   );
 

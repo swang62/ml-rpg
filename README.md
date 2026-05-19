@@ -44,10 +44,10 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ---
 
-## Tech Stack
+## Motivation
 
-- **SolidStart** — meta-framework (SolidJS for reactivity + file-system routing)
-- **Vinxi** — build tool and dev server with HMR (Vite/Nitro)
-- **better-sqlite3** — fast synchronous persistence layer for course & user data
-- **sqlc** - fully type-safe TS generator for handling sql queries/mutations
-- **Docker** - full production-ready CI/CD deployment from github hooks
+I created this repo to initially learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new web development libraries and RAG/agentic workflows and implementation. Also practicing my frontend design UI/UX skills. Truly meta-level learning.
+
+## License
+
+MIT license, do whatever you want. 

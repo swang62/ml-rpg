@@ -35,6 +35,7 @@ pnpm typecheck        # pnpm tsc --noEmit
 ## Folder Structure
 
 ```
+├── .data/                      # Persistent storage folder, lancedb and course db files
 ├── scripts/                    # One-time utilities (Python and TS) for scraping/migration
 ├── public/
 │   └── assets/                 # Icons and backgrounds

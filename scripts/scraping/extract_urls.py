@@ -29,11 +29,11 @@ for url_elem in root.findall("sm:url", ns):
     path = url.replace("https://www.systemoverflow.com/learn/", "")
     parts = path.split("/")
     if len(parts) == 3:
-        category, subsection, lesson = parts
+        category, section, lesson = parts
         lessons.append(
             {
                 "category": category,
-                "subsection": subsection,
+                "section": section,
                 "lesson": lesson,
                 "url": url,
             }
@@ -41,23 +41,23 @@ for url_elem in root.findall("sm:url", ns):
 
 print(f"Found {len(lessons)} lesson URLs")
 
-# Group into hierarchy: category -> subsection -> lessons[]
+# Group into hierarchy: category -> section -> lessons[]
 categories = {}
 for entry in lessons:
     cat = entry["category"]
-    sub = entry["subsection"]
+    sub = entry["section"]
     if cat not in categories:
-        categories[cat] = {"subsections": {}}
-    if sub not in categories[cat]["subsections"]:
-        categories[cat]["subsections"][sub] = []
-    categories[cat]["subsections"][sub].append(entry["lesson"])
+        categories[cat] = {"sections": {}}
+    if sub not in categories[cat]["sections"]:
+        categories[cat]["sections"][sub] = []
+    categories[cat]["sections"][sub].append(entry["lesson"])
 
 # Build full curriculum
 curriculum = []
 for cat_slug in sorted(categories.keys()):
-    subsections = []
-    for sub_slug in sorted(categories[cat_slug]["subsections"].keys()):
-        lesson_list = categories[cat_slug]["subsections"][sub_slug]
+    sections = []
+    for sub_slug in sorted(categories[cat_slug]["sections"].keys()):
+        lesson_list = categories[cat_slug]["sections"][sub_slug]
         lessons_out = []
         for i, lesson_slug in enumerate(lesson_list):
             lessons_out.append(
@@ -68,9 +68,9 @@ for cat_slug in sorted(categories.keys()):
                     "url": f"https://www.systemoverflow.com/learn/{cat_slug}/{sub_slug}/{lesson_slug}",
                 }
             )
-        subsections.append(
+        sections.append(
             {
-                "subsection": sub_slug,
+                "section": sub_slug,
                 "title": slug_to_title(sub_slug),
                 "lessons": lessons_out,
             }
@@ -79,7 +79,7 @@ for cat_slug in sorted(categories.keys()):
         {
             "category": cat_slug,
             "title": slug_to_title(cat_slug),
-            "subsections": subsections,
+            "sections": sections,
         }
     )
 
@@ -104,10 +104,10 @@ for cat in curriculum:
     ts_lines.append("      {")
     ts_lines.append(f'        category: "{cat["category"]}",')
     ts_lines.append(f'        title: "{cat["title"]}",')
-    ts_lines.append("        subsections: [")
-    for sub in cat["subsections"]:
+    ts_lines.append("        sections: [")
+    for sub in cat["sections"]:
         ts_lines.append("          {")
-        ts_lines.append(f'            subsection: "{sub["subsection"]}",')
+        ts_lines.append(f'            section: "{sub["section"]}",')
         ts_lines.append(f'            title: "{sub["title"]}",')
         ts_lines.append("            lessons: [")
         for lesson in sub["lessons"]:

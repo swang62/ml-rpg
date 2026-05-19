@@ -9,7 +9,7 @@ interface LessonNavProps {
   nextLesson: GetLessonsBySectionRow | null;
   course: string;
   category: string;
-  subsection: string;
+  section: string;
 }
 
 export default function LessonNav(props: LessonNavProps) {
@@ -17,7 +17,7 @@ export default function LessonNav(props: LessonNavProps) {
     <nav class="lesson-nav">
       {props.prevLesson ? (
         <A
-          href={`/${props.course}/${props.category}/${props.subsection}/${props.prevLesson?.slug}`}
+          href={`/${props.course}/${props.category}/${props.section}/${props.prevLesson?.slug}`}
           class="lesson-nav__link lesson-nav__link--prev"
           onMouseMove={onCardMove}
           onMouseLeave={onCardLeave}
@@ -31,7 +31,7 @@ export default function LessonNav(props: LessonNavProps) {
       )}
       {props.nextLesson ? (
         <A
-          href={`/${props.course}/${props.category}/${props.subsection}/${props.nextLesson?.slug}`}
+          href={`/${props.course}/${props.category}/${props.section}/${props.nextLesson?.slug}`}
           class="lesson-nav__link lesson-nav__link--next"
           onMouseMove={onCardMove}
           onMouseLeave={onCardLeave}

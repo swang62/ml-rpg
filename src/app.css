@@ -688,15 +688,15 @@ a {
   gap: 16px;
 }
 
-/* ===== Subsection list (category page) ===== */
+/* ===== Section list (category page) ===== */
 
-.subsections-list {
+.sections-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
 }
 
-.card--subsection {
+.card--section {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -721,7 +721,7 @@ a {
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card--subsection:hover {
+.card--section:hover {
   border-color: var(--level-category);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
@@ -729,27 +729,27 @@ a {
     0 0 32px var(--glow-category);
 }
 
-.card--subsection h2 {
+.card--section h2 {
   font-size: 1rem;
   font-weight: 600;
   color: var(--heading);
   font-family: var(--font-display);
 }
 
-.card--subsection .meta {
+.card--section .meta {
   font-size: 0.8rem;
   color: var(--muted);
 }
 
-/* ===== Article list (subsection page) ===== */
+/* ===== lesson list (section page) ===== */
 
-.articles-list {
+.lessons-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.card--article {
+.card--lesson {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -759,7 +759,7 @@ a {
   transition: 0.3s ease;
 }
 
-.card--article:hover {
+.card--lesson:hover {
   border-color: var(--level-section);
   scale: 1.01;
   box-shadow:
@@ -768,7 +768,7 @@ a {
     0 0 32px var(--glow-section);
 }
 
-.article-xp-badge {
+.lesson-xp-badge {
   display: inline-flex;
   align-items: baseline;
   gap: 1px;
@@ -781,21 +781,21 @@ a {
     transform 0.2s ease;
 }
 
-.article-xp-badge--read {
+.lesson-xp-badge--read {
   color: var(--muted);
   opacity: 0.5;
 }
 
-.article-xp-badge__label {
+.lesson-xp-badge__label {
   padding-left: 2px;
   font-size: 0.6rem;
 }
 
-.card--article:hover .article-xp-badge {
+.card--lesson:hover .lesson-xp-badge {
   transform: scale(1.05) translateZ(8px);
 }
 
-.card--article .article-title {
+.card--lesson .lesson-title {
   font-size: 0.92rem;
   line-height: 1.45;
   flex: 1;
@@ -803,7 +803,7 @@ a {
   font-family: var(--font-display);
 }
 
-.card--article .article-order {
+.card--lesson .lesson-order {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -823,13 +823,13 @@ a {
     color 0.2s ease;
 }
 
-.card--article:hover .article-order {
+.card--lesson:hover .lesson-order {
   background: var(--tint-section);
   border-color: var(--border-glow-section);
   color: var(--level-section);
 }
 
-.card--article--read {
+.card--lesson--read {
   color: var(--muted);
   background: rgba(0, 0, 0, 0.4);
 }
@@ -1578,36 +1578,35 @@ main {
 }
 
 /* Staggered card entries */
-:is(.categories-grid, .subsections-list, .articles-list) .card {
+:is(.categories-grid, .sections-list, .lessons-list) .card {
   animation: slide-up 0.3s ease-out both;
 }
 
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(1) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(1) {
   animation-delay: 0s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(2) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(2) {
   animation-delay: 0.04s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(3) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(3) {
   animation-delay: 0.08s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(4) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(4) {
   animation-delay: 0.12s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(5) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(5) {
   animation-delay: 0.16s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(6) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(6) {
   animation-delay: 0.2s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(7) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(7) {
   animation-delay: 0.24s;
 }
-:is(.categories-grid, .subsections-list, .articles-list) .card:nth-child(8) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(8) {
   animation-delay: 0.28s;
 }
-:is(.categories-grid, .subsections-list, .articles-list)
-  .card:nth-child(n + 9) {
+:is(.categories-grid, .sections-list, .lessons-list) .card:nth-child(n + 9) {
   animation-delay: 0.32s;
 }
 
@@ -1651,12 +1650,12 @@ main {
     font-size: 0.95rem;
   }
 
-  .card--article {
+  .card--lesson {
     flex-wrap: nowrap;
     gap: 8px;
   }
 
-  .card--article .article-order {
+  .card--lesson .lesson-order {
     display: none;
   }
 }
@@ -1700,7 +1699,7 @@ main {
   opacity: 0.5;
 }
 
-.lesson-title--read .article-xp-badge {
+.lesson-title--read .lesson-xp-badge {
   opacity: 1;
 }
 
@@ -1933,7 +1932,7 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .subsections-list {
+  .sections-list {
     grid-template-columns: 1fr;
   }
 

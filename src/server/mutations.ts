@@ -9,7 +9,7 @@ import { getSession } from "~/server/session";
 import { getDb } from "~/utils/storage";
 
 export const markLessonReadAction = action(
-  async (courseSlug: string, subsectionSlug: string, lessonSlug: string) => {
+  async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {
     "use server";
     const session = await getSession();
     if (!session.data.id) return;
@@ -18,7 +18,7 @@ export const markLessonReadAction = action(
     const lesson = await findLessonByPath(
       db,
       courseSlug,
-      subsectionSlug,
+      sectionSlug,
       lessonSlug,
     );
     if (!lesson) return;
@@ -29,13 +29,13 @@ export const markLessonReadAction = action(
 );
 
 export const resetSectionAction = action(
-  async (courseSlug: string, subsectionSlug: string) => {
+  async (courseSlug: string, sectionSlug: string) => {
     "use server";
     const session = await getSession();
     if (!session.data.id) return;
 
     const db = getDb();
-    const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+    const sec = await findSectionBySlugInCourse(db, courseSlug, sectionSlug);
     if (!sec) return;
 
     await resetSectionProgress(db, {

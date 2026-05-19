@@ -7,7 +7,7 @@ import { markAnonLessonRead } from "~/utils/client-storage";
 interface Props {
   course?: string;
   category?: string;
-  subsection?: string;
+  section?: string;
   lesson?: string;
   lessonOrder?: number;
   alreadyRead?: boolean;
@@ -22,10 +22,10 @@ export default function LessonTracker(props: Props) {
   createEffect(() => {
     const course = props.course;
     const category = props.category;
-    const subsection = props.subsection;
+    const section = props.section;
     const lesson = props.lesson;
 
-    if (!course || !subsection || !lesson) return;
+    if (!course || !section || !lesson) return;
     // signedIn() is read here so it becomes a reactive dependency —
     // if the user logs in/out the observer resets correctly
     const isAuthed = signedIn();
@@ -36,12 +36,12 @@ export default function LessonTracker(props: Props) {
         if (entries[0]?.isIntersecting) {
           observer.disconnect();
           if (isAuthed) {
-            markRead(course, subsection, lesson).then(() => props.onRead?.());
+            markRead(course, section, lesson).then(() => props.onRead?.());
           } else {
             markAnonLessonRead(
               course,
               category ?? "",
-              subsection,
+              section,
               lesson,
               props.lessonOrder ?? 0,
             );

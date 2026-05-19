@@ -17,7 +17,7 @@ export const route = {
   preload: ({ params }) => {
     getLessonReadStatusQuery(
       params.course as string,
-      params.subsection as string,
+      params.section as string,
       params.lesson as string,
     );
   },
@@ -25,7 +25,7 @@ export const route = {
 
 export default function LessonPage() {
   const params = useParams();
-  if (!params.category || !params.subsection || !params.lesson) return;
+  if (!params.category || !params.section || !params.lesson) return;
 
   const { signedIn } = useAuth();
 
@@ -33,7 +33,7 @@ export default function LessonPage() {
     getLessonNavQuery(
       params.course as string,
       params.category as string,
-      params.subsection as string,
+      params.section as string,
       params.lesson as string,
     ),
   );
@@ -42,7 +42,7 @@ export default function LessonPage() {
     () =>
       getLessonHTMLQuery(
         params.course as string,
-        params.subsection as string,
+        params.section as string,
         params.lesson as string,
       ),
     { initialValue: "" },
@@ -52,7 +52,7 @@ export default function LessonPage() {
     signedIn()
       ? getLessonReadStatusQuery(
           params.course as string,
-          params.subsection as string,
+          params.section as string,
           params.lesson as string,
         )
       : Promise.resolve(false),
@@ -64,7 +64,7 @@ export default function LessonPage() {
     return isAnonLessonRead(
       params.course as string,
       params.category as string,
-      params.subsection as string,
+      params.section as string,
       params.lesson as string,
     );
   });
@@ -77,13 +77,13 @@ export default function LessonPage() {
   };
 
   const lessonURL = () =>
-    `${EXTERNAL_URL}/${params.category}/${params.subsection}/${nav()?.currentLesson?.slug}`;
+    `${EXTERNAL_URL}/${params.category}/${params.section}/${nav()?.currentLesson?.slug}`;
 
   return (
     <main class="container container-narrow page-level--lesson">
       <PageTitle segment={nav()?.currentLesson?.title} />
       <BackToQuest
-        href={`/${params.course}/${params.category}/${params.subsection}`}
+        href={`/${params.course}/${params.category}/${params.section}`}
         isRead={isRead()}
       />
 
@@ -93,7 +93,7 @@ export default function LessonPage() {
           nextLesson={nav()?.nextLesson ?? null}
           course={params.course as string}
           category={params.category as string}
-          subsection={params.subsection as string}
+          section={params.section as string}
         />
 
         <a
@@ -104,14 +104,14 @@ export default function LessonPage() {
         >
           <span>Objective {nav()?.currentLesson?.lessonorder}</span>
           <span
-            class="article-xp-badge"
-            classList={{ "article-xp-badge--read": isRead() }}
+            class="lesson-xp-badge"
+            classList={{ "lesson-xp-badge--read": isRead() }}
           >
             {!isRead() && (
               <>
                 {"("}
                 {(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE}
-                <span class="article-xp-badge__label">XP)</span>
+                <span class="lesson-xp-badge__label">XP)</span>
               </>
             )}
           </span>
@@ -121,7 +121,7 @@ export default function LessonPage() {
         <LessonTracker
           course={params.course}
           category={params.category}
-          subsection={params.subsection}
+          section={params.section}
           lesson={nav()?.currentLesson?.slug}
           lessonOrder={nav()?.currentLesson?.lessonorder}
           alreadyRead={isRead()}
@@ -132,7 +132,7 @@ export default function LessonPage() {
           nextLesson={nav()?.nextLesson ?? null}
           course={params.course as string}
           category={params.category as string}
-          subsection={params.subsection as string}
+          section={params.section as string}
         />
 
         <Show when={toastVisible()}>

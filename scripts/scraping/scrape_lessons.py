@@ -44,13 +44,13 @@ def parse_lessons_from_ts(filepath: Path) -> list[dict]:
     lessons = []
     course_pat = re.compile(r'"(?P<slug>[^"]+)":\s*\{')
     cat_pat = re.compile(r'category:\s*"(?P<slug>[^"]+)"')
-    sub_pat = re.compile(r'subsection:\s*"(?P<slug>[^"]+)"')
+    sub_pat = re.compile(r'section:\s*"(?P<slug>[^"]+)"')
     les_single = re.compile(r'lesson:\s*"(?P<slug>[^"]+)"')
     les_bare = re.compile(r"\blesson:\s*$")
     slug_pat = re.compile(r'"(?P<slug>[^"]+)"')
     lines = text.split("\n")
 
-    current_course = current_category = current_subsection = None
+    current_course = current_category = current_section = None
     pending = False
 
     for line in lines:
@@ -59,33 +59,33 @@ def parse_lessons_from_ts(filepath: Path) -> list[dict]:
         m = course_pat.search(stripped)
         if m and "base" not in line and "title" not in line:
             current_course = m.group("slug")
-            current_category = current_subsection = None
+            current_category = current_section = None
             pending = False
             continue
 
         m = cat_pat.search(stripped)
         if m:
             current_category = m.group("slug")
-            current_subsection = None
+            current_section = None
             pending = False
             continue
 
         m = sub_pat.search(stripped)
         if m:
-            current_subsection = m.group("slug")
+            current_section = m.group("slug")
             pending = False
             continue
 
         if pending:
             slug_m = slug_pat.search(stripped)
-            if slug_m and current_course and current_category and current_subsection:
+            if slug_m and current_course and current_category and current_section:
                 lessons.append(
                     {
                         "course": current_course,
                         "category": current_category,
-                        "subsection": current_subsection,
+                        "section": current_section,
                         "slug": slug_m.group("slug"),
-                        "url": f"{BASE_URL}/{current_category}/{current_subsection}/{slug_m.group('slug')}",
+                        "url": f"{BASE_URL}/{current_category}/{current_section}/{slug_m.group('slug')}",
                     }
                 )
             pending = False
@@ -93,14 +93,14 @@ def parse_lessons_from_ts(filepath: Path) -> list[dict]:
 
         m = les_single.search(stripped)
         if m:
-            if current_course and current_category and current_subsection:
+            if current_course and current_category and current_section:
                 lessons.append(
                     {
                         "course": current_course,
                         "category": current_category,
-                        "subsection": current_subsection,
+                        "section": current_section,
                         "slug": m.group("slug"),
-                        "url": f"{BASE_URL}/{current_category}/{current_subsection}/{m.group('slug')}",
+                        "url": f"{BASE_URL}/{current_category}/{current_section}/{m.group('slug')}",
                     }
                 )
             continue
@@ -237,8 +237,8 @@ def extract_lesson_html(raw_html: str) -> str | None:
 # ─── .tsx generation ────────────────────────────────────────────────────────────
 
 
-def html_to_tsx(raw_html: str, slug: str, subsection: str) -> str:
-    component_name = slug_to_component_name(f"{subsection}-{slug}")
+def html_to_tsx(raw_html: str, slug: str, section: str) -> str:
+    component_name = slug_to_component_name(f"{section}-{slug}")
     cleaned = re.sub(r"\n\s*\n+", "\n", raw_html).strip()
     escaped = cleaned.replace("{", "&#123;").replace("}", "&#125;")
     return f"""import type {{ Component }} from "solid-js";
@@ -279,9 +279,9 @@ def scrape_via_agent_browser(url: str) -> str | None:
 def scrape_lesson(lesson: dict, output_dir: Path) -> bool:
     slug = lesson["slug"]
     course = lesson["course"]
-    subsection = lesson["subsection"]
+    section = lesson["section"]
     url = lesson["url"]
-    output_path = output_dir / course / f"{subsection}__{slug}.tsx"
+    output_path = output_dir / course / f"{section}__{slug}.tsx"
 
     if output_path.exists():
         return True
@@ -304,7 +304,7 @@ def scrape_lesson(lesson: dict, output_dir: Path) -> bool:
                 print(f"  EMPTY (extract) {slug}")
                 return False
 
-            tsx = html_to_tsx(content, slug, subsection)
+            tsx = html_to_tsx(content, slug, section)
             output_path.write_text(tsx)
             print(f"  OK   {slug} ({len(tsx)} bytes)")
             return True
@@ -338,7 +338,7 @@ def main_agent_browser(output_dir: Path, redo_failed: bool):
     already = sum(
         1
         for l in all_lessons
-        if (output_dir / l["course"] / f"{l['subsection']}__{l['slug']}.tsx").exists()
+        if (output_dir / l["course"] / f"{l['section']}__{l['slug']}.tsx").exists()
     )
     remaining = (
         total
@@ -360,9 +360,7 @@ def main_agent_browser(output_dir: Path, redo_failed: bool):
 
     for lesson in all_lessons:
         slug = lesson["slug"]
-        output_path = (
-            output_dir / lesson["course"] / f"{lesson['subsection']}__{slug}.tsx"
-        )
+        output_path = output_dir / lesson["course"] / f"{lesson['section']}__{slug}.tsx"
 
         if output_path.exists():
             continue
@@ -371,7 +369,7 @@ def main_agent_browser(output_dir: Path, redo_failed: bool):
             continue
 
         done += 1
-        print(f"[{done}/{total}] {slug}  ({lesson['category']}/{lesson['subsection']})")
+        print(f"[{done}/{total}] {slug}  ({lesson['category']}/{lesson['section']})")
 
         if scrape_lesson(lesson, output_dir):
             successes += 1
@@ -410,9 +408,9 @@ def save_tracker(tracker: dict):
 
 def main_from_file(args):
     slug = args.slug
-    sub = args.subsection
+    sub = args.section
     if not slug or not sub:
-        print("--slug and --subsection are required with --from-file")
+        print("--slug and --section are required with --from-file")
         sys.exit(1)
 
     html = Path(args.from_file).read_text()
@@ -438,9 +436,7 @@ def main():
     )
     parser.add_argument("--from-file", help="Read rendered HTML from file")
     parser.add_argument("--slug", help="Lesson slug (required with --from-file)")
-    parser.add_argument(
-        "--subsection", help="Lesson subsection (required with --from-file)"
-    )
+    parser.add_argument("--section", help="Lesson section (required with --from-file)")
     parser.add_argument("--output-dir", default=str(LESSONS_DIR))
     parser.add_argument(
         "--agent-browser",

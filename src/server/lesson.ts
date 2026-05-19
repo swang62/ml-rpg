@@ -4,7 +4,7 @@ import { getDb } from "~/utils/storage";
 
 export async function getLessonHTMLQuery(
   courseSlug: string,
-  subsectionSlug: string,
+  sectionSlug: string,
   lessonSlug: string,
 ) {
   "use server";
@@ -13,7 +13,7 @@ export async function getLessonHTMLQuery(
   const lesson = await findLessonByPath(
     db,
     courseSlug,
-    subsectionSlug,
+    sectionSlug,
     lessonSlug,
   );
   if (!lesson) return "";

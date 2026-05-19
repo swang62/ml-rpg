@@ -45,25 +45,25 @@ export const getCategoryMetaQuery = query(
     });
     if (!cat) return null;
 
-    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
-    const subsections = await Promise.all(
-      sections.map(async (sec) => {
+    const sectionsRaw = await getSectionsByCategory(db, { categoryId: cat.id });
+    const sections = await Promise.all(
+      sectionsRaw.map(async (sec) => {
         const lessons = await getLessonsBySection(db, { sectionId: sec.id });
         return {
-          subsection: sec.slug,
+          section: sec.slug,
           title: sec.title,
           lessons,
         };
       }),
     );
 
-    return { title: cat.title, subsections };
+    return { title: cat.title, sections };
   },
   "category-meta",
 );
 
-export const getSubsectionMetaQuery = query(
-  async (courseSlug: string, categorySlug: string, subsectionSlug: string) => {
+export const getSectionMetaQuery = query(
+  async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
     "use server";
     const db = getDb();
     const course = await getCourseBySlug(db, { slug: courseSlug });
@@ -76,7 +76,7 @@ export const getSubsectionMetaQuery = query(
     if (!cat) return null;
 
     const sec = await getSectionBySlug(db, {
-      slug: subsectionSlug,
+      slug: sectionSlug,
       categoryId: cat.id,
     });
     if (!sec) return null;
@@ -87,7 +87,7 @@ export const getSubsectionMetaQuery = query(
       lessons,
     };
   },
-  "subsection-meta",
+  "section-meta",
 );
 
 export const getCoursesQuery = query(async () => {
@@ -98,11 +98,7 @@ export const getCoursesQuery = query(async () => {
 }, "courses");
 
 export const getBreadcrumbsQuery = query(
-  async (
-    courseSlug: string,
-    categorySlug?: string,
-    subsectionSlug?: string,
-  ) => {
+  async (courseSlug: string, categorySlug?: string, sectionSlug?: string) => {
     "use server";
     const db = getDb();
     const crumbs: { label: string; href: string }[] = [];
@@ -125,17 +121,17 @@ export const getBreadcrumbsQuery = query(
       href: `/${courseSlug}/${categorySlug}`,
     });
 
-    if (!subsectionSlug) return crumbs;
+    if (!sectionSlug) return crumbs;
 
     const sec = await getSectionBySlug(db, {
-      slug: subsectionSlug,
+      slug: sectionSlug,
       categoryId: cat.id,
     });
     if (!sec) return crumbs;
 
     crumbs.push({
       label: sec.title,
-      href: `/${courseSlug}/${categorySlug}/${subsectionSlug}`,
+      href: `/${courseSlug}/${categorySlug}/${sectionSlug}`,
     });
 
     return crumbs;
@@ -146,7 +142,7 @@ export const getBreadcrumbsQuery = query(
 export async function getLessonNavQuery(
   courseSlug: string,
   categorySlug: string,
-  subsectionSlug: string,
+  sectionSlug: string,
   lessonSlug: string,
 ) {
   "use server";
@@ -162,7 +158,7 @@ export async function getLessonNavQuery(
   if (!cat) return null;
 
   const sec = await getSectionBySlug(db, {
-    slug: subsectionSlug,
+    slug: sectionSlug,
     categoryId: cat.id,
   });
   if (!sec) return null;
@@ -204,10 +200,10 @@ export async function findSectionBySlugInCourse(
 export async function findLessonByPath(
   db: Database,
   courseSlug: string,
-  subsectionSlug: string,
+  sectionSlug: string,
   lessonSlug: string,
 ) {
-  const sec = await findSectionBySlugInCourse(db, courseSlug, subsectionSlug);
+  const sec = await findSectionBySlugInCourse(db, courseSlug, sectionSlug);
   if (!sec) return null;
 
   const lesson = await getLessonBySlug(db, {
