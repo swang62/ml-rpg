@@ -971,6 +971,12 @@ a {
   padding: 28px 32px;
   margin: 0 16px 48px;
   max-width: 600px;
+  min-width: 260px;
+}
+
+.nav-shortcuts-bottom {
+  margin-top: auto;
+  padding: var(--nav-height) 0;
 }
 
 .hero-course-card__icon {
@@ -2165,7 +2171,8 @@ main {
     margin-right: auto;
   }
 
-  .nav-shortcuts {
+  .nav-shortcuts,
+  .nav-shortcuts-bottom {
     display: none;
   }
 
@@ -2204,6 +2211,10 @@ main {
     right: 12px;
   }
 
+  .shortcut-kbd {
+    display: none;
+  }
+
   .lesson-nav {
     display: flex;
     flex-direction: column;
@@ -2217,13 +2228,19 @@ main {
     padding: 12px 12px;
   }
 
+  .lesson-back-link {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 12px;
+  }
+
   .app-footer__inner {
     flex-direction: column;
     text-align: center;
   }
 
   .app-content {
-    padding-top: 0px;
+    padding: 0 12px 54px;
   }
 }
 

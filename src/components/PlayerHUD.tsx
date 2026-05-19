@@ -9,7 +9,6 @@ import {
   Show,
 } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
-import LoginModal from "~/components/LoginModal";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
 import {
@@ -33,15 +32,12 @@ export default function PlayerHUD() {
   const [mounted, setMounted] = createSignal(false);
   const [levelUp, setLevelUp] = createSignal(false);
   const [showSheet, setShowSheet] = createSignal(false);
-  const [showLogin, setShowLogin] = createSignal(false);
 
-  // Close modals only on auth state change (login or logout),
-  // not when user signal updates (e.g. display name edit)
+  // Close sheet on auth state change (login or logout)
   let prevSignedIn: boolean | undefined;
   createEffect(() => {
     const current = signedIn();
     if (current !== prevSignedIn) {
-      setShowLogin(false);
       setShowSheet(false);
     }
     prevSignedIn = current;
@@ -172,14 +168,8 @@ export default function PlayerHUD() {
         totalXp={xp().count}
         completionPercent={xp().percent}
         signedIn={signedIn()}
-        onLogin={() => {
-          setShowSheet(false);
-          setShowLogin(true);
-        }}
         onClose={() => setShowSheet(false)}
       />
-
-      <LoginModal open={showLogin()} onClose={() => setShowLogin(false)} />
     </>
   );
 }

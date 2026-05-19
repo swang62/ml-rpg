@@ -11,7 +11,7 @@ import { getLessonNavQuery } from "~/server/course";
 import { getLessonHTMLQuery } from "~/server/lesson";
 import { getLessonReadStatusQuery } from "~/server/progress";
 import { isAnonLessonRead, version } from "~/utils/client-storage";
-import { EXTERNAL_URL, TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
+import { EXTERNAL_URL, XP_TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 
 export const route = {
   preload: ({ params }) => {
@@ -73,7 +73,7 @@ export default function LessonPage() {
 
   const handleRead = () => {
     setToastVisible(true);
-    setTimeout(() => setToastVisible(false), TOAST_TIMEOUT);
+    setTimeout(() => setToastVisible(false), XP_TOAST_TIMEOUT);
   };
 
   const lessonURL = () =>

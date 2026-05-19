@@ -82,16 +82,7 @@ function KeyboardNavHandler() {
         return;
       }
 
-      const current = cards();
-      if (current.length === 0) return;
-
-      const isArrow = [
-        "ArrowUp",
-        "ArrowDown",
-        "ArrowLeft",
-        "ArrowRight",
-      ].includes(e.key);
-
+      // Escape - works regardless of cards
       if (e.key === "Escape" && activeIndex() >= 0) {
         e.preventDefault();
         setActiveIndex(-1);
@@ -99,16 +90,7 @@ function KeyboardNavHandler() {
         return;
       }
 
-      if (
-        !isArrow &&
-        e.key !== "Enter" &&
-        e.key !== "s" &&
-        e.key !== "h" &&
-        e.key !== "p"
-      )
-        return;
-
-      // Single-letter global shortcuts
+      // Single-letter global shortcuts - work regardless of cards
       if (e.key === "s") {
         e.preventDefault();
         document.dispatchEvent(new CustomEvent("shortcut:search"));
@@ -125,20 +107,40 @@ function KeyboardNavHandler() {
         return;
       }
 
-      // Lesson page left/right navigation
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        const lessonNav = document.querySelector(".lesson-nav");
-        if (lessonNav) {
-          const links = lessonNav.querySelectorAll<HTMLElement>("a[href]");
-          const target =
-            e.key === "ArrowLeft" ? links[0] : links[links.length - 1];
-          if (target) {
-            e.preventDefault();
-            target.click();
-            return;
-          }
+      // Lesson page left/right navigation - works regardless of cards
+      if (e.key === "ArrowLeft") {
+        const link = document.querySelector<HTMLElement>(
+          ".lesson-nav__link--prev",
+        );
+        if (link) {
+          e.preventDefault();
+          link.click();
+          return;
         }
       }
+      if (e.key === "ArrowRight") {
+        const link = document.querySelector<HTMLElement>(
+          ".lesson-nav__link--next",
+        );
+        if (link) {
+          e.preventDefault();
+          link.click();
+          return;
+        }
+      }
+
+      // Card navigation - requires cards on the page
+      const current = cards();
+      if (current.length === 0) return;
+
+      const isArrow = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+      ].includes(e.key);
+
+      if (!isArrow && e.key !== "Enter") return;
 
       const idx = activeIndex();
 

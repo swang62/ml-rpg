@@ -20,16 +20,15 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 ### Course Information
 
 - Currently only 2 courses, machine learning and data engineering
-- Each world has roughly 10-20 categories/levels
-- Each level contains 5-10 sections/quests
-- Each section contains 5-7 lessons/objectives
+- Each course has roughly 10-20 categories
+- Each category contains 5-10 sections
+- Each section contains 5-7 lessons
 - Total lessons are about ~1000 lessons
   
 ### XP & Leveling system
 
-- Each objective awards a multiple of `25 XP` (objective 1 = 25 XP, objective 6 = 150 XP)
+- Each objective awards a multiple of `25 XP` (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
 - 20 ranks from Novice (0) to Eternal (20), gradual increasing difficulty curve
-- Level 20 requires 60,000 XP (~87,000 is total available XP if all ~1000 lessons are completed)
 
 ### Player Tracking
 
@@ -42,7 +41,6 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 - Objectives are marked complete when a user reads the full lesson
 - Users can manually reset progress on the quest page, or in the Player HUD detailed stats section
-- XP earned animations (+XP)
 
 ---
 

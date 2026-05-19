@@ -14,7 +14,7 @@ import {
   Show,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import { logoutAction } from "~/server/auth";
+import { formLogin, logoutAction } from "~/server/auth";
 import { resetAllProgressAction } from "~/server/mutations";
 import { updateUserNameAction } from "~/server/user";
 import {
@@ -31,7 +31,6 @@ interface Props {
   totalXp: number;
   completionPercent: number;
   signedIn: boolean;
-  onLogin: () => void;
   onClose: () => void;
 }
 
@@ -87,8 +86,11 @@ export default function PlayerSheet(props: Props) {
   const [editing, setEditing] = createSignal(false);
   const [draftName, setDraftName] = createSignal(props.displayName ?? "");
   const [showResetConfirm, setShowResetConfirm] = createSignal(false);
+  const [showLogin, setShowLogin] = createSignal(false);
+  let usernameRef: HTMLInputElement | undefined;
   const updateName = useAction(updateUserNameAction);
   const submission = useSubmission(updateUserNameAction);
+  const loginSubmission = useSubmission(formLogin);
   const resetAllProgress = useAction(resetAllProgressAction);
 
   const currentLevel = createMemo(() => getLevel(props.totalXp));
@@ -117,10 +119,32 @@ export default function PlayerSheet(props: Props) {
   createEffect(() => {
     if (!props.open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !editing()) props.onClose();
+      if (e.key === "Escape" && !editing()) {
+        if (showLogin()) {
+          setShowLogin(false);
+        } else {
+          props.onClose();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
     onCleanup(() => document.removeEventListener("keydown", onKey));
+  });
+
+  createEffect(() => {
+    if (!showLogin()) return;
+    queueMicrotask(() => usernameRef?.focus());
+  });
+
+  createEffect(() => {
+    if (
+      loginSubmission.input &&
+      !loginSubmission.pending &&
+      !loginSubmission.error
+    ) {
+      setShowLogin(false);
+      props.onClose();
+    }
   });
 
   const btn =
@@ -147,7 +171,6 @@ export default function PlayerSheet(props: Props) {
               aria-label="Close"
             >
               <kbd class="shortcut-kbd">esc</kbd>
-              <X size={16} />
             </button>
             {/* Player info */}
             <div class="flex flex-col gap-2 items-center">
@@ -282,7 +305,7 @@ export default function PlayerSheet(props: Props) {
                       <button
                         type="button"
                         class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:cursor-pointer hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
-                        onClick={props.onLogin}
+                        onClick={() => setShowLogin(true)}
                       >
                         <LogIn size={13} />
                         Sign In
@@ -357,6 +380,72 @@ export default function PlayerSheet(props: Props) {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </Show>
+
+        <Show when={showLogin()}>
+          <div class="contents">
+            <button
+              type="button"
+              class="fixed inset-0 z-15000 bg-[rgba(0,0,0,0.6)] appearance-none border-none cursor-default"
+              onClick={() => setShowLogin(false)}
+              aria-label="Close"
+            />
+            <div class="fixed inset-0 z-16000 flex items-center justify-center pointer-events-none">
+              <div class="pointer-events-auto w-[min(400px,88vw)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
+                <h2 class="font-pixel text-[0.8rem] text-heading text-center">
+                  Sign In
+                </h2>
+                <form
+                  action={formLogin}
+                  method="post"
+                  class="flex flex-col gap-4"
+                >
+                  <label class="flex flex-col gap-1">
+                    <span class="font-pixel text-[0.6rem] text-muted tracking-[0.06em] uppercase">
+                      Username
+                    </span>
+                    <input
+                      ref={usernameRef}
+                      name="username"
+                      type="text"
+                      autocomplete="username"
+                      placeholder="Enter your username"
+                      required
+                      class="bg-surface-hover border-2 border-border rounded-sm px-3 py-2 font-pixel text-[0.7rem] text-heading outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(96,165,250,0.15)]"
+                    />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="font-pixel text-[0.6rem] text-muted tracking-[0.06em] uppercase">
+                      Password
+                    </span>
+                    <input
+                      name="password"
+                      type="password"
+                      autocomplete="current-password"
+                      placeholder="Enter your password"
+                      minLength={6}
+                      required
+                      class="bg-surface-hover border-2 border-border rounded-sm px-3 py-2 font-pixel text-[0.7rem] text-heading outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(96,165,250,0.15)]"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={loginSubmission.pending}
+                    class="w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-[rgba(96,165,250,0.15)] hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loginSubmission.pending ? "Signing in..." : "Sign In"}
+                  </button>
+                  <Show when={loginSubmission.error} keyed>
+                    {({ message }) => (
+                      <p class="font-pixel text-[0.55rem] text-center text-red-400">
+                        {message}
+                      </p>
+                    )}
+                  </Show>
+                </form>
               </div>
             </div>
           </div>

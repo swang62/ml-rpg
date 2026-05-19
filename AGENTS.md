@@ -140,7 +140,7 @@ This means both the course DB and vector store are self-healing — no manual se
 
 - Each lesson awards `lesson_order * XP_VALUE` (lesson 1 = 25 XP, lesson 6 = 150 XP)
 - 20 ranks: Novice (0) → Eternal (20), with increasing difficulty
-- Level 20 requires 60,000 XP (~87,000 total available across all ~1000 lessons)
+- Level 20 requires 70,000 XP (~87,000 total available across all ~1000 lessons)
 - XP levels and avatar tiers defined in `src/utils/constants.ts`
 - The `PlayerHUD` component shows an animated XP counter that smoothly counts up on change
 - Rank tiers have distinct avatar border colors and glow effects
