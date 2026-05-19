@@ -1283,11 +1283,11 @@ a {
 
 .shortcuts-bar {
   position: absolute;
-  top: 10px;
-  right: 52px;
+  top: 12px;
+  right: 56px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   pointer-events: none;
 }
 
@@ -1300,8 +1300,8 @@ a {
 .shortcuts-bar__item {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  font-size: 0.55rem;
+  gap: 3px;
+  font-size: 0.65rem;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -1310,14 +1310,14 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-hover);
-  border-radius: 3px;
+  border-radius: 4px;
   font-family: inherit;
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   color: var(--base);
   line-height: 1;
 }
