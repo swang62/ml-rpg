@@ -1456,10 +1456,10 @@ a {
 
 .askai-inputbar__send {
   padding: 10px 18px;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--level-category);
   border-radius: 999px;
-  background: var(--tint-accent);
-  color: var(--accent);
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--level-category);
   cursor: pointer;
   font-family: var(--font-pixel);
   font-size: 0.65rem;
@@ -1471,7 +1471,7 @@ a {
 }
 
 .askai-inputbar__send:hover:not(:disabled) {
-  background: var(--accent);
+  background: var(--level-category);
   color: var(--bg);
 }
 
