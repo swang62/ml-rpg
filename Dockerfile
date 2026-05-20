@@ -30,6 +30,7 @@ RUN adduser -D -H -h /app www
 # Setup course database
 RUN mkdir -p /app/.data
 COPY --from=build /app/src/db/empty.db /app/.data/course.db
+COPY --from=build /app/src/db/empty.db /app/src/db/empty.db
 RUN chown -R www:www /app/.data
 
 USER www
