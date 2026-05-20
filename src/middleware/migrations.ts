@@ -26,9 +26,24 @@ interface Migration {
 
 // Ordered list of schema migrations. Each must be idempotent (use IF NOT EXISTS / IF EXISTS).
 const MIGRATIONS: Migration[] = [
-  // Starting point — v1 is the initial schema from base.sql.
-  // Future migrations append here:
-  // { version: 2, description: "add user email column", sql: `ALTER TABLE users ADD COLUMN email TEXT;` },
+  {
+    version: 1,
+    description:
+      "add last_visited_at to users, enable delete cascade on progress",
+    sql: `
+      ALTER TABLE users ADD COLUMN last_visited_at TEXT NOT NULL DEFAULT (datetime('now'));
+      DROP TABLE IF EXISTS progress_new;
+      CREATE TABLE progress_new (
+        lesson_id INTEGER NOT NULL REFERENCES lesson(id),
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        read_at TEXT NOT NULL DEFAULT (datetime('now')),
+        PRIMARY KEY (lesson_id, user_id)
+      );
+      INSERT INTO progress_new (lesson_id, user_id, read_at) SELECT lesson_id, user_id, read_at FROM progress;
+      DROP TABLE progress;
+      ALTER TABLE progress_new RENAME TO progress;
+    `,
+  },
 ];
 
 export async function runMigrations(db: Database): Promise<void> {

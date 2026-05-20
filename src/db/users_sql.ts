@@ -104,6 +104,26 @@ export async function updateDisplayName(database: Database, args: UpdateDisplayN
     await stmt.run(args.displayName, args.id);
 }
 
+export const updateLastVisitedAtQuery = `-- name: UpdateLastVisitedAt :exec
+UPDATE users SET last_visited_at = datetime('now') WHERE id = ?`;
+
+export interface UpdateLastVisitedAtArgs {
+    id: any;
+}
+
+export async function updateLastVisitedAt(database: Database, args: UpdateLastVisitedAtArgs): Promise<void> {
+    const stmt = database.prepare(updateLastVisitedAtQuery);
+    await stmt.run(args.id);
+}
+
+export const deleteStaleUsersQuery = `-- name: DeleteStaleUsers :exec
+DELETE FROM users WHERE last_visited_at < date('now', '-90 days')`;
+
+export async function deleteStaleUsers(database: Database): Promise<void> {
+    const stmt = database.prepare(deleteStaleUsersQuery);
+    await stmt.run();
+}
+
 export const getUserCountQuery = `-- name: GetUserCount :one
 SELECT COUNT(*) AS count FROM users`;
 

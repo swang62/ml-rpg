@@ -25,6 +25,7 @@ export function getDb(): Database.Database {
     ensureCourseDb();
     _db = new Database(COURSE_DB_PATH);
     _db.pragma("journal_mode = WAL");
+    _db.pragma("foreign_keys = ON");
   }
 
   // Run pending schema migrations on first access (idempotent)
