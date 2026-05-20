@@ -10,6 +10,7 @@
 
 import { deleteStaleUsers } from "~/db/users_sql";
 import { getDb } from "~/server/storage";
+import { CLEANUP_INTERVAL_DAYS, MAX_SESSION_DAYS } from "~/utils/constants";
 
 interface RateLimitEntry {
   timestamps: number[];
@@ -18,26 +19,34 @@ interface RateLimitEntry {
 const store = new Map<string, RateLimitEntry>();
 
 // Sweep stale entries and inactive users once a day (personal VPS, low churn)
-const CLEANUP_INTERVAL = 86_400_000; // 24 hours
-setInterval(() => {
-  const now = Date.now();
+setInterval(
+  () => {
+    const now = Date.now();
 
-  // Clean rate limit store
-  for (const [key, entry] of store) {
-    entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
-    if (entry.timestamps.length === 0) {
-      store.delete(key);
+    // Clean rate limit store
+    for (const [key, entry] of store) {
+      entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
+      if (entry.timestamps.length === 0) {
+        store.delete(key);
+      }
     }
-  }
 
-  // Sweep users inactive for 90+ days (ON DELETE CASCADE removes their progress)
-  try {
-    const db = getDb();
-    deleteStaleUsers(db);
-  } catch (error) {
-    console.error("[cleanup] Failed to sweep stale users:", error);
-  }
-}, CLEANUP_INTERVAL).unref();
+    // Sweep users inactive past MAX_SESSION_DAYS (ON DELETE CASCADE removes their progress)
+    try {
+      const db = getDb();
+      const cutoff = new Date(
+        Date.now() - MAX_SESSION_DAYS * 24 * 60 * 60 * 1000,
+      )
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+      deleteStaleUsers(db, { lastVisitedAt: cutoff });
+    } catch (error) {
+      console.error("[cleanup] Failed to sweep stale users:", error);
+    }
+  },
+  60 * 60 * 24 * CLEANUP_INTERVAL_DAYS,
+).unref();
 
 export interface RateLimitConfig {
   maxAttempts: number;

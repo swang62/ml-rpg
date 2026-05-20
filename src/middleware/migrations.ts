@@ -31,7 +31,19 @@ const MIGRATIONS: Migration[] = [
     description:
       "add last_visited_at to users, enable delete cascade on progress",
     sql: `
-      ALTER TABLE users ADD COLUMN last_visited_at TEXT NOT NULL DEFAULT (datetime('now'));
+      DROP TABLE IF EXISTS users_new;
+      CREATE TABLE users_new (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        user_password TEXT NOT NULL,
+        display_name TEXT,
+        last_visited_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO users_new (id, username, user_password, display_name, last_visited_at)
+        SELECT id, username, user_password, display_name, datetime('now') FROM users;
+      DROP TABLE users;
+      ALTER TABLE users_new RENAME TO users;
+
       DROP TABLE IF EXISTS progress_new;
       CREATE TABLE progress_new (
         lesson_id INTEGER NOT NULL REFERENCES lesson(id),

@@ -289,7 +289,13 @@ describe("Progress tracking", () => {
 });
 
 describe("Stale user sweep", () => {
-  it("deletes users inactive for 90+ days", async () => {
+  const cutoff = (days: number) =>
+    new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+
+  it("deletes users inactive past the cutoff", async () => {
     const oldUser = await upsertUser(db, {
       username: "old-user",
       userPassword: "hash",
@@ -301,21 +307,20 @@ describe("Stale user sweep", () => {
       "UPDATE users SET last_visited_at = datetime('now', '-100 days') WHERE id = ?",
     ).run(oldUser!.id);
 
-    await deleteStaleUsers(db);
+    await deleteStaleUsers(db, { lastVisitedAt: cutoff(90) });
 
     const fetched = await getUserById(db, { id: oldUser!.id });
     expect(fetched).toBeNull();
   });
 
-  it("keeps users active within 90 days", async () => {
+  it("keeps users active within the cutoff", async () => {
     const recentUser = await upsertUser(db, {
       username: "recent-user",
       userPassword: "hash",
       displayName: "Recent User",
     });
 
-    // last_visited_at defaults to datetime('now') on insert
-    await deleteStaleUsers(db);
+    await deleteStaleUsers(db, { lastVisitedAt: cutoff(90) });
 
     const fetched = await getUserById(db, { id: recentUser!.id });
     expect(fetched).not.toBeNull();
@@ -342,13 +347,11 @@ describe("Stale user sweep", () => {
     db.prepare(
       "UPDATE users SET last_visited_at = datetime('now', '-100 days') WHERE id = ?",
     ).run(userId);
-    await deleteStaleUsers(db);
+    await deleteStaleUsers(db, { lastVisitedAt: cutoff(90) });
 
-    // User should be gone
     const fetched = await getUserById(db, { id: userId });
     expect(fetched).toBeNull();
 
-    // Progress should be gone too
     const readAfter = await getAllReadLessons(db, { userId });
     expect(readAfter.length).toBe(0);
   });

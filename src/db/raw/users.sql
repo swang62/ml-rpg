@@ -17,7 +17,7 @@ UPDATE users SET display_name = ? WHERE id = ?;
 UPDATE users SET last_visited_at = datetime('now') WHERE id = ?;
 
 -- name: DeleteStaleUsers :exec
-DELETE FROM users WHERE last_visited_at < date('now', '-90 days');
+DELETE FROM users WHERE last_visited_at < ?;
 
 -- name: GetUserCount :one
 SELECT COUNT(*) AS count FROM users;
