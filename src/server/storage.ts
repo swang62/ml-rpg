@@ -10,13 +10,11 @@ function ensureCourseDb(): void {
   if (existsSync(COURSE_DB_PATH)) return;
   if (existsSync(EMPTY_DB_PATH)) {
     copyFileSync(EMPTY_DB_PATH, COURSE_DB_PATH);
-    console.log(
-      `[storage] Initialized ${COURSE_DB_PATH}, make sure to create a first user!`,
-    );
+    console.log(`[storage] Initialized ${COURSE_DB_PATH}`);
     return;
   }
-  console.error(
-    `[storage] Neither ${COURSE_DB_PATH} nor ${EMPTY_DB_PATH} found. Copy ${EMPTY_DB_PATH} to the latter or set COURSE_DB_PATH env var.`,
+  throw new Error(
+    `[storage] Neither ${COURSE_DB_PATH} nor ${EMPTY_DB_PATH} found, critical error`,
   );
 }
 
