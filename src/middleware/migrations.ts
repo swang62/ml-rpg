@@ -71,7 +71,7 @@ export async function runMigrations(db: Database): Promise<void> {
     if (migration.version <= currentVersion) continue;
 
     console.log(
-      `[db] Applying migrations, version ${migration.version}: ${migration.description}`,
+      `[db] Applying migrations, V${migration.version}: ${migration.description}`,
     );
 
     // Disable FK enforcement during schema changes per SQLite best practice.
@@ -90,7 +90,7 @@ export async function runMigrations(db: Database): Promise<void> {
     runMigration();
 
     db.exec("PRAGMA foreign_keys = ON");
-    console.log(`[db] Version ${migration.version} applied`);
+    console.log(`[db] V${migration.version} successfully applied`);
   }
 
   if (
@@ -98,9 +98,9 @@ export async function runMigrations(db: Database): Promise<void> {
     MIGRATIONS.every((m) => m.version <= currentVersion)
   ) {
     if (currentVersion === 0) {
-      console.log(`[db] Schema initialized at version 0`);
+      console.log(`[db] Schema initialized V0`);
     } else {
-      console.log(`[db] Schema up-to-date with version ${currentVersion}`);
+      console.log(`[db] Schema up-to-date: V${currentVersion}`);
     }
   }
 }

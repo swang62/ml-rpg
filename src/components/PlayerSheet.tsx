@@ -19,7 +19,7 @@ import {
   resetAllProgressAction,
   updateUserNameAction,
 } from "~/server/mutations";
-import { LEVELS, type LevelDef } from "~/utils/constants";
+import { LEVELS, type LevelDef, MAX_SESSION_DAYS } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import {
   resetAnonAllProgress,
@@ -361,7 +361,7 @@ export default function PlayerSheet(props: Props) {
                         onClick={() => setShowLogin(true)}
                       >
                         <LogIn size={13} />
-                        Sign In
+                        Login
                       </button>
                       <button
                         type="button"
@@ -371,10 +371,10 @@ export default function PlayerSheet(props: Props) {
                         <LogIn size={13} />
                         Sign Up
                       </button>
-                      <ResetButton onClick={() => setShowResetConfirm(true)} />
                     </div>
-                    <span class="font-pixel text-[0.75rem] text-muted text-right">
-                      Logged out: <span class="text-accent">local-only</span>
+                    <span class="font-pixel text-[0.75rem] text-accent text-right gap-4 flex justify-center items-center">
+                      local-only
+                      <ResetButton onClick={() => setShowResetConfirm(true)} />
                     </span>
                   </div>
                 }
@@ -387,7 +387,7 @@ export default function PlayerSheet(props: Props) {
                         class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
                       >
                         <LogOut size={13} />
-                        Sign Out
+                        Log Out
                       </button>
                     </form>
                     <ResetButton onClick={() => setShowResetConfirm(true)} />
@@ -457,7 +457,7 @@ export default function PlayerSheet(props: Props) {
             <div class="fixed inset-0 z-16000 flex items-center justify-center pointer-events-none">
               <div class="pointer-events-auto w-[min(400px,88vw)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
                 <h2 class="font-pixel text-[0.8rem] text-heading text-center">
-                  Sign In
+                  Log In
                 </h2>
                 <form
                   action={formLogin}
@@ -495,9 +495,9 @@ export default function PlayerSheet(props: Props) {
                   <button
                     type="submit"
                     disabled={loginSubmission.pending}
-                    class="w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="hover:cursor-pointer  w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loginSubmission.pending ? "Signing in..." : "Sign In"}
+                    {loginSubmission.pending ? "Logging in..." : "Login"}
                   </button>
                   <Show when={loginSubmission.error} keyed>
                     {({ message }) => (
@@ -526,7 +526,8 @@ export default function PlayerSheet(props: Props) {
                   Sign Up
                 </h2>
                 <p class="font-pixel text-[0.55rem] text-muted text-center leading-relaxed">
-                  Inactive accounts over 90 days will be auto-deleted.
+                  Inactive accounts over {MAX_SESSION_DAYS} days will be
+                  automatically deleted.
                 </p>
                 <form
                   action={formSignup}
@@ -564,11 +565,11 @@ export default function PlayerSheet(props: Props) {
                   <button
                     type="submit"
                     disabled={signupSubmission.pending}
-                    class="w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="hover:cursor-pointer w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {signupSubmission.pending
                       ? "Creating account..."
-                      : "Sign Up"}
+                      : "Create account"}
                   </button>
                   <Show when={signupSubmission.error} keyed>
                     {({ message }) => (
