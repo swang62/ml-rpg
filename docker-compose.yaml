@@ -6,6 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3333}/api/health || exit 1
+      interval: 5m
+      timeout: 10s
+      start_period: 10s
+      retries: 3
     ports:
       - ${PORT:-3333}:${PORT:-3333}
     volumes:

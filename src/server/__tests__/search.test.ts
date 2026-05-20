@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractRelevantText } from "~/server/search";
+import { extractRelevantText } from "~/utils/search-utils";
 
 describe("extractRelevantText", () => {
   it("extracts h1 content", () => {

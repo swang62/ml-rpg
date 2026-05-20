@@ -7,30 +7,7 @@ import {
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
 } from "~/utils/constants";
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function escapeRegex(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Bold query terms in text (text must already be HTML-escaped). */
-function boldTerms(text: string, terms: string[]): string {
-  let result = text;
-  for (const term of terms) {
-    result = result.replace(
-      new RegExp(`(${escapeRegex(term)})`, "gi"),
-      "<strong>$1</strong>",
-    );
-  }
-  return result;
-}
+import { boldTerms, escapeHtml } from "~/utils/search-utils";
 
 export default function Search() {
   const navigate = useNavigate();
