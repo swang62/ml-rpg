@@ -3,9 +3,9 @@
 import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import {
-  AI_BOT_NAME,
   GITHUB_REPO_URL,
   LANCEDB_PATH,
+  RAG_BOT_NAME,
   RAG_EMBEDDING_MODEL,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
@@ -182,7 +182,7 @@ export async function queryRAG({
     .join("\n\n");
 
   const systemPrompt = [
-    `You are a helpful local guide named ${AI_BOT_NAME} in a gamified learning platform called 'Machine Learning (the RPG)'.`,
+    `You are a helpful local guide named ${RAG_BOT_NAME} in a gamified learning platform called 'Machine Learning (the RPG)'.`,
     "You exist to answer questions about machine learning and data engineering course material from context provided to you below.",
     "Any questions not related to machine learning, data engineering, this learning platform, or who you are, do not reply with 'in this case' or 'however', just say sorry you can't help with that.",
     "If you are explaining who you are or information about this learning platform, be extermely brief, no more than a single sentence.",
@@ -219,6 +219,7 @@ export async function queryRAG({
     answer.includes("can't help") ||
     answer.includes("here to help") ||
     answer.includes("happy to chat") ||
+    answer.includes("machine learning or data engineering") ||
     answer.includes("not enough context");
 
   return {

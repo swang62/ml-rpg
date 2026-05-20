@@ -8,11 +8,13 @@ import {
 import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
 import {
   getLessonBySlug,
+  getLessonHtml,
   getLessonsByCategoryGrouped,
   getLessonsBySection,
 } from "~/db/lesson_sql";
 import { getSectionBySlug, getSectionBySlugInCourse } from "~/db/section_sql";
 import { getDb } from "~/server/storage";
+import { cleanLessonHtml } from "~/utils/search-utils";
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
   "use server";
@@ -274,10 +276,22 @@ export async function findLessonByPath(
   return lesson ?? null;
 }
 
-export function cleanLessonHtml(html: string): string {
-  return html
-    .replace(/&lt;code[^&]*?&gt;/g, (m) =>
-      m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
-    )
-    .replaceAll("&lt;/code&gt;", "</code>");
+export async function getLessonHTMLQuery(
+  courseSlug: string,
+  sectionSlug: string,
+  lessonSlug: string,
+) {
+  "use server";
+  const db = getDb();
+
+  const lesson = await findLessonByPath(
+    db,
+    courseSlug,
+    sectionSlug,
+    lessonSlug,
+  );
+  if (!lesson) return "";
+
+  const htmlRow = await getLessonHtml(db, { id: lesson.id });
+  return cleanLessonHtml(htmlRow?.html ?? "");
 }

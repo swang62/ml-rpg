@@ -1,14 +1,12 @@
-import { defineEventHandler } from "vinxi/http";
 import { getDb } from "~/server/storage";
 
 /**
  * Health check endpoint for Docker orchestration.
  * Returns 200 if the database is reachable, 503 otherwise.
  */
-export default defineEventHandler(async () => {
+export async function GET() {
   try {
     const db = getDb();
-    // Lightweight connectivity check
     const row = db.prepare("SELECT 1 AS ok").get() as
       | { ok: number }
       | undefined;
@@ -26,4 +24,4 @@ export default defineEventHandler(async () => {
       headers: { "Content-Type": "application/json" },
     });
   }
-});
+}

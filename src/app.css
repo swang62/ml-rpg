@@ -862,6 +862,7 @@ a {
 .nav-shortcuts {
   display: inline-flex;
   align-items: center;
+
   gap: 4px;
   color: var(--muted);
   font-family: var(--font-pixel);
@@ -935,8 +936,7 @@ a {
 }
 
 .nav-shortcuts-bottom {
-  margin-top: auto;
-  padding: var(--nav-height) 0;
+  margin-bottom: var(--nav-height);
 }
 
 .hero-course-card:hover {

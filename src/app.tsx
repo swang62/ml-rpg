@@ -26,22 +26,22 @@ export default function App() {
             <GlobalBackspaceHandler />
             <KeyboardNavHandler />
             <ParallaxBackground />
-            <div class="app-layout">
-              <header class="app-header">
-                <div class="app-header__inner">
-                  <Suspense>
-                    <PlayerHUD />
-                    <Search />
-                    <AskAI />
-                  </Suspense>
-                </div>
-              </header>
-              <div class="app-content">
-                <ErrorBoundary>
+            <ErrorBoundary>
+              <div class="app-layout">
+                <header class="app-header">
+                  <div class="app-header__inner">
+                    <Suspense>
+                      <PlayerHUD />
+                      <Search />
+                      <AskAI />
+                    </Suspense>
+                  </div>
+                </header>
+                <div class="app-content">
                   <Suspense>{props.children}</Suspense>
-                </ErrorBoundary>
+                </div>
               </div>
-            </div>
+            </ErrorBoundary>
           </Auth>
         </MetaProvider>
       )}
