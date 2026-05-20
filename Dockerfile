@@ -22,8 +22,8 @@ EXPOSE $PORT
 
 ENV HOST=0.0.0.0
 ENV PORT=$PORT
-ENV COURSE_DB_PATH=./.data/course.db
-ENV LANCEDB_PATH=./.data/search
+ENV COURSE_DB_PATH=/app/.data/course.db
+ENV LANCEDB_PATH=/app/.data/search
 
 RUN adduser -D -H -h /app www
 
