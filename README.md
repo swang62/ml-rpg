@@ -2,7 +2,7 @@
 
 ![Homepage screenshot](public/assets/screenshot-homepage.png)
 
-A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, fully mobile-responsive, supports full keyboard navigation on desktop.
+A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, fully mobile-responsive, supports full keyboard navigation on desktop, includes a helpful RAG-assisted local "tour guide" to help along your journey.
 
 ## Summary
 
@@ -24,6 +24,12 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 - Each category contains 5-10 sections
 - Each section contains 5-7 lessons
 - Total lessons are about ~1000 lessons
+
+### Navigation / Search
+
+- Keyboard navigation, use arrow keys (select cards), enter (select), backspace (back)
+- Built-in keyword search to instantly find matching lessons
+- Chat with a "local guide" (Groq + semantic hybrid search) to find what you're looking for, and help summarize core concepts and links to relevant lessons.
   
 ### XP & Leveling system
 

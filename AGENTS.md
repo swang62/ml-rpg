@@ -19,47 +19,77 @@ pnpm dev              # dev server (HMR enabled — use for inspection)
 pnpm build            # production build → Nitro server
 pnpm preview          # serve built app via node .output/server/index.mjs
 pnpm lint             # biome check --write . && pnpm typecheck
+pnpm test             # vitest run
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
 pnpm seed             # tsx ./scripts/seed-db.ts — re-seed course.db from scraped lesson files
 pnpm build:docker     # docker compose up --build --force-recreate -d
 pnpm typecheck        # pnpm tsc --noEmit
+pnpm prepare          # husky || true — initialize git hooks (runs on install)
 ```
 
-> **The user controls the dev server.** Never kill, restart, reload, start, or stop `pnpm dev`. The user starts it manually and it has HMR — edits are reflected instantly without a restart. If the page at `localhost:3000` shows stale content, wait for HMR to pick up the change. You can run linting and building to check things if needed.
+> **The user controls the dev server.** Never kill, restart, reload, start, or stop `pnpm dev`. The user starts it manually and it has HMR — edits are reflected instantly without a restart. If the page at `localhost:3000` shows stale content, wait for HMR to pick up the change. You can run linting, testing, and building to check things if needed.
 > Run `pnpm lint` before pushing — it handles formatting, linting, type checking in one pass.
 
 ## Folder Structure
 
 ```
 ├── .data/                      # Persistent storage folder, sqlite db files
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # CI pipeline (secrets scan, lint, test, build)
+├── .husky/
+│   └── pre-commit              # Git hooks (runs lint-staged)
 ├── scripts/                    # One-time utilities (Python and TS) for scraping/migration
 ├── public/
-│   └── assets/                 # Icons and backgrounds
+│   └── assets/
+│       ├── avatars/            #   21 SVG avatar images (lvl0.svg – lvl20.svg)
+│       └── bg/                 #   Background images per page depth
 ├── src/
 │   ├── components/             # Reusable UI components
+│   │   └── __tests__/          #   Component tests
+│   ├── middleware/              # SolidStart middleware
+│   │   ├── index.ts            #   Rate limiting on all SSR requests
+│   │   └── migrations.ts       #   Schema version migration system
 │   ├── db/                     # SQL files for sqlc and generated query functions
+│   │   ├── __tests__/          #   Database integration tests
 │   │   ├── raw/                #   Raw .sql files (schema + queries)
 │   │   ├── empty.db            #   Pre-seeded course database template
 │   │   └── *_sql.ts            #   Generated typed query functions (DO NOT EDIT)
 │   ├── routes/                 # File-system routing
-│   │   ├── index.tsx           # Homepage
-│   │   ├── [course]/           # Dynamic course routes
+│   │   ├── api/
+│   │   │   └── health.ts       #   Health check endpoint (GET /api/health)
+│   │   ├── index.tsx           #   Homepage
+│   │   ├── [course]/           #   Dynamic course routes
+│   │   │   ├── index.tsx       #     Course level page
+│   │   │   ├── [category]/
+│   │   │   │   ├── index.tsx   #       Category level page
+│   │   │   │   └── [section]/
+│   │   │   │       ├── index.tsx  #     Section/Quest page
+│   │   │   │       └── [lesson]/
+│   │   │   │           └── index.tsx # Lesson/Objective page
 │   │   └── [...404].tsx        # 404 catch-all
 │   ├── server/                 # SSR functions
-│   │   ├── startup.ts          #   Startup DB checks
+│   │   ├── __tests__/          #   Server logic tests
 │   │   ├── auth.ts             #   Login/logout actions
 │   │   ├── course.ts           #   Course/category/section/lesson queries
-│   │   ├── lesson.ts           #   Lesson HTML query
-│   │   ├── mutations.ts        #   Progress mutations (mark read, reset)
+│   │   ├── lesson.ts           #   Lesson HTML query and rendering helpers
+│   │   ├── mutations.ts        #   Progress mutations (mark read, reset, update name)
 │   │   ├── progress.ts         #   XP & read status queries
 │   │   ├── rag.ts              #   RAG (Retrieval-Augmented Generation) via LanceDB + Groq
-│   │   ├── search.ts           #   Full-text search via MiniSearch
-│   │   ├── session.ts          #   Session management
-│   │   └── user.ts             #   User profile actions
+│   │   ├── rate-limiter.ts     #   In-memory sliding window rate limiter
+│   │   ├── search.ts           #   Full-text search via MiniSearch + LanceDB vector store builder
+│   │   ├── session.ts          #   Argon2id password hashing + session management
+│   │   └── storage.ts          #   better-sqlite3 singleton connection
 │   └── utils/
+│       ├── __tests__/          #   Utility tests
+│       ├── animation.ts        #   Card tilt on hover helpers
 │       ├── constants.ts        #   All app constants and configuration
+│       ├── focus-trap.ts       #   Tab/Shift+Tab modal focus cycling
+│       ├── keyboard.ts         #   Arrow key card navigation + global shortcuts
+│       ├── local-storage.ts    #   Anonymous user localStorage persistence (was client-storage.ts)
+│       ├── search-utils.ts     #   Text extraction, HTML sanitization, dedup helpers
 │       ├── storage.ts          #   better-sqlite3 singleton connection
-│       ├── client-storage.ts   #   Anonymous user localStorage persistence
+│       ├── types.ts            #   Shared TypeScript types
 │       └── xp.ts               #   XP/level calculation helpers
 ```
 
@@ -67,7 +97,7 @@ pnpm typecheck        # pnpm tsc --noEmit
 
 - **Biome** handles both linting and formatting (no ESLint/Prettier)
 - Double quotes, 2-space indent, organize imports on save
-- Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
+- Pre-commit git hook runs `lint-staged` → `biome check --write --no-errors-on-unmatched` on staged files + `vitest related --run` on changed `.ts` files automatically. No need to lint manually before committing — just `git commit` and the hook handles it.
 - `pnpm lint` includes Biome checks and TypeScript type checking in one pass.
 
 ### Database Queries
@@ -103,7 +133,7 @@ Rendered via dynamic routes at `/[course]/[category]/[section]/[lesson]`.
 ### Persistence
 
 - **Signed-in users:** All progress stored server-side in a `better-sqlite3` database at `COURSE_DB_PATH`. Login is optional — purely for cross-device progress saving.
-- **Anonymous users:** Progress stored in `localStorage` under `read:{course}:{category}:{section}:{lesson}` keys, managed via `src/utils/client-storage.ts`. A reactive `version` signal triggers UI updates on any change.
+- **Anonymous users:** Progress stored in `localStorage` under `read:{course}:{category}:{section}:{lesson}` keys, managed via `src/utils/local-storage.ts`. A reactive `version` signal triggers UI updates on any change.
 
 ### Environmental variables
 
@@ -173,7 +203,7 @@ This means both the course DB and vector store are self-healing — no manual se
 
 - All `read:*` keys in localStorage
 - Display name stored under `user:displayName`
-- A global `version` signal in `client-storage.ts` is bumped on any mutation — components read `version()` in memos/effects to reactively re-evaluate from localStorage
+- A global `version` signal in `local-storage.ts` is bumped on any mutation — components read `version()` in memos/effects to reactively re-evaluate from localStorage
 - Mark lesson read, reset section, reset all progress — all bump the version signal
 
 ### Reset All Progress
@@ -183,6 +213,23 @@ This means both the course DB and vector store are self-healing — no manual se
 - **Signed-in users:** calls `resetAllProgressAction` which deletes all `progress` rows for the session user
 - **Anonymous users:** calls `resetAnonAllProgress()` which removes all `read:*` localStorage keys and bumps the version signal
 - Player Sheet closes after reset to show the updated HUD
+
+### Rate Limiting
+
+- Global middleware (`src/middleware/index.ts`) applies per-IP rate limiting to all SSR requests.
+- Default: 200 requests per 60-second window; login endpoint: 10 per 60-second window.
+- Static assets bypassed. Returns 429 with `Retry-After` and `X-RateLimit-*` headers.
+- In-memory sliding window store with 24-hour cleanup interval.
+
+### Schema Migration System
+
+- `schema_version` table tracks applied migrations, located in `src/middleware/migrations.ts`.
+- Migrations run on startup inside `getDb()` — currently at v1 (initial schema from `base.sql`).
+- New migrations are appended to the array; always update `base.sql` for fresh databases.
+
+### Testing
+
+Tests live in `__tests__/` directories co-located with source modules. Run with `pnpm test` (`vitest run`). Tests exist for: server logic (auth, rate limiter, search, RAG, course), utility functions (XP, localStorage), search components, and database integration (in-memory SQLite CRUD).
 
 ## Environment Variables
 
