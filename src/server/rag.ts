@@ -2,7 +2,6 @@
 
 import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
-import { ensureVectorStore } from "~/server/startup";
 import {
   AI_BOT_NAME,
   GITHUB_REPO_URL,
@@ -11,6 +10,7 @@ import {
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
 } from "~/utils/constants";
+import { ensureVectorStore } from "./search";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -123,7 +123,7 @@ async function hybridSearch(
   });
 }
 
-function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
+export function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
   const seen = new Map<string, SourceResult>();
 
   for (const chunk of chunks) {
