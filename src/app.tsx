@@ -9,6 +9,7 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import AskAI from "~/components/AskAI";
 import Auth from "~/components/AuthContext";
+import ErrorBoundary from "~/components/ErrorBoundary";
 import ParallaxBackground from "~/components/ParallaxBackground";
 import PlayerHUD from "~/components/PlayerHUD";
 import Search from "~/components/Search";
@@ -36,7 +37,9 @@ export default function App() {
                 </div>
               </header>
               <div class="app-content">
-                <Suspense>{props.children}</Suspense>
+                <ErrorBoundary>
+                  <Suspense>{props.children}</Suspense>
+                </ErrorBoundary>
               </div>
             </div>
           </Auth>

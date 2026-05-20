@@ -1,14 +1,14 @@
 import { query } from "@solidjs/router";
 import { getCategoriesByCourse } from "~/db/category_sql";
 import { getCourseBySlug } from "~/db/course_sql";
-import { getAllLessons, getLessonsBySection } from "~/db/lesson_sql";
+import { getAllLessons, getLessonsByCategoryGrouped } from "~/db/lesson_sql";
 import {
   getAllReadLessons,
   getReadCountsByCourse,
   getReadLessonsBySection,
   isLessonRead,
 } from "~/db/progress_sql";
-import { getSectionsByCategory } from "~/db/section_sql";
+import { getSectionIdToSlugByCourse } from "~/db/section_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
@@ -90,23 +90,23 @@ export const getCategoryReadCountsQuery = query(async (courseSlug: string) => {
   const course = await getCourseBySlug(db, { slug: courseSlug });
   if (!course) return {};
 
+  // Single JOIN query replaces loop over categories → sections
+  const sectionSlugs = await getSectionIdToSlugByCourse(db, {
+    courseId: course.id,
+  });
+  const slugMap: Record<number, string> = {};
+  for (const sec of sectionSlugs) {
+    slugMap[Number(sec.id)] = sec.slug;
+  }
+
   const rows = await getReadCountsByCourse(db, {
     userId,
     courseId: course.id,
   });
 
-  const categories = await getCategoriesByCourse(db, { courseId: course.id });
-  const sectionIdToSlug: Record<number, string> = {};
-  for (const cat of categories) {
-    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
-    for (const sec of sections) {
-      sectionIdToSlug[sec.id] = sec.slug;
-    }
-  }
-
   const result: Record<string, number> = {};
   for (const row of rows) {
-    const slug = sectionIdToSlug[Number(row.sectionid)];
+    const slug = slugMap[Number(row.sectionid)];
     if (slug) {
       result[slug] = row.readcount;
     }
@@ -124,19 +124,31 @@ export const getCourseReadCountsQuery = query(async (courseSlug: string) => {
   if (!course) return {};
 
   const allRead = await getAllReadLessons(db, { userId });
-  const readSet = new Set(allRead.map((r) => r.lessonid));
+  const readSet = new Set(allRead.map((r) => Number(r.lessonid)));
 
+  // Single grouped query replaces nested loops over categories → sections → lessons
   const categories = await getCategoriesByCourse(db, { courseId: course.id });
   const result: Record<string, boolean[]> = {};
 
   for (const cat of categories) {
-    const sections = await getSectionsByCategory(db, { categoryId: cat.id });
-    const statuses = await Promise.all(
-      sections.map(async (sec) => {
-        const lessons = await getLessonsBySection(db, { sectionId: sec.id });
-        return lessons.every((l) => readSet.has(l.id));
-      }),
-    );
+    const grouped = await getLessonsByCategoryGrouped(db, {
+      categoryId: cat.id,
+    });
+
+    // Build a section-lesson map from the grouped results
+    const sectionLessons = new Map<string, number[]>();
+    for (const row of grouped) {
+      const secSlug = row.secslug as string;
+      if (!sectionLessons.has(secSlug)) {
+        sectionLessons.set(secSlug, []);
+      }
+      sectionLessons.get(secSlug)?.push(Number(row.id));
+    }
+
+    const statuses: boolean[] = [];
+    for (const [, lessonIds] of sectionLessons) {
+      statuses.push(lessonIds.every((id) => readSet.has(id)));
+    }
     result[cat.slug] = statuses;
   }
 

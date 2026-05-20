@@ -87,3 +87,44 @@ export async function ensureProgressTable(database: Database): Promise<void> {
     await stmt.run();
 }
 
+export const ensureSchemaVersionTableQuery = `-- name: EnsureSchemaVersionTable :exec
+CREATE TABLE IF NOT EXISTS schema_version (
+  version INTEGER NOT NULL PRIMARY KEY,
+  description TEXT NOT NULL,
+  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+)`;
+
+export async function ensureSchemaVersionTable(database: Database): Promise<void> {
+    const stmt = database.prepare(ensureSchemaVersionTableQuery);
+    await stmt.run();
+}
+
+export const getCurrentSchemaVersionQuery = `-- name: GetCurrentSchemaVersion :one
+SELECT version FROM schema_version ORDER BY version DESC LIMIT 1`;
+
+export interface GetCurrentSchemaVersionRow {
+    version: any;
+}
+
+export async function getCurrentSchemaVersion(database: Database): Promise<GetCurrentSchemaVersionRow | null> {
+    const stmt = database.prepare(getCurrentSchemaVersionQuery);
+    const result = await stmt.get();
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetCurrentSchemaVersionRow;
+}
+
+export const applyMigrationQuery = `-- name: ApplyMigration :exec
+INSERT INTO schema_version (version, description, applied_at) VALUES (?, ?, datetime('now'))`;
+
+export interface ApplyMigrationArgs {
+    version: any;
+    description: any;
+}
+
+export async function applyMigration(database: Database, args: ApplyMigrationArgs): Promise<void> {
+    const stmt = database.prepare(applyMigrationQuery);
+    await stmt.run(args.version, args.description);
+}
+

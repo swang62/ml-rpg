@@ -12,6 +12,7 @@ import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG, type SourceResult } from "~/server/rag";
 import { AI_BOT_NAME, RAG_MAX_HISTORY } from "~/utils/constants";
+import { setupFocusTrap } from "~/utils/focus-trap";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -29,6 +30,7 @@ export default function AskAI() {
   const [messages, setMessages] = createSignal<ChatMessage[]>([GREETING]);
   const [inputValue, setInputValue] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
+  let panelRef: HTMLDivElement | undefined;
   let messagesRef: HTMLDivElement | undefined;
   let inputRef: HTMLInputElement | undefined;
 
@@ -45,6 +47,10 @@ export default function AskAI() {
   createEffect(() => {
     if (isOpen()) {
       requestAnimationFrame(() => inputRef?.focus());
+      // Focus trap — Tab/Shift+Tab cycles within the AI panel
+      if (!panelRef) return;
+      const trapCleanup = setupFocusTrap(panelRef);
+      onCleanup(() => trapCleanup());
     }
   });
 
@@ -149,7 +155,13 @@ export default function AskAI() {
             onClick={() => setIsOpen(false)}
             aria-label="Close"
           />
-          <div class="askai-panel" role="dialog" aria-label="Ask a local guide">
+          <div
+            ref={panelRef}
+            class="askai-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Ask a local guide"
+          >
             <div class="askai-header">
               <span class="askai-header__title">Talk with a local</span>
               <button

@@ -18,6 +18,7 @@ import { formLogin, logoutAction } from "~/server/auth";
 import { resetAllProgressAction } from "~/server/mutations";
 import { updateUserNameAction } from "~/server/user";
 import { LEVELS, type LevelDef } from "~/utils/constants";
+import { setupFocusTrap } from "~/utils/focus-trap";
 import {
   resetAnonAllProgress,
   setAnonDisplayName,
@@ -87,6 +88,7 @@ export default function PlayerSheet(props: Props) {
   const [draftName, setDraftName] = createSignal(props.displayName ?? "");
   const [showResetConfirm, setShowResetConfirm] = createSignal(false);
   const [showLogin, setShowLogin] = createSignal(false);
+  let sheetRef: HTMLDivElement | undefined;
   let usernameRef: HTMLInputElement | undefined;
   const updateName = useAction(updateUserNameAction);
   const submission = useSubmission(updateUserNameAction);
@@ -128,7 +130,12 @@ export default function PlayerSheet(props: Props) {
       }
     };
     document.addEventListener("keydown", onKey);
-    onCleanup(() => document.removeEventListener("keydown", onKey));
+    // Focus trap — Tab/Shift+Tab cycles within the sheet
+    const trapCleanup = sheetRef ? setupFocusTrap(sheetRef) : () => {};
+    onCleanup(() => {
+      document.removeEventListener("keydown", onKey);
+      trapCleanup();
+    });
   });
 
   createEffect(() => {
@@ -174,7 +181,10 @@ export default function PlayerSheet(props: Props) {
         />
 
         <div class="fixed inset-0 z-10000 flex items-center justify-center pointer-events-none">
-          <div class="pointer-events-auto w-[min(740px,88vw)] max-h-[min(85vh,720px)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]">
+          <div
+            ref={sheetRef}
+            class="pointer-events-auto w-[min(740px,88vw)] max-h-[min(85vh,720px)] overflow-y-auto bg-surface border-[3px] border-border rounded-lg p-7 flex flex-col gap-5 relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_48px_rgba(0,0,0,0.6)]"
+          >
             <button
               type="button"
               onClick={props.onClose}

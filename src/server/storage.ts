@@ -1,8 +1,10 @@
 import { copyFileSync, existsSync } from "node:fs";
 import Database from "better-sqlite3";
+import { runMigrations } from "~/db/migrations";
 import { COURSE_DB_PATH, EMPTY_DB_PATH } from "~/utils/constants";
 
 let _db: Database.Database | null = null;
+let _migrationsRun = false;
 
 function ensureCourseDb(): void {
   if (existsSync(COURSE_DB_PATH)) return;
@@ -23,6 +25,11 @@ export function getDb(): Database.Database {
     ensureCourseDb();
     _db = new Database(COURSE_DB_PATH);
     _db.pragma("journal_mode = WAL");
+  }
+  // Run pending schema migrations on first access (idempotent)
+  if (!_migrationsRun) {
+    _migrationsRun = true;
+    runMigrations(_db);
   }
   return _db;
 }

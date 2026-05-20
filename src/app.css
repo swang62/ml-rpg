@@ -511,12 +511,6 @@ a {
   flex-shrink: 0;
 }
 
-.subtitle-progress {
-  font-size: 0.82rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
 .subtitle-reset-btn {
   display: inline-flex;
   align-items: center;
@@ -545,12 +539,6 @@ a {
 
 .subtitle-reset-btn:hover svg {
   transform: rotate(-45deg);
-}
-
-.subtitle-xp-counter {
-  color: var(--muted);
-  font-size: 0.8rem;
-  white-space: nowrap;
 }
 
 /* ===== Breadcrumbs ===== */
@@ -869,11 +857,6 @@ a {
 
 .back-link:hover {
   color: var(--accent-hover);
-}
-
-.back-link__icon {
-  margin-left: 6px;
-  color: var(--muted);
 }
 
 .nav-shortcuts {
@@ -1292,28 +1275,7 @@ a {
   line-height: 1;
 }
 
-.shortcuts-bar {
-  position: absolute;
-  top: 12px;
-  right: 56px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  pointer-events: none;
-  font-family: var(--font-pixel);
-}
-
-.shortcuts-bar__item {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.65rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.shortcut-kbd,
-.shortcuts-bar__item kbd {
+.shortcut-kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1375,39 +1337,6 @@ a {
   color: var(--heading);
 }
 
-.askai-header__close {
-  background: none;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 1.4rem;
-  line-height: 1;
-  padding: 0 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.askai-header__close kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  background: rgba(255, 255, 255, 0.269);
-  border: 1px solid var(--border-accent-soft);
-  border-radius: 4px;
-  font-family: var(--font-pixel);
-  font-size: 0.65rem;
-  color: var(--base);
-  line-height: 1;
-}
-
-.askai-header__close:hover {
-  color: var(--heading);
-}
-
 .askai-messages {
   flex: 1;
   overflow-y: auto;
@@ -1415,17 +1344,6 @@ a {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.askai-greeting {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--muted);
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 24px;
 }
 
 .askai-message {
