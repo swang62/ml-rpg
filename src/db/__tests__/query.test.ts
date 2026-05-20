@@ -357,6 +357,36 @@ describe("Stale user sweep", () => {
   });
 });
 
+describe("updateLastVisitedAt", () => {
+  it("updates last_visited_at for a user", async () => {
+    const user = await upsertUser(db, {
+      username: "visit-user",
+      userPassword: "hash",
+      displayName: "Visit User",
+    });
+    const userId = user!.id;
+
+    // Set to a known old date
+    db.prepare(
+      "UPDATE users SET last_visited_at = '2020-01-01 00:00:00' WHERE id = ?",
+    ).run(userId);
+
+    await updateLastVisitedAt(db, { id: userId });
+
+    const row = db
+      .prepare("SELECT last_visited_at FROM users WHERE id = ?")
+      .get(userId) as { last_visited_at: string };
+    expect(row.last_visited_at).not.toBe("2020-01-01 00:00:00");
+    expect(row.last_visited_at).toMatch(/^\d{4}-\d{2}-\d{2}/);
+  });
+
+  it("does not throw for non-existent user", async () => {
+    await expect(
+      updateLastVisitedAt(db, { id: 99999 }),
+    ).resolves.toBeUndefined();
+  });
+});
+
 describe("Login no longer auto-registers", () => {
   it("returns null for non-existent user credentials", async () => {
     const row = await getUserByUserNameWithPassword(db, {
