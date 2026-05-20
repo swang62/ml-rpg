@@ -18,7 +18,7 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-// Sweep stale entries and inactive users once a day (personal VPS, low churn)
+// Sweep stale entries and inactive users once a day
 setInterval(
   () => {
     const now = Date.now();
@@ -34,13 +34,13 @@ setInterval(
     // Sweep users inactive past MAX_SESSION_DAYS (ON DELETE CASCADE removes their progress)
     try {
       const db = getDb();
-      const cutoff = new Date(
+      const staleUserCutoff = new Date(
         Date.now() - MAX_SESSION_DAYS * 24 * 60 * 60 * 1000,
       )
         .toISOString()
         .slice(0, 19)
         .replace("T", " ");
-      deleteStaleUsers(db, { lastVisitedAt: cutoff });
+      deleteStaleUsers(db, { lastVisitedAt: staleUserCutoff });
     } catch (error) {
       console.error("[cleanup] Failed to sweep stale users:", error);
     }

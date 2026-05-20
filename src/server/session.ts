@@ -1,5 +1,6 @@
 import argon2 from "argon2";
 import { useSession } from "vinxi/http";
+import { MAX_SESSION_DAYS } from "~/utils/constants";
 
 export interface Session {
   id: number;
@@ -20,7 +21,7 @@ export const getSession = () =>
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 90, // 90 days — session is a signed cookie, no server-side store; users shouldn't re-login daily
+      maxAge: 60 * 60 * 24 * MAX_SESSION_DAYS, // seconds
     },
   });
 
