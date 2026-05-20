@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { checkPassword, createHash } from "../session";
 
 // Must be set before importing session.ts — the module checks at import time
 process.env.SESSION_SECRET = "test-secret-that-is-long-enough-for-testing";
-const { createHash, checkPassword } = await import("~/server/session");
 
 describe("createHash", () => {
   it("returns an Argon2id-format hash", async () => {

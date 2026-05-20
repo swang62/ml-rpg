@@ -1,11 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-
-// course.ts imports @solidjs/router which throws on server side, so we mock it.
-// We only test the exported cleanLessonHtml function.
-vi.mock("@solidjs/router", () => ({
-  query: vi.fn(),
-}));
-const { cleanLessonHtml } = await import("~/server/course");
+import { describe, expect, it } from "vitest";
+import { cleanLessonHtml } from "~/utils/search-utils";
 
 describe("cleanLessonHtml", () => {
   it("unescapes <code> tags", () => {

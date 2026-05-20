@@ -1,9 +1,11 @@
-"use server";
-
 /**
  * Simple in-memory rate limiter for Vinxi/SolidStart middleware.
  * Tracks request timestamps per key (IP address) and enforces
  * configurable limits within sliding windows.
+ *
+ * NOTE: No "use server" directive here — this module is only called from
+ * server-side middleware, not from client code. The RPC wrapper would
+ * fail outside a valid request context (e.g., API routes).
  */
 
 interface RateLimitEntry {

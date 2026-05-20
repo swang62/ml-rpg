@@ -4,19 +4,20 @@ export const EXTERNAL_URL = "https://www.systemoverflow.com/learn";
 
 export const XP_VALUE = 25;
 export const XP_TOAST_TIMEOUT = 3000;
+export const MAX_DISPLAY_NAME = 32;
 
 export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;
 export const SEARCH_MAX_RESULTS = 5;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
 
+export const RAG_BOT_NAME = "Bob";
 export const RAG_EMBEDDING_MODEL = "voyage-context-3";
 export const RAG_BATCH_SIZE = 100;
 export const RAG_CHUNK_OVERLAP = 0;
 export const RAG_CHUNK_SIZE = 512;
 export const RAG_MAX_HISTORY = 2;
 export const RAG_MAX_SOURCES = 3;
-export const AI_BOT_NAME = "Bob";
 
 // Database / Storage paths — configurable via env vars
 export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "";

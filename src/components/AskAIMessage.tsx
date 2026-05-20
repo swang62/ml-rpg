@@ -1,6 +1,6 @@
 import { useNavigate } from "@solidjs/router";
 import type { SourceResult } from "~/server/rag";
-import { AI_BOT_NAME } from "~/utils/constants";
+import { RAG_BOT_NAME } from "~/utils/constants";
 
 interface Props {
   role: "user" | "assistant";
@@ -26,7 +26,7 @@ export default function AskAIMessage(props: Props) {
       }}
     >
       <div class="askai-message__label">
-        {props.role === "user" ? "You" : AI_BOT_NAME}
+        {props.role === "user" ? "You" : RAG_BOT_NAME}
       </div>
       <div class="askai-message__content">{props.content}</div>
 

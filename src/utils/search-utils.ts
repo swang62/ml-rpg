@@ -1,3 +1,5 @@
+import DOMPurify from "isomorphic-dompurify";
+
 /** Escape HTML special characters for safe innerHTML usage. */
 export function escapeHtml(text: string): string {
   return text
@@ -10,6 +12,17 @@ export function escapeHtml(text: string): string {
 /** Escape special regex characters for use in RegExp constructor. */
 export function escapeRegex(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function cleanLessonHtml(html?: string): string {
+  if (!html) return "";
+  return DOMPurify.sanitize(
+    html
+      .replace(/&lt;code[^&]*?&gt;/g, (m) =>
+        m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+      )
+      .replaceAll("&lt;/code&gt;", "</code>"),
+  );
 }
 
 /**

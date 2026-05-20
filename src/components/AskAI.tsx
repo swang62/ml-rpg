@@ -11,7 +11,7 @@ import {
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG, type SourceResult } from "~/server/rag";
-import { AI_BOT_NAME, RAG_MAX_HISTORY } from "~/utils/constants";
+import { RAG_BOT_NAME, RAG_MAX_HISTORY } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 
 interface ChatMessage {
@@ -22,7 +22,7 @@ interface ChatMessage {
 
 const GREETING: ChatMessage = {
   role: "assistant",
-  content: `Hi I'm ${AI_BOT_NAME}, your friendly guide, what can I help you with?`,
+  content: `Hi I'm ${RAG_BOT_NAME}, your friendly guide, what can I help you with?`,
 };
 
 export default function AskAI() {
@@ -189,7 +189,7 @@ export default function AskAI() {
 
               <Show when={isLoading()}>
                 <div class="askai-message askai-message--assistant">
-                  <div class="askai-message__label">{AI_BOT_NAME}</div>
+                  <div class="askai-message__label">{RAG_BOT_NAME}</div>
                   <div class="askai-loading">
                     <span class="askai-loading__dot">.</span>
                     <span class="askai-loading__dot">.</span>
