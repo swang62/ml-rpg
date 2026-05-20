@@ -25,8 +25,14 @@ export const getSession = () =>
   });
 
 /** Hash a password using Argon2id (OWASP recommended). */
-export async function createHash(password: string): Promise<string> {
-  return argon2.hash(password, { type: argon2.argon2id });
+export async function createHash(
+  password: string,
+  options?: Partial<argon2.Options>,
+): Promise<string> {
+  return argon2.hash(password, {
+    type: argon2.argon2id,
+    ...options,
+  });
 }
 
 /** Verify a password against an Argon2id hash. */

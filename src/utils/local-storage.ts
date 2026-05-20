@@ -114,7 +114,7 @@ export function getAnonCategoryReadCounts(
   const result: Record<string, number> = {};
   for (const key of keysWithPrefix(prefix)) {
     const parts = key.slice(prefix.length).split(":");
-    result[parts[1]] = (result[parts[1]] ?? 0) + 1;
+    result[parts[0]] = (result[parts[0]] ?? 0) + 1;
   }
   return result;
 }

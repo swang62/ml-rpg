@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractRelevantText } from "~/utils/search-utils";
+import { extractRelevantText, stripHtmlTags } from "~/utils/search-utils";
 
 describe("extractRelevantText", () => {
   it("extracts h1 content", () => {
@@ -65,5 +65,44 @@ describe("extractRelevantText", () => {
     const html = "<h1>foo &amp; bar</h1>";
     const result = extractRelevantText(html);
     expect(result).not.toContain("&amp;");
+  });
+});
+
+describe("stripHtmlTags", () => {
+  it("removes HTML tags", () => {
+    expect(stripHtmlTags("<p>hello</p>")).toBe("hello");
+  });
+
+  it("replaces tags with spaces so words don't merge", () => {
+    expect(stripHtmlTags("<p>hello</p><p>world</p>")).toBe("hello world");
+  });
+
+  it("strips HTML entities like &amp;", () => {
+    expect(stripHtmlTags("foo &amp; bar")).toBe("foo bar");
+  });
+
+  it("collapses multiple whitespace", () => {
+    expect(stripHtmlTags("hello    world")).toBe("hello world");
+  });
+
+  it("trims leading and trailing whitespace", () => {
+    expect(stripHtmlTags("  hello  ")).toBe("hello");
+  });
+
+  it("handles empty string", () => {
+    expect(stripHtmlTags("")).toBe("");
+  });
+
+  it("handles string with no HTML", () => {
+    expect(stripHtmlTags("plain text")).toBe("plain text");
+  });
+
+  it("replaces numeric HTML entities with a space then trims", () => {
+    // &#100; → space → collapsed by \s+ → trimmed to ""
+    expect(stripHtmlTags("&#100;")).toBe("");
+  });
+
+  it("handles mixed content with tags and text", () => {
+    expect(stripHtmlTags("<div>hello <b>world</b></div>")).toBe("hello world");
   });
 });
