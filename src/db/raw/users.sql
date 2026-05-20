@@ -13,6 +13,12 @@ INSERT INTO users (username, user_password, display_name) VALUES (?,?,?) RETURNI
 -- name: UpdateDisplayName :exec
 UPDATE users SET display_name = ? WHERE id = ?;
 
+-- name: UpdateLastVisitedAt :exec
+UPDATE users SET last_visited_at = datetime('now') WHERE id = ?;
+
+-- name: DeleteStaleUsers :exec
+DELETE FROM users WHERE last_visited_at < date('now', '-90 days');
+
 -- name: GetUserCount :one
 SELECT COUNT(*) AS count FROM users;
 

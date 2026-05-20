@@ -42,13 +42,14 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL,
   user_password TEXT NOT NULL,
-  display_name TEXT
+  display_name TEXT,
+  last_visited_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- name: EnsureProgressTable :exec
 CREATE TABLE IF NOT EXISTS progress (
   lesson_id INTEGER NOT NULL REFERENCES lesson(id),
-  user_id INTEGER NOT NULL REFERENCES users(id),
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   read_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (lesson_id, user_id)
 );
