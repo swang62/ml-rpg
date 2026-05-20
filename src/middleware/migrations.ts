@@ -74,7 +74,11 @@ export async function runMigrations(db: Database): Promise<void> {
       `[db] Applying migrations, version ${migration.version}: ${migration.description}`,
     );
 
-    // Execute the migration SQL in a transaction
+    // Disable FK enforcement during schema changes per SQLite best practice.
+    // Table drops/renames and constraint changes require this to avoid
+    // FOREIGN KEY constraint errors during migration.
+    db.exec("PRAGMA foreign_keys = OFF");
+
     const runMigration = db.transaction(() => {
       db.exec(migration.sql);
       applyMigration(db, {
@@ -84,6 +88,8 @@ export async function runMigrations(db: Database): Promise<void> {
     });
 
     runMigration();
+
+    db.exec("PRAGMA foreign_keys = ON");
     console.log(`[db] Version ${migration.version} applied`);
   }
 
