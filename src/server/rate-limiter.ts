@@ -8,22 +8,34 @@
  * fail outside a valid request context (e.g., API routes).
  */
 
+import { deleteStaleUsers } from "~/db/users_sql";
+import { getDb } from "~/server/storage";
+
 interface RateLimitEntry {
   timestamps: number[];
 }
 
 const store = new Map<string, RateLimitEntry>();
 
-// Sweep stale entries once a day (personal VPS, low churn)
+// Sweep stale entries and inactive users once a day (personal VPS, low churn)
 const CLEANUP_INTERVAL = 86_400_000; // 24 hours
 setInterval(() => {
   const now = Date.now();
-  // The max window is 60s, so any entry older than 60s is stale
+
+  // Clean rate limit store
   for (const [key, entry] of store) {
     entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
     if (entry.timestamps.length === 0) {
       store.delete(key);
     }
+  }
+
+  // Sweep users inactive for 90+ days (ON DELETE CASCADE removes their progress)
+  try {
+    const db = getDb();
+    deleteStaleUsers(db);
+  } catch (error) {
+    console.error("[cleanup] Failed to sweep stale users:", error);
   }
 }, CLEANUP_INTERVAL).unref();
 
