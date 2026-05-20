@@ -1,6 +1,6 @@
 import { useNavigate } from "@solidjs/router";
-import type { SourceResult } from "~/server/rag";
 import { RAG_BOT_NAME } from "~/utils/constants";
+import type { SourceResult } from "~/utils/types";
 
 interface Props {
   role: "user" | "assistant";
