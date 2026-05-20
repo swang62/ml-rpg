@@ -118,3 +118,52 @@ export async function deleteAllSections(database: Database): Promise<void> {
     await stmt.run();
 }
 
+export const getSectionBySlugInCourseQuery = `-- name: GetSectionBySlugInCourse :one
+SELECT section.id, section.slug, section.title, section.course_id AS courseid, section.category_id AS categoryid
+FROM section
+INNER JOIN category ON section.category_id = category.id
+WHERE category.course_id = ? AND section.slug = ?`;
+
+export interface GetSectionBySlugInCourseArgs {
+    courseId: any;
+    slug: any;
+}
+
+export interface GetSectionBySlugInCourseRow {
+    id: any;
+    slug: any;
+    title: any;
+    courseid: any;
+    categoryid: any;
+}
+
+export async function getSectionBySlugInCourse(database: Database, args: GetSectionBySlugInCourseArgs): Promise<GetSectionBySlugInCourseRow | null> {
+    const stmt = database.prepare(getSectionBySlugInCourseQuery);
+    const result = await stmt.get(args.courseId, args.slug);
+    if (result == undefined) {
+        return null;
+    }
+    return result as GetSectionBySlugInCourseRow;
+}
+
+export const getSectionIdToSlugByCourseQuery = `-- name: GetSectionIdToSlugByCourse :many
+SELECT section.id, section.slug
+FROM section
+INNER JOIN category ON section.category_id = category.id
+WHERE category.course_id = ?`;
+
+export interface GetSectionIdToSlugByCourseArgs {
+    courseId: any;
+}
+
+export interface GetSectionIdToSlugByCourseRow {
+    id: any;
+    slug: any;
+}
+
+export async function getSectionIdToSlugByCourse(database: Database, args: GetSectionIdToSlugByCourseArgs): Promise<GetSectionIdToSlugByCourseRow[]> {
+    const stmt = database.prepare(getSectionIdToSlugByCourseQuery);
+    const result = await stmt.all(args.courseId);
+    return result as GetSectionIdToSlugByCourseRow[];
+}
+

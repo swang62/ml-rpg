@@ -38,4 +38,8 @@ WORKDIR /app
 COPY --from=build /app/.output .
 COPY --from=build /app/README.md /app/README.md
 
+# Healthcheck: verifies DB connectivity every 5 minutes, 3 retries, 10s timeout
+HEALTHCHECK --interval=5m --timeout=10s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3333}/health || exit 1
+
 CMD ["node", "server/index.mjs"]

@@ -6,8 +6,12 @@ import {
   getCategoryLessonCounts,
 } from "~/db/category_sql";
 import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
-import { getLessonBySlug, getLessonsBySection } from "~/db/lesson_sql";
-import { getSectionBySlug, getSectionsByCategory } from "~/db/section_sql";
+import {
+  getLessonBySlug,
+  getLessonsByCategoryGrouped,
+  getLessonsBySection,
+} from "~/db/lesson_sql";
+import { getSectionBySlug, getSectionBySlugInCourse } from "~/db/section_sql";
 import { getDb } from "~/server/storage";
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
@@ -42,19 +46,42 @@ export const getCategoryMetaQuery = query(
     const cat = await resolveCategory(db, course.id, categorySlug);
     if (!cat) return null;
 
-    const sectionsRaw = await getSectionsByCategory(db, { categoryId: cat.id });
-    const sections = await Promise.all(
-      sectionsRaw.map(async (sec) => {
-        const lessons = await getLessonsBySection(db, { sectionId: sec.id });
-        return {
-          section: sec.slug,
-          title: sec.title,
-          lessons,
-        };
-      }),
-    );
+    // Single JOIN query replaces N+1: one call instead of per-section queries
+    const grouped = await getLessonsByCategoryGrouped(db, {
+      categoryId: cat.id,
+    });
 
-    return { title: cat.title, sections };
+    // Group lessons by section in JS (single query instead of N+1)
+    interface LessonEntry {
+      id: unknown;
+      slug: unknown;
+      title: unknown;
+      lessonorder: unknown;
+    }
+    const sectionMap = new Map<
+      string,
+      { section: string; title: string; lessons: LessonEntry[] }
+    >();
+    for (const row of grouped) {
+      const secSlug = row.secslug as string;
+      let entry = sectionMap.get(secSlug);
+      if (!entry) {
+        entry = {
+          section: secSlug,
+          title: row.sectitle as string,
+          lessons: [],
+        };
+        sectionMap.set(secSlug, entry);
+      }
+      entry.lessons.push({
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        lessonorder: row.lessonorder,
+      });
+    }
+
+    return { title: cat.title, sections: [...sectionMap.values()] };
   },
   "category-meta",
 );
@@ -222,15 +249,13 @@ export async function findSectionBySlugInCourse(
   const course = await getCourseBySlug(db, { slug: courseSlug });
   if (!course) return null;
 
-  const categories = await getCategoriesByCourse(db, { courseId: course.id });
-  for (const cat of categories) {
-    const sec = await getSectionBySlug(db, {
+  // Single JOIN query instead of iterating categories
+  return (
+    (await getSectionBySlugInCourse(db, {
+      courseId: course.id,
       slug: sectionSlug,
-      categoryId: cat.id,
-    });
-    if (sec) return sec;
-  }
-  return null;
+    })) ?? null
+  );
 }
 
 export async function findLessonByPath(
