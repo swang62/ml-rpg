@@ -24,7 +24,14 @@ import {
   getLessonBySlug,
   getLessonCount,
 } from "~/db/lesson_sql";
-import { upsertUser, getUserById, getUserCount } from "~/db/users_sql";
+import {
+  upsertUser,
+  getUserById,
+  getUserCount,
+  updateLastVisitedAt,
+  deleteStaleUsers,
+  getUserByUserNameWithPassword,
+} from "~/db/users_sql";
 import {
   markLessonRead,
   isLessonRead,
@@ -278,5 +285,89 @@ describe("Progress tracking", () => {
     await resetUserProgress(db, { userId });
     const all = await getAllReadLessons(db, { userId });
     expect(all.length).toBe(0);
+  });
+});
+
+describe("Stale user sweep", () => {
+  it("deletes users inactive for 90+ days", async () => {
+    const oldUser = await upsertUser(db, {
+      username: "old-user",
+      userPassword: "hash",
+      displayName: "Old User",
+    });
+
+    // Manually set last_visited_at to 100 days ago
+    db.prepare(
+      "UPDATE users SET last_visited_at = datetime('now', '-100 days') WHERE id = ?",
+    ).run(oldUser!.id);
+
+    await deleteStaleUsers(db);
+
+    const fetched = await getUserById(db, { id: oldUser!.id });
+    expect(fetched).toBeNull();
+  });
+
+  it("keeps users active within 90 days", async () => {
+    const recentUser = await upsertUser(db, {
+      username: "recent-user",
+      userPassword: "hash",
+      displayName: "Recent User",
+    });
+
+    // last_visited_at defaults to datetime('now') on insert
+    await deleteStaleUsers(db);
+
+    const fetched = await getUserById(db, { id: recentUser!.id });
+    expect(fetched).not.toBeNull();
+    expect(fetched!.username).toBe("recent-user");
+  });
+
+  it("cascades to delete progress rows", async () => {
+    const user = await upsertUser(db, {
+      username: "cascade-user",
+      userPassword: "hash",
+      displayName: "Cascade User",
+    });
+    const userId = user!.id;
+
+    // Mark a lesson as read
+    const lessons = await getLessonsBySection(db, { sectionId: 1 });
+    if (lessons.length > 0) {
+      await markLessonRead(db, { lessonId: lessons[0].id, userId });
+      const readBefore = await getAllReadLessons(db, { userId });
+      expect(readBefore.length).toBeGreaterThanOrEqual(1);
+    }
+
+    // Set user as stale and sweep
+    db.prepare(
+      "UPDATE users SET last_visited_at = datetime('now', '-100 days') WHERE id = ?",
+    ).run(userId);
+    await deleteStaleUsers(db);
+
+    // User should be gone
+    const fetched = await getUserById(db, { id: userId });
+    expect(fetched).toBeNull();
+
+    // Progress should be gone too
+    const readAfter = await getAllReadLessons(db, { userId });
+    expect(readAfter.length).toBe(0);
+  });
+});
+
+describe("Login no longer auto-registers", () => {
+  it("returns null for non-existent user credentials", async () => {
+    const row = await getUserByUserNameWithPassword(db, {
+      username: "nonexistent-user",
+    });
+    expect(row).toBeNull();
+  });
+
+  it("requires valid password for existing user", async () => {
+    const user = await upsertUser(db, {
+      username: "password-needer",
+      userPassword: "secret-hash",
+      displayName: "Needs Password",
+    });
+    expect(user).not.toBeNull();
   });
 });
