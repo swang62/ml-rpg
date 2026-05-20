@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkResult } from "~/server/rag";
-import { deduplicateSources } from "~/server/rag";
+import { deduplicateSources } from "~/utils/search-utils";
+import type { ChunkResult } from "~/utils/types";
 
 const makeChunk = (overrides: Partial<ChunkResult> = {}): ChunkResult => ({
   id: "1",

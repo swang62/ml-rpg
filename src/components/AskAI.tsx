@@ -10,9 +10,10 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
-import { queryRAG, type SourceResult } from "~/server/rag";
+import { queryRAG } from "~/server/rag";
 import { RAG_BOT_NAME, RAG_MAX_HISTORY } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
+import type { SourceResult } from "~/utils/types";
 
 interface ChatMessage {
   role: "user" | "assistant";

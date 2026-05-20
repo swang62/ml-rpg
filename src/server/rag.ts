@@ -10,6 +10,8 @@ import {
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
 } from "~/utils/constants";
+import { deduplicateSources } from "~/utils/search-utils";
+import type { ChunkResult, SourceResult } from "~/utils/types";
 import { ensureVectorStore } from "./search";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -30,27 +32,6 @@ async function getReranker() {
     _reranker = await rerankers.RRFReranker.create();
   }
   return _reranker;
-}
-
-export interface ChunkResult {
-  id: string;
-  text: string;
-  lessonTitle: string;
-  lessonUrl: string;
-  categoryTitle: string;
-  sectionTitle: string;
-  courseTitle: string;
-  chunkIndex: number;
-  score: number;
-}
-
-export interface SourceResult {
-  title: string;
-  url: string;
-  categoryTitle: string;
-  sectionTitle: string;
-  courseTitle: string;
-  relevance: number;
 }
 
 export interface QueryRAGInput {
@@ -123,34 +104,6 @@ async function hybridSearch(
   });
 }
 
-export function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
-  const seen = new Map<string, SourceResult>();
-
-  for (const chunk of chunks) {
-    const existing = seen.get(chunk.lessonUrl);
-    if (existing) {
-      if (chunk.score > existing.relevance) {
-        existing.relevance = chunk.score;
-      }
-    } else {
-      seen.set(chunk.lessonUrl, {
-        title: chunk.lessonTitle,
-        url: chunk.lessonUrl,
-        categoryTitle: chunk.categoryTitle,
-        sectionTitle: chunk.sectionTitle,
-        courseTitle: chunk.courseTitle,
-        relevance: chunk.score,
-      });
-    }
-  }
-
-  return [...seen.values()]
-    .sort((a, b) => b.relevance - a.relevance)
-    .slice(0, RAG_MAX_SOURCES);
-}
-
-// Entrypoint
-
 async function detectJailbreak(query: string): Promise<boolean> {
   try {
     const completion = await groq.chat.completions.create({
@@ -164,6 +117,8 @@ async function detectJailbreak(query: string): Promise<boolean> {
     return false;
   }
 }
+
+// Main entrypoint
 
 export async function queryRAG({
   query,
