@@ -4,7 +4,7 @@ export const EXTERNAL_URL = "https://www.systemoverflow.com/learn";
 
 export const XP_VALUE = 25;
 export const XP_TOAST_TIMEOUT = 3000;
-export const MAX_DISPLAY_NAME = 32;
+export const MAX_DISPLAY_NAME_LENGTH = 32;
 
 export const SEARCH_BLUR_CLOSE_MS = 200;
 export const SEARCH_DEBOUNCE_MS = 200;
