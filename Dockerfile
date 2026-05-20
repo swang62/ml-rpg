@@ -12,31 +12,28 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 
 COPY . .
 
-# Build the Nitro server
 RUN pnpm build
 
 FROM node:26-alpine
 
-ARG PORT
+ARG PORT=3333
 EXPOSE $PORT
 
-ENV HOST=0.0.0.0
-ENV PORT=$PORT
-ENV COURSE_DB_PATH=/app/.data/course.db
-ENV LANCEDB_PATH=/app/.data/search
+ENV HOST=0.0.0.0 \
+  PORT=$PORT \
+  COURSE_DB_PATH=/app/.data/course.db \
+  LANCEDB_PATH=/app/.data/search \
+  NODE_ENV=production
 
-RUN adduser -D -H -h /app www
+RUN adduser -D -H -h /app www && \
+  mkdir -p /app/.data && \
+  chown -R www:www /app
 
-# Setup course database
-RUN mkdir -p /app/.data
-COPY --from=build /app/src/db/empty.db /app/.data/course.db
-COPY --from=build /app/src/db/empty.db /app/src/db/empty.db
-RUN chown -R www:www /app/.data
-
-USER www
 WORKDIR /app
+USER www
 
-COPY --from=build /app/.output .
-COPY --from=build /app/README.md /app/README.md
+COPY --from=build --chown=www:www /app/.output .
+COPY --from=build --chown=www:www /app/README.md /app/README.md
+COPY --from=build --chown=www:www /app/src/db/empty.db /app/src/db/empty.db
 
 CMD ["node", "server/index.mjs"]
