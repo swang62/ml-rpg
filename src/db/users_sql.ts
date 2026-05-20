@@ -117,11 +117,15 @@ export async function updateLastVisitedAt(database: Database, args: UpdateLastVi
 }
 
 export const deleteStaleUsersQuery = `-- name: DeleteStaleUsers :exec
-DELETE FROM users WHERE last_visited_at < date('now', '-90 days')`;
+DELETE FROM users WHERE last_visited_at < ?`;
 
-export async function deleteStaleUsers(database: Database): Promise<void> {
+export interface DeleteStaleUsersArgs {
+    lastVisitedAt: any;
+}
+
+export async function deleteStaleUsers(database: Database, args: DeleteStaleUsersArgs): Promise<void> {
     const stmt = database.prepare(deleteStaleUsersQuery);
-    await stmt.run();
+    await stmt.run(args.lastVisitedAt);
 }
 
 export const getUserCountQuery = `-- name: GetUserCount :one
