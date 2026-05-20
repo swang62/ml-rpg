@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { checkRateLimit, resetRateLimitStore } from "~/server/rate-limiter";
+import {
+  checkRateLimit,
+  getClientIP,
+  resetRateLimitStore,
+} from "~/server/rate-limiter";
 
 const TEST_CONFIG = { maxAttempts: 3, windowMs: 60_000 };
 
@@ -60,5 +64,68 @@ describe("checkRateLimit", () => {
 
     expect(checkRateLimit("strict", strictConfig).allowed).toBe(true);
     expect(checkRateLimit("strict", strictConfig).allowed).toBe(false);
+  });
+});
+
+describe("getClientIP", () => {
+  it("returns cf-connecting-ip header value", () => {
+    const req = new Request("http://localhost", {
+      headers: { "cf-connecting-ip": "1.2.3.4" },
+    });
+    expect(getClientIP(req)).toBe("1.2.3.4");
+  });
+
+  it("falls back to x-forwarded-for", () => {
+    const req = new Request("http://localhost", {
+      headers: { "x-forwarded-for": "5.6.7.8" },
+    });
+    expect(getClientIP(req)).toBe("5.6.7.8");
+  });
+
+  it("takes the first IP from x-forwarded-for list", () => {
+    const req = new Request("http://localhost", {
+      headers: { "x-forwarded-for": "1.1.1.1, 2.2.2.2, 3.3.3.3" },
+    });
+    expect(getClientIP(req)).toBe("1.1.1.1");
+  });
+
+  it("trims whitespace from x-forwarded-for IPs", () => {
+    const req = new Request("http://localhost", {
+      headers: { "x-forwarded-for": "  10.0.0.1  ,  10.0.0.2  " },
+    });
+    expect(getClientIP(req)).toBe("10.0.0.1");
+  });
+
+  it("falls back to x-real-ip", () => {
+    const req = new Request("http://localhost", {
+      headers: { "x-real-ip": "9.9.9.9" },
+    });
+    expect(getClientIP(req)).toBe("9.9.9.9");
+  });
+
+  it("returns 'unknown' when no IP headers are present", () => {
+    const req = new Request("http://localhost");
+    expect(getClientIP(req)).toBe("unknown");
+  });
+
+  it("prefers cf-connecting-ip over all other headers", () => {
+    const req = new Request("http://localhost", {
+      headers: {
+        "cf-connecting-ip": "1.1.1.1",
+        "x-forwarded-for": "2.2.2.2",
+        "x-real-ip": "3.3.3.3",
+      },
+    });
+    expect(getClientIP(req)).toBe("1.1.1.1");
+  });
+
+  it("prefers x-forwarded-for over x-real-ip", () => {
+    const req = new Request("http://localhost", {
+      headers: {
+        "x-forwarded-for": "10.0.0.1",
+        "x-real-ip": "10.0.0.2",
+      },
+    });
+    expect(getClientIP(req)).toBe("10.0.0.1");
   });
 });
