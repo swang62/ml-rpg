@@ -15,8 +15,10 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { formLogin, logoutAction } from "~/server/auth";
-import { resetAllProgressAction } from "~/server/mutations";
-import { updateUserNameAction } from "~/server/user";
+import {
+  resetAllProgressAction,
+  updateUserNameAction,
+} from "~/server/mutations";
 import { LEVELS, type LevelDef } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import {

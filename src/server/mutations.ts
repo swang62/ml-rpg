@@ -4,9 +4,11 @@ import {
   resetSectionProgress,
   resetUserProgress,
 } from "~/db/progress_sql";
+import { updateDisplayName } from "~/db/users_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
+import { MAX_DISPLAY_NAME_LENGTH } from "~/utils/constants";
 
 export const markLessonReadAction = action(
   async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {
@@ -54,3 +56,16 @@ export const resetAllProgressAction = action(async () => {
   const db = getDb();
   await resetUserProgress(db, { userId: session.data.id });
 }, "reset-all-progress");
+
+export const updateUserNameAction = action(async (displayName: string) => {
+  "use server";
+  const session = await getSession();
+  if (!session.data.id) return;
+
+  const trimmed = displayName.trim();
+  if (trimmed.length < 1 || trimmed.length > MAX_DISPLAY_NAME_LENGTH) return;
+  if (!/^[a-zA-Z0-9 _\-'À-ÿ]+$/.test(trimmed)) return;
+
+  const db = getDb();
+  await updateDisplayName(db, { displayName: trimmed, id: session.data.id });
+}, "update-display-name");

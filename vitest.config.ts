@@ -9,5 +9,10 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/__tests__/*.test.ts"],
+    env: {
+      SESSION_SECRET: "test-secret-that-is-long-enough-for-testing",
+      COURSE_DB_PATH: ".data/course.db",
+      LANCEDB_PATH: ".data/search",
+    },
   },
 });
