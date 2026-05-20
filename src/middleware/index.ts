@@ -1,17 +1,13 @@
 import { createMiddleware } from "@solidjs/start/middleware";
+import { updateLastVisitedAt } from "~/db/users_sql";
 import { checkRateLimit } from "~/server/rate-limiter";
-
-/**
- * Global rate limiting middleware for all SSR requests.
- *
- * - Applies per-IP rate limiting using cf-connecting-ip (Cloudflare) or
- *   x-forwarded-for / x-real-ip headers.
- * - Stricter limits on the login endpoint.
- * - Serves static assets (/_assets, /assets, /favicon.ico) without rate limiting.
- * - Returns HTTP 429 with a Retry-After header when exceeded.
- */
+import { getSession } from "~/server/session";
+import { getDb } from "~/server/storage";
+import { checkThrottle } from "~/utils/throttle";
 
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
+const VISIT_THROTTLE_MS = 5 * 60 * 1000;
+const visitThrottleCache = new Map<string, number>();
 
 function isStaticAsset(url: string): boolean {
   return STATIC_PREFIXES.some((prefix) => url.startsWith(prefix));
@@ -21,17 +17,27 @@ function isLoginEndpoint(url: string): boolean {
   return url.startsWith("/_action/formLogin");
 }
 
+async function trackLastVisited(): Promise<void> {
+  const { data } = await getSession();
+  if (!data.id) return;
+
+  const key = `visit:${data.id}`;
+  if (!checkThrottle(visitThrottleCache, key, VISIT_THROTTLE_MS, Date.now()))
+    return;
+
+  const db = getDb();
+  await updateLastVisitedAt(db, { id: data.id });
+}
+
 export default createMiddleware({
-  onRequest: (event) => {
+  onRequest: async (event) => {
     const url = event.request.url;
     const { pathname } = new URL(url);
 
-    // Skip rate limiting for static assets
     if (isStaticAsset(pathname)) {
       return;
     }
 
-    // Determine client IP from request
     const ip =
       event.clientAddress ??
       event.request.headers.get("cf-connecting-ip") ??
@@ -39,7 +45,6 @@ export default createMiddleware({
       event.request.headers.get("x-real-ip") ??
       "unknown";
 
-    // Stricter limits for login; more lenient for general SSR
     const config = isLoginEndpoint(pathname)
       ? { maxAttempts: 10, windowMs: 60_000 }
       : { maxAttempts: 200, windowMs: 60_000 };
@@ -69,12 +74,13 @@ export default createMiddleware({
       );
     }
 
-    // Set rate limit headers on all responses
     event.response.headers.set("X-RateLimit-Limit", String(config.maxAttempts));
     event.response.headers.set(
       "X-RateLimit-Remaining",
       String(result.remaining),
     );
+
+    await trackLastVisited();
     return;
   },
 });
