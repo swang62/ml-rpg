@@ -22,7 +22,7 @@ import { sanitizeSearchQuery } from "~/utils/input-validation";
 import { extractRelevantText } from "~/utils/search-utils";
 
 let _engine: MiniSearch<SearchDocument> | null = null;
-let _vectorBuild: Promise<void> | null = null;
+let _vectorStoreExists: boolean | undefined;
 
 interface SearchDocument {
   id: string;
@@ -178,13 +178,15 @@ type ChunkData = Record<string, any> & {
 };
 
 export async function ensureVectorStore(): Promise<void> {
-  if (existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`)) return;
-  if (_vectorBuild) return _vectorBuild;
-  _vectorBuild = buildVectorIndex();
-  return _vectorBuild;
+  "use server";
+  if (_vectorStoreExists || existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`))
+    return;
+
+  _vectorStoreExists = await buildVectorIndex();
+  return;
 }
 
-async function buildVectorIndex(): Promise<void> {
+async function buildVectorIndex() {
   console.log("[startup] Vector store missing, rebuilding...");
   console.log("[startup] Opening DB:", getEnv().COURSE_DB_PATH);
 
@@ -362,4 +364,6 @@ async function buildVectorIndex(): Promise<void> {
 
   const rowCount = await table.countRows();
   console.log(`[startup] Done. ${rowCount} chunks indexed.`);
+
+  return true;
 }

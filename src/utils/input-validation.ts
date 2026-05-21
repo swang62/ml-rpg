@@ -119,3 +119,26 @@ export function sanitizeSearchQuery(query: unknown): string {
   const result = SearchQuerySchema.safeParse(query);
   return result.success ? result.data : "";
 }
+
+// -- History sanitization (prevent role spoofing) --
+
+const HistoryEntrySchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+});
+
+export function sanitizeHistory(
+  history: unknown,
+  maxTurns: number,
+): {
+  role: "user" | "assistant";
+  content: string;
+}[] {
+  if (!Array.isArray(history)) return [];
+  return history
+    .flatMap((item) => {
+      const result = HistoryEntrySchema.safeParse(item);
+      return result.success ? [result.data] : [];
+    })
+    .slice(-maxTurns);
+}

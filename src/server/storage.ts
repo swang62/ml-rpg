@@ -22,6 +22,8 @@ function ensureCourseDb(): void {
 }
 
 export function getDb(): Database.Database {
+  "use server";
+
   if (!_db) {
     ensureCourseDb();
     _db = new Database(env.COURSE_DB_PATH);

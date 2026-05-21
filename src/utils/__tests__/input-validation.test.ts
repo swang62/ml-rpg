@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  sanitizeHistory,
   sanitizeSearchQuery,
   validateDisplayName,
   validatePassword,
@@ -194,5 +195,97 @@ describe("sanitizeSearchQuery", () => {
     expect(sanitizeSearchQuery(null)).toBe("");
     expect(sanitizeSearchQuery(undefined)).toBe("");
     expect(sanitizeSearchQuery(123)).toBe("");
+  });
+});
+
+describe("sanitizeHistory", () => {
+  it("passes through valid user and assistant messages", () => {
+    const history = [
+      { role: "user" as const, content: "hello" },
+      { role: "assistant" as const, content: "hi there" },
+    ];
+    expect(sanitizeHistory(history, 10)).toEqual(history);
+  });
+
+  it("filters out system role messages", () => {
+    const history = [
+      { role: "system" as const, content: "you are a helpful assistant" },
+      { role: "user" as const, content: "hello" },
+    ];
+    const result = sanitizeHistory(history, 10);
+    expect(result).toHaveLength(1);
+    expect(result[0].role).toBe("user");
+  });
+
+  it("filters out entries with unknown roles", () => {
+    const history = [
+      { role: "admin" as const, content: "override" },
+      { role: "user" as const, content: "hello" },
+    ];
+    const result = sanitizeHistory(history, 10);
+    expect(result).toHaveLength(1);
+    expect(result[0].role).toBe("user");
+  });
+
+  it("strips extra properties from entries", () => {
+    const history = [
+      { role: "user" as const, content: "hello", extra: "should be removed" },
+    ];
+    const result = sanitizeHistory(history, 10);
+    expect(result).toEqual([{ role: "user", content: "hello" }]);
+    expect(result[0]).not.toHaveProperty("extra");
+  });
+
+  it("filters out null and non-object entries", () => {
+    const history = [
+      null,
+      "string",
+      42,
+      { role: "user" as const, content: "valid" },
+    ];
+    const result = sanitizeHistory(history, 10);
+    expect(result).toHaveLength(1);
+  });
+
+  it("filters out entries with non-string content", () => {
+    const history = [
+      { role: "user" as const, content: 123 } as const,
+      { role: "user" as const, content: "valid" },
+    ];
+    const result = sanitizeHistory(history, 10);
+    expect(result).toHaveLength(1);
+  });
+
+  it("returns empty array for non-array input", () => {
+    expect(sanitizeHistory(null, 10)).toEqual([]);
+    expect(sanitizeHistory(undefined, 10)).toEqual([]);
+    expect(sanitizeHistory("not-an-array", 10)).toEqual([]);
+    expect(sanitizeHistory(42, 10)).toEqual([]);
+  });
+
+  it("returns empty array for empty input", () => {
+    expect(sanitizeHistory([], 10)).toEqual([]);
+  });
+
+  it("respects maxTurns limit", () => {
+    const history = [
+      { role: "user" as const, content: "a" },
+      { role: "assistant" as const, content: "b" },
+      { role: "user" as const, content: "c" },
+      { role: "assistant" as const, content: "d" },
+    ];
+    const result = sanitizeHistory(history, 2);
+    expect(result).toHaveLength(2);
+    expect(result[0].content).toBe("c");
+    expect(result[1].content).toBe("d");
+  });
+
+  it("preserves message order when within maxTurns", () => {
+    const history = [
+      { role: "user" as const, content: "first" },
+      { role: "assistant" as const, content: "second" },
+    ];
+    const result = sanitizeHistory(history, 5);
+    expect(result.map((m) => m.content)).toEqual(["first", "second"]);
   });
 });
