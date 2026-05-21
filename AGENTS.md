@@ -111,7 +111,7 @@ Tests in `__tests__/` co-located with source. Run with `pnpm test` (`vitest run`
 
 ### Docker
 
-Two-stage Alpine build: `pnpm build` in stage 1, minimal runtime in stage 2. Non-root `www` user (UID 1001). Volume at `/app/.data` persists DB + vector store across restarts. `STOPSIGNAL SIGTERM` for graceful shutdown.
+Two-stage Alpine build: `pnpm build` in stage 1, minimal runtime in stage 2. Non-root `www` user. Volume at `/app/.data` persists DB + vector store across restarts. `STOPSIGNAL SIGTERM` for graceful shutdown.
 
 ## Commits
 
