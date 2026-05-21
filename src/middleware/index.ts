@@ -5,6 +5,9 @@ import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
 import { checkThrottle } from "~/utils/throttle";
 
+// Register graceful shutdown signal handlers at server startup
+import "~/server/shutdown";
+
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
 const VISIT_THROTTLE_MS = 5 * 60 * 1000;
 const visitThrottleCache = new Map<string, number>();

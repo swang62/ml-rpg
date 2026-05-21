@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock isServer to false so localStorage is accessible in node.
 // Hoisted by Vitest before import statements resolve.

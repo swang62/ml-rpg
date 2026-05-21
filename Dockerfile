@@ -25,15 +25,29 @@ ENV HOST=0.0.0.0 \
   LANCEDB_PATH=/app/.data/search \
   NODE_ENV=production
 
-RUN adduser -D -H -h /app www && \
+# Create non-root user with explicit UID 1000 (required for consistent
+# filesystem permissions across deployments and volume mounts).
+RUN adduser -D -H -h /app -u 1000 www && \
   mkdir -p /app/.data && \
-  chown -R www:www /app
+  chown -R 1000:1000 /app
 
 WORKDIR /app
+
+# Copy with explicit UID for consistency with the www user
+COPY --from=build --chown=1000:1000 /app/.output .
+COPY --from=build --chown=1000:1000 /app/README.md /app/README.md
+COPY --from=build --chown=1000:1000 /app/src/db/empty.db /app/src/db/empty.db
+
+# Switch to non-root user for runtime
 USER www
 
-COPY --from=build --chown=www:www /app/.output .
-COPY --from=build --chown=www:www /app/README.md /app/README.md
-COPY --from=build --chown=www:www /app/src/db/empty.db /app/src/db/empty.db
+# node:26-alpine uses tini as its default entrypoint for proper signal
+# forwarding. Ensure SIGTERM reaches the Node process so the graceful
+# shutdown handler (src/server/shutdown.ts) can close DB connections.
+STOPSIGNAL SIGTERM
 
+# The Node process handles SIGTERM via shutdown.ts which:
+# 1. Closes the SQLite database (WAL checkpoint)
+# 2. Stops the rate limiter cleanup interval
+# 3. Exits cleanly
 CMD ["node", "server/index.mjs"]

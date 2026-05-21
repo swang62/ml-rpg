@@ -10,7 +10,7 @@
     "test": "vitest run",
     "preview": "vinxi start",
     "prepare": "husky || true",
-    "seed": "tsx ./scripts/seed-db.ts",
+    "seed": "dotenv -- tsx ./scripts/seed-db.ts",
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {
@@ -28,7 +28,8 @@
     "lucide-solid": "^1.14.0",
     "minisearch": "^7.2.0",
     "solid-js": "^1.9.5",
-    "vinxi": "^0.5.7"
+    "vinxi": "^0.5.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",

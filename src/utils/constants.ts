@@ -21,9 +21,6 @@ export const RAG_CHUNK_SIZE = 512;
 export const RAG_MAX_HISTORY = 2;
 export const RAG_MAX_SOURCES = 3;
 
-// Database / Storage paths — configurable via env vars
-export const COURSE_DB_PATH = process.env.COURSE_DB_PATH || "";
-export const LANCEDB_PATH = process.env.LANCEDB_PATH || "";
 export const EMPTY_DB_PATH = "src/db/empty.db";
 export const COURSE_INFO_PATH = "README.md";
 

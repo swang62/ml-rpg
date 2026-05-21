@@ -4,23 +4,23 @@ import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import {
   GITHUB_REPO_URL,
-  LANCEDB_PATH,
   RAG_BOT_NAME,
   RAG_EMBEDDING_MODEL,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
 } from "~/utils/constants";
+import { getEnv } from "~/utils/env";
 import { deduplicateSources } from "~/utils/search-utils";
 import type { ChunkResult, SourceResult } from "~/utils/types";
 import { ensureVectorStore } from "./search";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
 let _table: Table | null = null;
 async function getChunksTable() {
   if (!_table) {
     await ensureVectorStore();
-    const db = await connect(LANCEDB_PATH);
+    const db = await connect(getEnv().LANCEDB_PATH);
     _table = await db.openTable("chunks");
   }
   return _table;
@@ -45,7 +45,7 @@ export interface QueryRAGResult {
 }
 
 async function embedQuery(query: string): Promise<number[]> {
-  const apiKey = process.env.VOYAGE_API_KEY;
+  const apiKey = getEnv().VOYAGE_API_KEY;
   if (!apiKey) throw new Error("VOYAGE_API_KEY not set");
 
   const response = await fetch(

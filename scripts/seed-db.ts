@@ -1,7 +1,7 @@
 import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
-import de from "../.data/scraped/courses/data-engineering.ts";
-import mlSysDesign from "../.data/scraped/courses/ml-system-design.ts";
+import de from "../.data/scraped/courses/data-engineering";
+import mlSysDesign from "../.data/scraped/courses/ml-system-design";
 import {
   ensureCategoryTable,
   ensureCourseTable,
@@ -9,14 +9,14 @@ import {
   ensureProgressTable,
   ensureSectionTable,
   ensureUsersTable,
-} from "../src/db/base_sql.ts";
-import { createCategory, deleteAllCategories } from "../src/db/category_sql.ts";
-import { createCourse, deleteAllCourses } from "../src/db/course_sql.ts";
-import { createLesson, deleteAllLessons } from "../src/db/lesson_sql.ts";
-import { deleteAllProgress } from "../src/db/progress_sql.ts";
-import { createSection, deleteAllSections } from "../src/db/section_sql.ts";
-import { deleteAllUsers } from "../src/db/users_sql.ts";
-import { EMPTY_DB_PATH } from "../src/utils/constants.ts";
+} from "../src/db/base_sql";
+import { createCategory, deleteAllCategories } from "../src/db/category_sql";
+import { createCourse, deleteAllCourses } from "../src/db/course_sql";
+import { createLesson, deleteAllLessons } from "../src/db/lesson_sql";
+import { deleteAllProgress } from "../src/db/progress_sql";
+import { createSection, deleteAllSections } from "../src/db/section_sql";
+import { deleteAllUsers } from "../src/db/users_sql";
+import { EMPTY_DB_PATH } from "../src/utils/constants";
 
 const COURSES: Record<
   string,

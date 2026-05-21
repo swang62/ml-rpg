@@ -19,7 +19,7 @@ interface RateLimitEntry {
 const store = new Map<string, RateLimitEntry>();
 
 // Sweep stale entries and inactive users once a day
-setInterval(
+const cleanupInterval = setInterval(
   () => {
     const now = Date.now();
 
@@ -47,6 +47,11 @@ setInterval(
   },
   60 * 60 * 24 * CLEANUP_INTERVAL_DAYS,
 ).unref();
+
+/** Stop the cleanup interval timer (used during graceful shutdown). */
+export function stopCleanupInterval(): void {
+  clearInterval(cleanupInterval);
+}
 
 export interface RateLimitConfig {
   maxAttempts: number;
