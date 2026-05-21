@@ -8,7 +8,7 @@ import { updateDisplayName } from "~/db/users_sql";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
-import { MAX_DISPLAY_NAME_LENGTH } from "~/utils/constants";
+import { validateDisplayName, validateSlug } from "~/utils/input-validation";
 
 export const markLessonReadAction = action(
   async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {
@@ -16,12 +16,17 @@ export const markLessonReadAction = action(
     const session = await getSession();
     if (!session.data.id) return;
 
+    const validatedCourse = validateSlug(courseSlug);
+    const validatedSection = validateSlug(sectionSlug);
+    const validatedLesson = validateSlug(lessonSlug);
+    if (!validatedCourse || !validatedSection || !validatedLesson) return;
+
     const db = getDb();
     const lesson = await findLessonByPath(
       db,
-      courseSlug,
-      sectionSlug,
-      lessonSlug,
+      validatedCourse,
+      validatedSection,
+      validatedLesson,
     );
     if (!lesson) return;
 
@@ -36,8 +41,16 @@ export const resetSectionAction = action(
     const session = await getSession();
     if (!session.data.id) return;
 
+    const validatedCourse = validateSlug(courseSlug);
+    const validatedSection = validateSlug(sectionSlug);
+    if (!validatedCourse || !validatedSection) return;
+
     const db = getDb();
-    const sec = await findSectionBySlugInCourse(db, courseSlug, sectionSlug);
+    const sec = await findSectionBySlugInCourse(
+      db,
+      validatedCourse,
+      validatedSection,
+    );
     if (!sec) return;
 
     await resetSectionProgress(db, {
@@ -62,10 +75,9 @@ export const updateUserNameAction = action(async (displayName: string) => {
   const session = await getSession();
   if (!session.data.id) return;
 
-  const trimmed = displayName.trim();
-  if (trimmed.length < 1 || trimmed.length > MAX_DISPLAY_NAME_LENGTH) return;
-  if (!/^[a-zA-Z0-9 _\-'À-ÿ]+$/.test(trimmed)) return;
+  const validated = validateDisplayName(displayName);
+  if (!validated) return;
 
   const db = getDb();
-  await updateDisplayName(db, { displayName: trimmed, id: session.data.id });
+  await updateDisplayName(db, { displayName: validated, id: session.data.id });
 }, "update-display-name");

@@ -10,10 +10,8 @@ import { getSearchLessons } from "~/db/lesson_sql";
 import { getAllSections } from "~/db/section_sql";
 import { getDb } from "~/server/storage";
 import {
-  COURSE_DB_PATH,
   COURSE_INFO_PATH,
   GITHUB_REPO_URL,
-  LANCEDB_PATH,
   RAG_BATCH_SIZE,
   RAG_CHUNK_OVERLAP,
   RAG_CHUNK_SIZE,
@@ -21,6 +19,7 @@ import {
   SEARCH_MAX_RESULTS,
   STOP_WORDS,
 } from "~/utils/constants";
+import { getEnv } from "~/utils/env";
 import { extractRelevantText } from "~/utils/search-utils";
 
 let _engine: MiniSearch<SearchDocument> | null = null;
@@ -175,7 +174,7 @@ type ChunkData = Record<string, any> & {
 };
 
 export async function ensureVectorStore(): Promise<void> {
-  if (existsSync(`${LANCEDB_PATH}/chunks.lance`)) return;
+  if (existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`)) return;
   if (_vectorBuild) return _vectorBuild;
   _vectorBuild = buildVectorIndex();
   return _vectorBuild;
@@ -183,7 +182,7 @@ export async function ensureVectorStore(): Promise<void> {
 
 async function buildVectorIndex(): Promise<void> {
   console.log("[startup] Vector store missing, rebuilding...");
-  console.log("[startup] Opening DB:", COURSE_DB_PATH);
+  console.log("[startup] Opening DB:", getEnv().COURSE_DB_PATH);
 
   const db = getDb();
 
@@ -284,7 +283,7 @@ async function buildVectorIndex(): Promise<void> {
   }
 
   console.log("[startup] Generating embeddings via Voyage AI...");
-  const apiKey = process.env.VOYAGE_API_KEY;
+  const apiKey = getEnv().VOYAGE_API_KEY;
   if (!apiKey) {
     console.error(
       "[startup] VOYAGE_API_KEY required, cannot build vector store",
@@ -292,7 +291,7 @@ async function buildVectorIndex(): Promise<void> {
     return;
   }
 
-  const lancedb = await connect(LANCEDB_PATH);
+  const lancedb = await connect(getEnv().LANCEDB_PATH);
   const tableData: ChunkData[] = [];
 
   let embeddedCount = 0;

@@ -1,17 +1,14 @@
 import argon2 from "argon2";
 import { useSession } from "vinxi/http";
 import { MAX_SESSION_DAYS } from "~/utils/constants";
+import { getEnv } from "~/utils/env";
 
 export interface Session {
   id: number;
 }
 
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
-  throw new Error(
-    "SESSION_SECRET environment variable is required. Generate one with: openssl rand -hex 32",
-  );
-}
+const env = getEnv();
+const SESSION_SECRET = env.SESSION_SECRET;
 
 export const getSession = () =>
   useSession<Session>({
@@ -20,7 +17,7 @@ export const getSession = () =>
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * MAX_SESSION_DAYS, // seconds
     },
   });

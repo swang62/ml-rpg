@@ -361,7 +361,7 @@ export default function PlayerSheet(props: Props) {
                         onClick={() => setShowLogin(true)}
                       >
                         <LogIn size={13} />
-                        Login
+                        Log In
                       </button>
                       <button
                         type="button"

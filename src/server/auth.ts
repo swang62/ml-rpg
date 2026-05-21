@@ -7,6 +7,7 @@ import {
 } from "~/db/users_sql";
 import { checkPassword, createHash, getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
+import { validatePassword, validateUsername } from "~/utils/input-validation";
 
 export const querySession = query(async () => {
   "use server";
@@ -20,15 +21,17 @@ export const querySession = query(async () => {
 
 export const formLogin = action(async (formData: FormData) => {
   "use server";
-  const username = formData.get("username");
-  const password = formData.get("password");
-  if (typeof username !== "string" || typeof password !== "string")
-    return new Error("Username and password are required");
+  const rawUsername = formData.get("username");
+  const rawPassword = formData.get("password");
+
+  const username = validateUsername(rawUsername);
+  const password = validatePassword(rawPassword);
+  if (!username || !password) {
+    return new Error("Invalid username or password format");
+  }
 
   const db = getDb();
-  const trimmed = username.trim().toLowerCase();
-
-  const row = await getUserByUserNameWithPassword(db, { username: trimmed });
+  const row = await getUserByUserNameWithPassword(db, { username });
   if (!row) {
     throw new Error("Invalid username");
   }
@@ -44,24 +47,26 @@ export const formLogin = action(async (formData: FormData) => {
 
 export const formSignup = action(async (formData: FormData) => {
   "use server";
-  const username = formData.get("username");
-  const password = formData.get("password");
-  if (typeof username !== "string" || typeof password !== "string")
-    return new Error("Username and password are required");
+  const rawUsername = formData.get("username");
+  const rawPassword = formData.get("password");
+
+  const username = validateUsername(rawUsername);
+  const password = validatePassword(rawPassword);
+  if (!username || !password) {
+    return new Error("Invalid username or password format");
+  }
 
   const db = getDb();
-  const trimmed = username.trim().toLowerCase();
-
-  const existing = await getUserByUserName(db, { username: trimmed });
+  const existing = await getUserByUserName(db, { username });
   if (existing) {
     throw new Error("Username already taken");
   }
 
   const hashed = await createHash(password);
   const row = await upsertUser(db, {
-    username: trimmed,
+    username,
     userPassword: hashed,
-    displayName: `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`,
+    displayName: `${username.charAt(0).toUpperCase()}${username.slice(1)}`,
   });
   if (!row) return new Error("Failed to create user");
 
