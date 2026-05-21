@@ -146,7 +146,7 @@ export default function PlayerSheet(props: Props) {
 
   createEffect(() => {
     if (!props.open) return;
-    const onKey = (e: KeyboardEvent) => {
+    const onKey = async (e: KeyboardEvent) => {
       // Ignore when editing a text field
       const target = e.target as HTMLElement;
       const isInput =
@@ -155,7 +155,9 @@ export default function PlayerSheet(props: Props) {
         target.isContentEditable;
 
       if (e.key === "Escape" && !editing()) {
-        if (showLogin()) {
+        if (showResetConfirm()) {
+          setShowResetConfirm(false);
+        } else if (showLogin()) {
           setShowLogin(false);
         } else if (showSignup()) {
           setShowSignup(false);
@@ -167,7 +169,7 @@ export default function PlayerSheet(props: Props) {
 
       if (isInput) return;
 
-      // S — open signup form
+      // S — signup form
       if (e.key === SHORTCUTS.SIGNUP) {
         e.preventDefault();
         setShowSignup(true);
@@ -185,23 +187,23 @@ export default function PlayerSheet(props: Props) {
         return;
       }
 
-      // R — open reset confirmation
+      // R — reset confirmation
       if (e.key === SHORTCUTS.RESET) {
         e.preventDefault();
         setShowResetConfirm(true);
         return;
       }
 
-      // C — cancel/clos current modal
-      if (e.key === SHORTCUTS.CANCEL) {
+      // Enter — confirm reset
+      if (e.key === "Enter" && showResetConfirm()) {
         e.preventDefault();
-        if (showResetConfirm()) {
-          setShowResetConfirm(false);
-        } else if (showLogin()) {
-          setShowLogin(false);
-        } else if (showSignup()) {
-          setShowSignup(false);
+        if (props.signedIn) {
+          await resetAllProgress();
+        } else {
+          resetAnonAllProgress();
         }
+        setShowResetConfirm(false);
+        props.onClose();
         return;
       }
     };
@@ -499,14 +501,14 @@ export default function PlayerSheet(props: Props) {
                     class="inline-flex items-center gap-2 px-5 py-2 border-2 border-red-500 rounded font-pixel text-[0.6rem] text-red-400 hover:bg-[rgba(239,68,68,0.15)] hover:text-red-300 transition-colors duration-150 cursor-pointer"
                   >
                     <RotateCcw size={13} />
-                    <HighlightKey text="Reset" key={SHORTCUTS.RESET} />
+                    Reset
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowResetConfirm(false)}
                     class="inline-flex items-center gap-2 px-5 py-2 border-2 rounded font-pixel text-[0.6rem] cursor-pointer text-accent/80 border-accent/80 hover:text-heading hover:border-accent transition-colors duration-150"
                   >
-                    <HighlightKey text="Cancel" key={SHORTCUTS.CANCEL} />
+                    Cancel
                   </button>
                 </div>
               </div>
