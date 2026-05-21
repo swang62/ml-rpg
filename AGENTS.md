@@ -229,7 +229,14 @@ This means both the course DB and vector store are self-healing — no manual se
 
 ### Testing
 
-Tests live in `__tests__/` directories co-located with source modules. Run with `pnpm test` (`vitest run`). Tests exist for: server logic (auth, rate limiter, search, RAG, course), utility functions (XP, localStorage), search components, and database integration (in-memory SQLite CRUD).
+Tests live in `__tests__/` directories co-located with source modules. Run with `pnpm test` (`vitest run`).
+
+**Tests are required for all new code.** The project has a testing framework (Vitest) — every new function, module, or significant change must include tests. Tests should cover:
+- Normal/expected inputs (happy path)
+- Edge cases (empty strings, null, boundary values)
+- Invalid/malicious inputs (defense-in-depth validation)
+
+Tests exist for: server logic (auth, rate limiter, search, RAG, course), utility functions (XP, localStorage, env validation, input validation), and database integration (in-memory SQLite CRUD).
 
 ## Environment Variables
 
