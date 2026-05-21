@@ -1,6 +1,5 @@
 import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
-import { z } from "zod";
 import {
   GITHUB_REPO_URL,
   RAG_BOT_NAME,
@@ -10,28 +9,23 @@ import {
   RATE_LIMIT_CHAT,
 } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
-import { sanitizeSearchQuery } from "~/utils/input-validation";
+import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
 import { deduplicateSources } from "~/utils/search-utils";
 import type { ChunkResult, SourceResult } from "~/utils/types";
 import { checkRateLimit } from "./rate-limiter";
 import { ensureVectorStore } from "./search";
 import { getSession } from "./session";
 
-const HistoryEntrySchema = z.object({
-  role: z.enum(["user", "assistant"]),
-  content: z.string(),
-});
-
 const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
-let _table: Table | null = null;
+let _vectorDB: Table | null = null;
 async function getChunksTable() {
-  if (!_table) {
+  if (!_vectorDB) {
     await ensureVectorStore();
     const db = await connect(getEnv().LANCEDB_PATH);
-    _table = await db.openTable("chunks");
+    _vectorDB = await db.openTable("chunks");
   }
-  return _table;
+  return _vectorDB;
 }
 
 let _reranker: rerankers.RRFReranker | null = null;
@@ -126,32 +120,6 @@ async function detectJailbreak(query: string): Promise<boolean> {
   }
 }
 
-// -- History sanitization (prevent role spoofing) --
-
-interface HistoryEntry {
-  role: "user" | "assistant";
-  content: string;
-}
-
-/**
- * Validates and sanitizes chat history before sending to the LLM.
- * Uses Zod to enforce role enum ("user" | "assistant") and content type
- * at runtime, rejecting system-role injection and malformed entries.
- * Strips unknown properties via Zod's default strip mode.
- */
-export function sanitizeHistory(
-  history: unknown,
-  maxTurns: number,
-): HistoryEntry[] {
-  if (!Array.isArray(history)) return [];
-  return history
-    .flatMap((item) => {
-      const result = HistoryEntrySchema.safeParse(item);
-      return result.success ? [result.data] : [];
-    })
-    .slice(-maxTurns);
-}
-
 // Main entrypoint
 
 export async function queryRAG({
@@ -177,7 +145,7 @@ export async function queryRAG({
     };
   }
 
-  // -- History validation (prevent role spoofing) --
+  // -- Input validation --
   const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY * 2);
 
   if (await detectJailbreak(sanitized)) {
