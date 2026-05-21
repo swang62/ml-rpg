@@ -25,18 +25,18 @@ ENV HOST=0.0.0.0 \
   LANCEDB_PATH=/app/.data/search \
   NODE_ENV=production
 
-# Create non-root user with explicit UID 1000 (required for consistent
+# Create non-root user with explicit UID 1001 (required for consistent
 # filesystem permissions across deployments and volume mounts).
-RUN adduser -D -H -h /app -u 1000 www && \
+RUN adduser -D -H -h /app -u 1001 www && \
   mkdir -p /app/.data && \
-  chown -R 1000:1000 /app
+  chown -R 1001:1001 /app
 
 WORKDIR /app
 
 # Copy with explicit UID for consistency with the www user
-COPY --from=build --chown=1000:1000 /app/.output .
-COPY --from=build --chown=1000:1000 /app/README.md /app/README.md
-COPY --from=build --chown=1000:1000 /app/src/db/empty.db /app/src/db/empty.db
+COPY --from=build --chown=1001:1001 /app/.output .
+COPY --from=build --chown=1001:1001 /app/README.md /app/README.md
+COPY --from=build --chown=1001:1001 /app/src/db/empty.db /app/src/db/empty.db
 
 # Switch to non-root user for runtime
 USER www

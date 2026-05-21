@@ -95,7 +95,7 @@ function ResetButton(props: { onClick: () => void }) {
   return (
     <button
       type="button"
-      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/70 border-red-400/70 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/80 border-red-400/80 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
       onClick={props.onClick}
     >
       <RotateCcw size={13} />
@@ -426,7 +426,7 @@ export default function PlayerSheet(props: Props) {
                     <div class="flex items-center gap-2">
                       <button
                         type="button"
-                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] hover:cursor-pointer text-level-category/70 border-level-category/70 hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
+                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] hover:cursor-pointer text-level-category/80 border-level-category/80 hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
                         onClick={() => setShowLogin(true)}
                       >
                         <LogIn size={13} />
@@ -434,7 +434,7 @@ export default function PlayerSheet(props: Props) {
                       </button>
                       <button
                         type="button"
-                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] hover:cursor-pointer text-accent/70 border-accent/70 hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
+                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] hover:cursor-pointer text-accent/80 border-accent/80 hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
                         onClick={() => setShowSignup(true)}
                       >
                         <UserPlus size={13} />
@@ -452,7 +452,7 @@ export default function PlayerSheet(props: Props) {
                     <form action={logoutAction} method="post">
                       <button
                         type="submit"
-                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/70 border-red-400/70 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/80 border-red-400/80 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
                       >
                         <LogOut size={13} />
                         <HighlightKey text="Log Out" key={SHORTCUTS.LOGIN} />
@@ -504,7 +504,7 @@ export default function PlayerSheet(props: Props) {
                   <button
                     type="button"
                     onClick={() => setShowResetConfirm(false)}
-                    class="inline-flex items-center gap-2 px-5 py-2 border-2 rounded font-pixel text-[0.6rem] cursor-pointer text-accent/70 border-accent/70 hover:text-heading hover:border-accent transition-colors duration-150"
+                    class="inline-flex items-center gap-2 px-5 py-2 border-2 rounded font-pixel text-[0.6rem] cursor-pointer text-accent/80 border-accent/80 hover:text-heading hover:border-accent transition-colors duration-150"
                   >
                     <HighlightKey text="Cancel" key={SHORTCUTS.CANCEL} />
                   </button>
