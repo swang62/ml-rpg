@@ -3,21 +3,21 @@ import { updateLastVisitedAt } from "~/db/users_sql";
 import { checkRateLimit } from "~/server/rate-limiter";
 import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
+import { RATE_LIMIT_LOGIN, RATE_LIMIT_REGULAR } from "~/utils/constants";
 import { checkThrottle } from "~/utils/throttle";
-
-// Register graceful shutdown signal handlers at server startup
 import "~/server/shutdown";
 
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
-const VISIT_THROTTLE_MS = 5 * 60 * 1000;
+const VISIT_THROTTLE_MS = 5 * 60_000;
 const visitThrottleCache = new Map<string, number>();
 
 function isStaticAsset(url: string): boolean {
   return STATIC_PREFIXES.some((prefix) => url.startsWith(prefix));
 }
 
-function isLoginEndpoint(url: string): boolean {
-  return url.startsWith("/_action/formLogin");
+function isAuthEndpoint(url: string): boolean {
+  const checkURL = url.toLowerCase();
+  return checkURL.includes("login") || checkURL.includes("signup");
 }
 
 async function trackLastVisited(): Promise<void> {
@@ -48,9 +48,9 @@ export default createMiddleware({
       event.request.headers.get("x-real-ip") ??
       "unknown";
 
-    const config = isLoginEndpoint(pathname)
-      ? { maxAttempts: 10, windowMs: 60_000 }
-      : { maxAttempts: 200, windowMs: 60_000 };
+    const config = isAuthEndpoint(pathname)
+      ? RATE_LIMIT_LOGIN
+      : RATE_LIMIT_REGULAR;
 
     const result = checkRateLimit(`ratelimit:${ip}`, config);
     if (!result.allowed) {
