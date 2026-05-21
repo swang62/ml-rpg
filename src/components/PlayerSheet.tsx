@@ -23,7 +23,7 @@ import {
 import {
   LEVELS,
   type LevelDef,
-  MAX_SESSION_DAYS,
+  SESSION_TIMEOUT_DAYS,
   SHORTCUTS,
 } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
@@ -596,7 +596,7 @@ export default function PlayerSheet(props: Props) {
                   Sign Up
                 </h2>
                 <p class="font-pixel text-[0.55rem] text-muted text-center leading-relaxed">
-                  Inactive accounts over {MAX_SESSION_DAYS} days will be
+                  Inactive accounts over {SESSION_TIMEOUT_DAYS} days will be
                   automatically deleted.
                 </p>
                 <form

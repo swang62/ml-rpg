@@ -11,7 +11,6 @@
  */
 
 import { z } from "zod";
-import { MAX_DISPLAY_NAME_LENGTH } from "~/utils/constants";
 
 // ---------------------------------------------------------------------------
 // Slug validation
@@ -63,7 +62,7 @@ const DisplayNameSchema = z
   .string()
   .trim()
   .min(1)
-  .max(MAX_DISPLAY_NAME_LENGTH)
+  .max(32)
   // eslint-disable-next-line no-misleading-character-class
   .regex(/^[a-zA-Z0-9 _\-'À-ÿ]+$/);
 

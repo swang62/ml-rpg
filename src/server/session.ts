@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 import { useSession } from "vinxi/http";
-import { MAX_SESSION_DAYS } from "~/utils/constants";
+import { SESSION_TIMEOUT_DAYS } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 
 export interface Session {
@@ -18,7 +18,7 @@ export const getSession = () =>
       httpOnly: true,
       sameSite: "lax",
       secure: env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * MAX_SESSION_DAYS, // seconds
+      maxAge: 60 * 60 * 24 * SESSION_TIMEOUT_DAYS, // seconds
     },
   });
 
