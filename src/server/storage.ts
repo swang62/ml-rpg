@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync } from "node:fs";
+import { copyFileSync, existsSync, unlinkSync } from "node:fs";
 import Database from "better-sqlite3";
 import { runMigrations } from "~/middleware/migrations";
 import { EMPTY_DB_PATH } from "~/utils/constants";
@@ -46,9 +46,33 @@ export function getDb(): Database.Database {
 export function closeDb(): void {
   if (_db) {
     try {
-      // Final WAL checkpoint to ensure durability
-      _db.pragma("wal_checkpoint(TRUNCATE)");
+      // Final WAL checkpoint to ensure durability.
+      // Returns { busy, log, checkpointed } — if busy > 0 some pages couldn't
+      // be checkpointed (unlikely with single connection, but worth noting).
+      const result = _db.pragma("wal_checkpoint(TRUNCATE)", {
+        simple: false,
+      }) as { busy: number; log: number; checkpointed: number }[];
+      if (result[0]?.busy) {
+        console.warn(
+          `[storage] WAL checkpoint busy (${result[0].busy} pages), proceeding with close`,
+        );
+      }
       _db.close();
+
+      // SQLite may leave behind zero-byte WAL and SHM files after close,
+      // especially on fast shutdowns. Clean them up explicitly.
+      const walPath = `${env.COURSE_DB_PATH}-wal`;
+      const shmPath = `${env.COURSE_DB_PATH}-shm`;
+      try {
+        unlinkSync(walPath);
+      } catch {
+        // File may already be gone — that's fine
+      }
+      try {
+        unlinkSync(shmPath);
+      } catch {
+        // File may already be gone — that's fine
+      }
     } catch (error) {
       console.error("[storage] Error closing database:", error);
     }
