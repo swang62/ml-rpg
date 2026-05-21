@@ -10,7 +10,7 @@
 
 import { deleteStaleUsers } from "~/db/users_sql";
 import { getDb } from "~/server/storage";
-import { CLEANUP_INTERVAL_DAYS, MAX_SESSION_DAYS } from "~/utils/constants";
+import { CLEANUP_INTERVAL_DAYS, SESSION_TIMEOUT_DAYS } from "~/utils/constants";
 
 interface RateLimitEntry {
   timestamps: number[];
@@ -35,7 +35,7 @@ const cleanupInterval = setInterval(
     try {
       const db = getDb();
       const staleUserCutoff = new Date(
-        Date.now() - MAX_SESSION_DAYS * 24 * 60 * 60 * 1000,
+        Date.now() - SESSION_TIMEOUT_DAYS * 24 * 60 * 60 * 1000,
       )
         .toISOString()
         .slice(0, 19)
