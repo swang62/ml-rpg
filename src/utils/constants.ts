@@ -24,6 +24,17 @@ export const RAG_MAX_SOURCES = 3;
 export const EMPTY_DB_PATH = "src/db/empty.db";
 export const COURSE_INFO_PATH = "README.md";
 
+// Global keyboard shortcuts — centralized so components stay in sync
+export const SHORTCUTS = {
+  SEARCH: "f",
+  ASK_AI: "h",
+  PROFILE: "p",
+  SIGNUP: "s",
+  LOGIN: "l",
+  RESET: "r",
+  CANCEL: "c",
+} as const;
+
 export interface LevelDef {
   level: number;
   title: string;

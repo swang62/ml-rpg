@@ -4,6 +4,7 @@ import LogIn from "lucide-solid/icons/log-in";
 import LogOut from "lucide-solid/icons/log-out";
 import Pencil from "lucide-solid/icons/pencil";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
+import UserPlus from "lucide-solid/icons/user-plus";
 import X from "lucide-solid/icons/x";
 import {
   createEffect,
@@ -19,13 +20,31 @@ import {
   resetAllProgressAction,
   updateUserNameAction,
 } from "~/server/mutations";
-import { LEVELS, type LevelDef, MAX_SESSION_DAYS } from "~/utils/constants";
+import {
+  LEVELS,
+  type LevelDef,
+  MAX_SESSION_DAYS,
+  SHORTCUTS,
+} from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import {
   resetAnonAllProgress,
   setAnonDisplayName,
 } from "~/utils/local-storage";
 import { getAvatarStyle, getLevel } from "~/utils/xp";
+
+/** Wrap the first occurrence of `key` in `text` with a .shortcut-letter span. */
+function HighlightKey(props: { text: string; key: string }) {
+  const idx = props.text.toLowerCase().indexOf(props.key.toLowerCase());
+  if (idx === -1) return <>{props.text}</>;
+  return (
+    <span>
+      {props.text.slice(0, idx)}
+      <span class="shortcut-letter">{props.text[idx]}</span>
+      {props.text.slice(idx + 1)}
+    </span>
+  );
+}
 
 interface Props {
   open: boolean;
@@ -76,11 +95,11 @@ function ResetButton(props: { onClick: () => void }) {
   return (
     <button
       type="button"
-      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+      class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/70 border-red-400/70 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
       onClick={props.onClick}
     >
       <RotateCcw size={13} />
-      Reset All
+      <HighlightKey text="Reset All" key={SHORTCUTS.RESET} />
     </button>
   );
 }
@@ -123,9 +142,18 @@ export default function PlayerSheet(props: Props) {
     if (e.key === "Escape") handleCancel();
   };
 
+  const logout = useAction(logoutAction);
+
   createEffect(() => {
     if (!props.open) return;
     const onKey = (e: KeyboardEvent) => {
+      // Ignore when editing a text field
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable;
+
       if (e.key === "Escape" && !editing()) {
         if (showLogin()) {
           setShowLogin(false);
@@ -134,6 +162,47 @@ export default function PlayerSheet(props: Props) {
         } else {
           props.onClose();
         }
+        return;
+      }
+
+      if (isInput) return;
+
+      // S — open signup form
+      if (e.key === SHORTCUTS.SIGNUP) {
+        e.preventDefault();
+        setShowSignup(true);
+        return;
+      }
+
+      // L — login (signed out) or logout (signed in)
+      if (e.key === SHORTCUTS.LOGIN) {
+        e.preventDefault();
+        if (props.signedIn) {
+          logout();
+        } else {
+          setShowLogin(true);
+        }
+        return;
+      }
+
+      // R — open reset confirmation
+      if (e.key === SHORTCUTS.RESET) {
+        e.preventDefault();
+        setShowResetConfirm(true);
+        return;
+      }
+
+      // C — cancel/clos current modal
+      if (e.key === SHORTCUTS.CANCEL) {
+        e.preventDefault();
+        if (showResetConfirm()) {
+          setShowResetConfirm(false);
+        } else if (showLogin()) {
+          setShowLogin(false);
+        } else if (showSignup()) {
+          setShowSignup(false);
+        }
+        return;
       }
     };
     document.addEventListener("keydown", onKey);
@@ -357,23 +426,22 @@ export default function PlayerSheet(props: Props) {
                     <div class="flex items-center gap-2">
                       <button
                         type="button"
-                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:cursor-pointer hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
+                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] hover:cursor-pointer text-level-category/70 border-level-category/70 hover:text-level-category/90 hover:border-level-category/90 hover:bg-surface-hover transition-colors duration-150"
                         onClick={() => setShowLogin(true)}
                       >
                         <LogIn size={13} />
-                        Log In
+                        <HighlightKey text="Log In" key={SHORTCUTS.LOGIN} />
                       </button>
                       <button
                         type="button"
-                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:cursor-pointer hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
+                        class="inline-flex text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] hover:cursor-pointer text-accent/70 border-accent/70 hover:text-accent hover:border-accent hover:bg-surface-hover transition-colors duration-150"
                         onClick={() => setShowSignup(true)}
                       >
-                        <LogIn size={13} />
-                        Sign Up
+                        <UserPlus size={13} />
+                        <HighlightKey text="Sign Up" key={SHORTCUTS.SIGNUP} />
                       </button>
                     </div>
-                    <span class="font-pixel text-[0.75rem] text-accent text-right gap-4 flex justify-center items-center">
-                      local-only
+                    <span class="font-pixel text-[0.75rem] text-muted text-right gap-4 flex justify-center items-center">
                       <ResetButton onClick={() => setShowResetConfirm(true)} />
                     </span>
                   </div>
@@ -384,10 +452,10 @@ export default function PlayerSheet(props: Props) {
                     <form action={logoutAction} method="post">
                       <button
                         type="submit"
-                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/70 border-red-400/70 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
                       >
                         <LogOut size={13} />
-                        Log Out
+                        <HighlightKey text="Log Out" key={SHORTCUTS.LOGIN} />
                       </button>
                     </form>
                     <ResetButton onClick={() => setShowResetConfirm(true)} />
@@ -431,14 +499,14 @@ export default function PlayerSheet(props: Props) {
                     class="inline-flex items-center gap-2 px-5 py-2 border-2 border-red-500 rounded font-pixel text-[0.6rem] text-red-400 hover:bg-[rgba(239,68,68,0.15)] hover:text-red-300 transition-colors duration-150 cursor-pointer"
                   >
                     <RotateCcw size={13} />
-                    Reset
+                    <HighlightKey text="Reset" key={SHORTCUTS.RESET} />
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowResetConfirm(false)}
-                    class="inline-flex items-center gap-2 px-5 py-2 border-2 border-border rounded font-pixel text-[0.6rem] text-muted hover:text-heading hover:border-accent transition-colors duration-150 cursor-pointer"
+                    class="inline-flex items-center gap-2 px-5 py-2 border-2 rounded font-pixel text-[0.6rem] cursor-pointer text-accent/70 border-accent/70 hover:text-heading hover:border-accent transition-colors duration-150"
                   >
-                    Cancel
+                    <HighlightKey text="Cancel" key={SHORTCUTS.CANCEL} />
                   </button>
                 </div>
               </div>

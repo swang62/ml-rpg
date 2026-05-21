@@ -11,7 +11,7 @@ import {
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG } from "~/server/rag";
-import { RAG_BOT_NAME, RAG_MAX_HISTORY } from "~/utils/constants";
+import { RAG_BOT_NAME, RAG_MAX_HISTORY, SHORTCUTS } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import type { SourceResult } from "~/utils/types";
 
@@ -57,7 +57,7 @@ export default function AskAI() {
 
   onMount(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "h") {
+      if ((e.metaKey || e.ctrlKey) && e.key === SHORTCUTS.ASK_AI) {
         e.preventDefault();
         if (isOpen()) {
           requestAnimationFrame(() => inputRef?.focus());
@@ -144,7 +144,7 @@ export default function AskAI() {
         <MessageBox class="block md:hidden" size={18} />
         <span class="hidden md:inline">Ask for help</span>
         <span class="askai-shortcut" aria-hidden="true">
-          <kbd>H</kbd>
+          <kbd>{SHORTCUTS.ASK_AI.toUpperCase()}</kbd>
         </span>
       </button>
 
