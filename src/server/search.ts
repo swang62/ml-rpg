@@ -1,5 +1,3 @@
-"use server";
-
 import { existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -20,6 +18,7 @@ import {
   STOP_WORDS,
 } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
+import { sanitizeSearchQuery } from "~/utils/input-validation";
 import { extractRelevantText } from "~/utils/search-utils";
 
 let _engine: MiniSearch<SearchDocument> | null = null;
@@ -37,9 +36,14 @@ interface SearchDocument {
 export type MiniSearchResult = SearchResult & Omit<SearchDocument, "id">;
 
 export async function searchLessons(searchQuery: string) {
+  "use server";
+
+  const sanitized = sanitizeSearchQuery(searchQuery);
+  if (sanitized.length < 3 || sanitized.length > 200) return [];
+
   await buildIndex();
 
-  const raw = _engine?.search(searchQuery, {
+  const raw = _engine?.search(sanitized, {
     prefix: true,
     fuzzy: 0.2,
     boost: {
