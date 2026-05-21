@@ -31,7 +31,7 @@ export function KeyboardNavHandler() {
   });
 
   onMount(() => {
-    let navTimeout: ReturnType<typeof setTimeout> | undefined;
+    let navTimeout: NodeJS.Timeout | undefined;
 
     const observer = new MutationObserver(() => {
       const prev = cards();

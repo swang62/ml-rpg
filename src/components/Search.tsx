@@ -18,7 +18,7 @@ export default function Search() {
   const [results, setResults] = createSignal<MiniSearchResult[]>([]);
   const [mobileOpen, setMobileOpen] = createSignal(false);
   let inputRef: HTMLInputElement | undefined;
-  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+  let debounceTimer: NodeJS.Timeout | undefined;
 
   onMount(() => {
     const handleKeydown = (e: KeyboardEvent) => {

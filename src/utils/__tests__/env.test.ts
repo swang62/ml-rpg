@@ -53,7 +53,6 @@ describe("getEnv", () => {
 
     const env = getEnv();
     expect(env.PORT).toBe(8080);
-    expect(typeof env.PORT).toBe("number");
   });
 
   it("accepts optional VOYAGE_API_KEY and GROQ_API_KEY", () => {
