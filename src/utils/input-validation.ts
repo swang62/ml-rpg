@@ -5,16 +5,24 @@
  * which is the primary SQL injection defense. This module provides
  * defense-in-depth validation for user-supplied inputs at the
  * application boundary.
+ *
+ * All validators use Zod schemas for declarative, runtime-safe validation
+ * with automatic type inference.
  */
 
+import { z } from "zod";
 import { MAX_DISPLAY_NAME_LENGTH } from "~/utils/constants";
 
 // ---------------------------------------------------------------------------
 // Slug validation
 // ---------------------------------------------------------------------------
 
-const SLUG_PATTERN = /^[a-zA-Z0-9_-]+$/;
-const SLUG_MAX_LENGTH = 100;
+const SlugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(100)
+  .regex(/^[a-zA-Z0-9_-]+$/);
 
 /**
  * Validates a URL slug (course, category, section, lesson).
@@ -22,41 +30,42 @@ const SLUG_MAX_LENGTH = 100;
  * Returns the trimmed slug if valid, or null if invalid.
  */
 export function validateSlug(slug: unknown): string | null {
-  if (typeof slug !== "string") return null;
-  const trimmed = slug.trim();
-  if (trimmed.length < 1 || trimmed.length > SLUG_MAX_LENGTH) return null;
-  if (!SLUG_PATTERN.test(trimmed)) return null;
-  return trimmed;
+  const result = SlugSchema.safeParse(slug);
+  return result.success ? result.data : null;
 }
 
 // ---------------------------------------------------------------------------
 // Username validation
 // ---------------------------------------------------------------------------
 
-const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
-const USERNAME_MIN_LENGTH = 1;
-const USERNAME_MAX_LENGTH = 32;
+const UsernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(2)
+  .max(32)
+  .regex(/^[a-zA-Z0-9_]+$/);
 
 /**
  * Validates a username. Allows alphanumeric + underscores, 2-32 chars.
  * Returns the trimmed + lowercased username if valid, or null if invalid.
  */
 export function validateUsername(username: unknown): string | null {
-  if (typeof username !== "string") return null;
-  const trimmed = username.trim().toLowerCase();
-  if (
-    trimmed.length <= USERNAME_MIN_LENGTH ||
-    trimmed.length > USERNAME_MAX_LENGTH
-  ) {
-    return null;
-  }
-  if (!USERNAME_PATTERN.test(trimmed)) return null;
-  return trimmed;
+  const result = UsernameSchema.safeParse(username);
+  return result.success ? result.data : null;
 }
 
 // ---------------------------------------------------------------------------
 // Display name validation
 // ---------------------------------------------------------------------------
+
+const DisplayNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(MAX_DISPLAY_NAME_LENGTH)
+  // eslint-disable-next-line no-misleading-character-class
+  .regex(/^[a-zA-Z0-9 _\-'À-ÿ]+$/);
 
 /**
  * Validates a display name. Must be 1-32 chars, allow letters, numbers,
@@ -64,36 +73,23 @@ export function validateUsername(username: unknown): string | null {
  * Returns the trimmed name if valid, or null if invalid.
  */
 export function validateDisplayName(name: unknown): string | null {
-  if (typeof name !== "string") return null;
-  const trimmed = name.trim();
-  if (trimmed.length < 1 || trimmed.length > MAX_DISPLAY_NAME_LENGTH) {
-    return null;
-  }
-  // eslint-disable-next-line no-misleading-character-class
-  if (!/^[a-zA-Z0-9 _\-'À-ÿ]+$/.test(trimmed)) return null;
-  return trimmed;
+  const result = DisplayNameSchema.safeParse(name);
+  return result.success ? result.data : null;
 }
 
 // ---------------------------------------------------------------------------
 // Password validation
 // ---------------------------------------------------------------------------
 
-const PASSWORD_MIN_LENGTH = 6;
-const PASSWORD_MAX_LENGTH = 128;
+const PasswordSchema = z.string().min(6).max(128);
 
 /**
  * Validates a password for sanity (min/max length).
  * Returns the password if valid, or null if invalid.
  */
 export function validatePassword(password: unknown): string | null {
-  if (typeof password !== "string") return null;
-  if (
-    password.length < PASSWORD_MIN_LENGTH ||
-    password.length > PASSWORD_MAX_LENGTH
-  ) {
-    return null;
-  }
-  return password;
+  const result = PasswordSchema.safeParse(password);
+  return result.success ? result.data : null;
 }
 
 // ---------------------------------------------------------------------------

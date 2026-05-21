@@ -1,5 +1,6 @@
 import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
+import { z } from "zod";
 import {
   GITHUB_REPO_URL,
   RAG_BOT_NAME,
@@ -15,7 +16,12 @@ import { checkRateLimit } from "./rate-limiter";
 import { ensureVectorStore } from "./search";
 import { getSession } from "./session";
 
-const RAG_RATE_LIMIT = { maxAttempts: 5, windowMs: 60_000 } as const;
+const HistoryEntrySchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+});
+
+const RAG_RATE_LIMIT = { maxAttempts: 30, windowMs: 60_000 } as const;
 
 const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
@@ -130,23 +136,21 @@ interface HistoryEntry {
 
 /**
  * Validates and sanitizes chat history before sending to the LLM.
- * Rejects entries with non-standard roles (e.g. "system"), strips
- * extra properties, handles non-array / malformed input gracefully.
+ * Uses Zod to enforce role enum ("user" | "assistant") and content type
+ * at runtime, rejecting system-role injection and malformed entries.
+ * Strips unknown properties via Zod's default strip mode.
  */
 export function sanitizeHistory(
   history: unknown,
   maxTurns: number,
 ): HistoryEntry[] {
-  return (Array.isArray(history) ? history : [])
-    .filter(
-      (m) =>
-        m &&
-        typeof m === "object" &&
-        (m.role === "user" || m.role === "assistant") &&
-        typeof m.content === "string",
-    )
-    .slice(-maxTurns)
-    .map((m) => ({ role: m.role, content: m.content }));
+  if (!Array.isArray(history)) return [];
+  return history
+    .flatMap((item) => {
+      const result = HistoryEntrySchema.safeParse(item);
+      return result.success ? [result.data] : [];
+    })
+    .slice(-maxTurns);
 }
 
 // Main entrypoint
