@@ -6,6 +6,7 @@ import {
   SEARCH_BLUR_CLOSE_MS,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_QUERY_LENGTH,
+  SHORTCUTS,
 } from "~/utils/constants";
 import { boldTerms, escapeHtml } from "~/utils/search-utils";
 
@@ -151,7 +152,7 @@ export default function Search() {
             id="search-input"
             name="search"
             class="search__input"
-            placeholder="Search topics..."
+            placeholder="Find a topic..."
             value={query()}
             onInput={handleInput}
             onkeydown={handleKeydown}
@@ -160,7 +161,7 @@ export default function Search() {
             aria-label="Search objectives"
           />
           <span class="search__shortcut mr-2" aria-hidden="true">
-            <kbd>F</kbd>
+            <kbd>{SHORTCUTS.SEARCH.toUpperCase()}</kbd>
           </span>
         </div>
         {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (

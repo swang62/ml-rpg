@@ -11,6 +11,7 @@ import {
 import { useAuth } from "~/components/AuthContext";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
+import { SHORTCUTS } from "~/utils/constants";
 import {
   bumpVersion,
   getAnonDisplayName,
@@ -47,11 +48,23 @@ export default function PlayerHUD() {
   onMount(() => {
     setMounted(true);
     if (!signedIn()) bumpVersion((v) => v + 1);
-    const handleProfile = () => setShowSheet(true);
-    document.addEventListener("shortcut:profile", handleProfile);
-    onCleanup(() =>
-      document.removeEventListener("shortcut:profile", handleProfile),
-    );
+
+    // All shortcuts that open the player sheet
+    const openShortcuts = [
+      "shortcut:profile",
+      "shortcut:signup",
+      "shortcut:login",
+      "shortcut:reset",
+    ];
+    const handleOpenSheet = () => setShowSheet(true);
+    for (const name of openShortcuts) {
+      document.addEventListener(name, handleOpenSheet);
+    }
+    onCleanup(() => {
+      for (const name of openShortcuts) {
+        document.removeEventListener(name, handleOpenSheet);
+      }
+    });
   });
 
   const xp = createMemo(() => {
@@ -157,7 +170,7 @@ export default function PlayerHUD() {
           </Show>
         </div>
         <span class="hud-shortcut" aria-hidden="true">
-          <kbd>P</kbd>
+          <kbd>{SHORTCUTS.PROFILE.toUpperCase()}</kbd>
         </span>
       </button>
 

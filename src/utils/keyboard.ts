@@ -1,5 +1,6 @@
 import { useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import { SHORTCUTS } from "~/utils/constants";
 
 /** Keyboard-driven card grid navigation (arrow keys + Enter) */
 export function KeyboardNavHandler() {
@@ -71,20 +72,19 @@ export function KeyboardNavHandler() {
         return;
       }
 
-      // Single-letter global shortcuts
-      if (e.key === "f") {
+      // Single-letter global shortcuts — all keys centralized in SHORTCUTS
+      const shortcutActions: Record<string, string> = {
+        [SHORTCUTS.SEARCH]: "shortcut:search",
+        [SHORTCUTS.ASK_AI]: "shortcut:askai",
+        [SHORTCUTS.PROFILE]: "shortcut:profile",
+        [SHORTCUTS.SIGNUP]: "shortcut:signup",
+        [SHORTCUTS.LOGIN]: "shortcut:login",
+        [SHORTCUTS.RESET]: "shortcut:reset",
+      };
+      const eventName = shortcutActions[e.key];
+      if (eventName) {
         e.preventDefault();
-        document.dispatchEvent(new CustomEvent("shortcut:search"));
-        return;
-      }
-      if (e.key === "h") {
-        e.preventDefault();
-        document.dispatchEvent(new CustomEvent("shortcut:askai"));
-        return;
-      }
-      if (e.key === "p") {
-        e.preventDefault();
-        document.dispatchEvent(new CustomEvent("shortcut:profile"));
+        document.dispatchEvent(new CustomEvent(eventName));
         return;
       }
 

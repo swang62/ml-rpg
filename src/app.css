@@ -1275,6 +1275,12 @@ a {
   line-height: 1;
 }
 
+/* Underline the keyboard shortcut letter in button labels */
+.shortcut-letter {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .shortcut-kbd {
   display: inline-flex;
   align-items: center;
