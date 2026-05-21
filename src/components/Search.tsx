@@ -160,7 +160,7 @@ export default function Search() {
             aria-label="Search objectives"
           />
           <span class="search__shortcut mr-2" aria-hidden="true">
-            <kbd>S</kbd>
+            <kbd>F</kbd>
           </span>
         </div>
         {isOpen() && query().trim().length >= SEARCH_MIN_QUERY_LENGTH && (
