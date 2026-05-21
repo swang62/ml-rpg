@@ -7,12 +7,9 @@ import { MetaProvider, Title } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
-import AskAI from "~/components/AskAI";
 import Auth from "~/components/AuthContext";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import ParallaxBackground from "~/components/ParallaxBackground";
-import PlayerHUD from "~/components/PlayerHUD";
-import Search from "~/components/Search";
 import { GlobalBackspaceHandler, KeyboardNavHandler } from "~/utils/keyboard";
 import { SITE_NAME } from "./utils/constants";
 
@@ -27,20 +24,7 @@ export default function App() {
             <KeyboardNavHandler />
             <ParallaxBackground />
             <ErrorBoundary>
-              <div class="app-layout">
-                <header class="app-header">
-                  <div class="app-header__inner">
-                    <Suspense>
-                      <PlayerHUD />
-                      <Search />
-                      <AskAI />
-                    </Suspense>
-                  </div>
-                </header>
-                <div class="app-content">
-                  <Suspense>{props.children}</Suspense>
-                </div>
-              </div>
+              <Suspense>{props.children}</Suspense>
             </ErrorBoundary>
           </Auth>
         </MetaProvider>
