@@ -32,7 +32,6 @@ export const SHORTCUTS = {
   SIGNUP: "s",
   LOGIN: "l",
   RESET: "r",
-  CANCEL: "c",
 } as const;
 
 export interface LevelDef {
