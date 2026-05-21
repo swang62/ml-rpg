@@ -96,21 +96,26 @@ export function validatePassword(password: unknown): string | null {
 // Search / RAG query sanitization
 // ---------------------------------------------------------------------------
 
+function stripControlChars(val: string): string {
+  let result = "";
+  for (let i = 0; i < val.length; i++) {
+    const code = val.charCodeAt(i);
+    // Allow \t (0x09), \n (0x0A), \r (0x0D), and printable chars (0x20+)
+    if (code === 0x09 || code === 0x0a || code === 0x0d || code >= 0x20) {
+      result += val[i];
+    }
+  }
+  return result.trim();
+}
+
+const SearchQuerySchema = z.string().transform(stripControlChars);
+
 /**
  * Sanitizes a free-text search or RAG query by stripping characters
  * that could be used in SQL injection attempts (defense-in-depth).
  * This is NOT the primary SQL injection defense (parameterized queries are).
  */
 export function sanitizeSearchQuery(query: unknown): string {
-  if (typeof query !== "string") return "";
-  // Strip null bytes and ASCII control characters (0x00-0x1F minus allowed whitespace)
-  let result = "";
-  for (let i = 0; i < query.length; i++) {
-    const code = query.charCodeAt(i);
-    // Allow \t (0x09), \n (0x0A), \r (0x0D), and printable chars (0x20+)
-    if (code === 0x09 || code === 0x0a || code === 0x0d || code >= 0x20) {
-      result += query[i];
-    }
-  }
-  return result.trim();
+  const result = SearchQuerySchema.safeParse(query);
+  return result.success ? result.data : "";
 }
