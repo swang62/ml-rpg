@@ -1,5 +1,3 @@
-"use server";
-
 import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import {
@@ -10,9 +8,14 @@ import {
   RAG_MAX_SOURCES,
 } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
+import { sanitizeSearchQuery } from "~/utils/input-validation";
 import { deduplicateSources } from "~/utils/search-utils";
 import type { ChunkResult, SourceResult } from "~/utils/types";
+import { checkRateLimit } from "./rate-limiter";
 import { ensureVectorStore } from "./search";
+import { getSession } from "./session";
+
+const RAG_RATE_LIMIT = { maxAttempts: 5, windowMs: 60_000 } as const;
 
 const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
@@ -118,18 +121,69 @@ async function detectJailbreak(query: string): Promise<boolean> {
   }
 }
 
+// -- History sanitization (prevent role spoofing) --
+
+interface HistoryEntry {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/**
+ * Validates and sanitizes chat history before sending to the LLM.
+ * Rejects entries with non-standard roles (e.g. "system"), strips
+ * extra properties, handles non-array / malformed input gracefully.
+ */
+export function sanitizeHistory(
+  history: unknown,
+  maxTurns: number,
+): HistoryEntry[] {
+  return (Array.isArray(history) ? history : [])
+    .filter(
+      (m) =>
+        m &&
+        typeof m === "object" &&
+        (m.role === "user" || m.role === "assistant") &&
+        typeof m.content === "string",
+    )
+    .slice(-maxTurns)
+    .map((m) => ({ role: m.role, content: m.content }));
+}
+
 // Main entrypoint
 
 export async function queryRAG({
   query,
   history = [],
 }: QueryRAGInput): Promise<QueryRAGResult> {
-  if (await detectJailbreak(query)) {
+  "use server";
+
+  // -- Input sanitization --
+  const sanitized = sanitizeSearchQuery(query);
+  if (!sanitized) {
+    return { answer: "Please ask a valid question.", sources: [] };
+  }
+
+  // -- Rate limiting --
+  const session = await getSession();
+  const rateLimitKey = session.data.id ? `rag:${session.data.id}` : "rag:anon";
+  const rateResult = checkRateLimit(rateLimitKey, RAG_RATE_LIMIT);
+  if (!rateResult.allowed) {
+    return {
+      answer:
+        "You're asking too fast! Take a breather and try again in a minute.",
+      sources: [],
+    };
+  }
+
+  // -- History validation (prevent role spoofing) --
+  const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY * 2);
+
+  if (await detectJailbreak(sanitized)) {
     return { answer: "Sorry, I can't help with that.", sources: [] };
   }
 
-  const embedding = await embedQuery(query);
-  const chunks = await hybridSearch(query, embedding);
+  const embedding = await embedQuery(sanitized);
+  const chunks = await hybridSearch(sanitized, embedding);
   const sources = deduplicateSources(chunks);
 
   const context = chunks
@@ -150,8 +204,8 @@ export async function queryRAG({
 
   const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
-    ...history.slice(-RAG_MAX_HISTORY * 2),
-    { role: "user", content: `Context:\n${context}\n\nQuestion: ${query}` },
+    ...sanitizedHistory,
+    { role: "user", content: `Context:\n${context}\n\nQuestion: ${sanitized}` },
   ];
 
   const completion = await groq.chat.completions.create({
