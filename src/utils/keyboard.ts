@@ -72,7 +72,7 @@ export function KeyboardNavHandler() {
       }
 
       // Single-letter global shortcuts
-      if (e.key === "s") {
+      if (e.key === "f") {
         e.preventDefault();
         document.dispatchEvent(new CustomEvent("shortcut:search"));
         return;
