@@ -21,6 +21,13 @@ export const RAG_CHUNK_SIZE = 512;
 export const RAG_MAX_HISTORY = 2;
 export const RAG_MAX_SOURCES = 3;
 
+export const RATE_LIMIT_LOGIN = { maxAttempts: 10, windowMs: 60_000 } as const;
+export const RATE_LIMIT_CHAT = { maxAttempts: 30, windowMs: 60_000 } as const;
+export const RATE_LIMIT_REGULAR = {
+  maxAttempts: 200,
+  windowMs: 60_000,
+} as const;
+
 export const EMPTY_DB_PATH = "src/db/empty.db";
 export const COURSE_INFO_PATH = "README.md";
 

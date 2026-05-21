@@ -7,6 +7,7 @@ import {
   RAG_EMBEDDING_MODEL,
   RAG_MAX_HISTORY,
   RAG_MAX_SOURCES,
+  RATE_LIMIT_CHAT,
 } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
@@ -20,8 +21,6 @@ const HistoryEntrySchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.string(),
 });
-
-const RAG_RATE_LIMIT = { maxAttempts: 30, windowMs: 60_000 } as const;
 
 const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
@@ -170,11 +169,10 @@ export async function queryRAG({
   // -- Rate limiting --
   const session = await getSession();
   const rateLimitKey = session.data.id ? `rag:${session.data.id}` : "rag:anon";
-  const rateResult = checkRateLimit(rateLimitKey, RAG_RATE_LIMIT);
+  const rateResult = checkRateLimit(rateLimitKey, RATE_LIMIT_CHAT);
   if (!rateResult.allowed) {
     return {
-      answer:
-        "You're asking too fast! Take a breather and try again in a minute.",
+      answer: "You're asking too fast! Try again in a minute.",
       sources: [],
     };
   }
