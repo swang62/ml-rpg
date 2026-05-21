@@ -121,36 +121,6 @@ async function buildIndex() {
   return true;
 }
 
-interface LessonRow {
-  slug: string;
-  title: string;
-  html: string;
-  section_id: number;
-  category_id: number;
-  course_id: number;
-}
-
-interface SectionRow {
-  id: number;
-  slug: string;
-  title: string;
-  category_id: number;
-  course_id: number;
-}
-
-interface CategoryRow {
-  id: number;
-  slug: string;
-  title: string;
-  course_id: number;
-}
-
-interface CourseRow {
-  id: number;
-  slug: string;
-  title: string;
-}
-
 interface LessonGroup {
   lessonTitle: string;
   lessonUrl: string;
@@ -193,31 +163,14 @@ async function buildVectorIndex() {
   const db = getDb();
 
   console.log("[startup] Loading hierarchy data...");
-  const courses = new Map<number, CourseRow>(
-    (db.prepare("SELECT id, slug, title FROM course").all() as CourseRow[]).map(
-      (r) => [r.id, r],
-    ),
-  );
-  const categories = new Map<number, CategoryRow>(
-    (
-      db
-        .prepare("SELECT id, slug, title, course_id FROM category")
-        .all() as CategoryRow[]
-    ).map((r) => [r.id, r]),
-  );
-  const sections = new Map<number, SectionRow>(
-    (
-      db
-        .prepare("SELECT id, slug, title, category_id, course_id FROM section")
-        .all() as SectionRow[]
-    ).map((r) => [r.id, r]),
-  );
+  const courseRows = await getAllCourses(db);
+  const courses = new Map(courseRows.map((r) => [r.id, r]));
+  const categoryRows = await getAllCategories(db);
+  const categories = new Map(categoryRows.map((r) => [r.id, r]));
+  const sectionRows = await getAllSections(db);
+  const sections = new Map(sectionRows.map((r) => [r.id, r]));
 
-  const lessonRows = db
-    .prepare(
-      "SELECT slug, title, html, section_id, category_id, course_id FROM lesson WHERE html != ''",
-    )
-    .all() as LessonRow[];
+  const lessonRows = await getSearchLessons(db);
 
   console.log(`[startup] ${lessonRows.length} lessons found`);
 
@@ -230,9 +183,9 @@ async function buildVectorIndex() {
   let totalChunks = 0;
 
   for (const lesson of lessonRows) {
-    const section = sections.get(lesson.section_id);
-    const category = categories.get(lesson.category_id);
-    const course = courses.get(lesson.course_id);
+    const section = sections.get(lesson.sectionid);
+    const category = categories.get(lesson.categoryid);
+    const course = courses.get(lesson.courseid);
     if (!section || !category || !course) continue;
 
     const plainText = extractRelevantText(lesson.html);

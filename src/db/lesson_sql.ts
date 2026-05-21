@@ -178,13 +178,15 @@ export async function updateLessonHtml(database: Database, args: UpdateLessonHtm
 }
 
 export const getSearchLessonsQuery = `-- name: GetSearchLessons :many
-SELECT lesson.slug, lesson.title, lesson.section_id AS sectionid, lesson.html FROM lesson WHERE lesson.html != ''`;
+SELECT lesson.slug, lesson.title, lesson.html, lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.html != ''`;
 
 export interface GetSearchLessonsRow {
     slug: any;
     title: any;
-    sectionid: any;
     html: any;
+    sectionid: any;
+    categoryid: any;
+    courseid: any;
 }
 
 export async function getSearchLessons(database: Database): Promise<GetSearchLessonsRow[]> {

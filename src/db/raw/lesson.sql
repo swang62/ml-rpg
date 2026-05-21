@@ -26,7 +26,7 @@ SELECT lesson.html FROM lesson WHERE lesson.id = ?;
 UPDATE lesson SET html = ? WHERE lesson.id = ?;
 
 -- name: GetSearchLessons :many
-SELECT lesson.slug, lesson.title, lesson.section_id AS sectionid, lesson.html FROM lesson WHERE lesson.html != '';
+SELECT lesson.slug, lesson.title, lesson.html, lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.html != '';
 
 -- name: GetLessonsByCategoryGrouped :many
 SELECT lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder,
