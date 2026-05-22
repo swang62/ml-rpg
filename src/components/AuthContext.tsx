@@ -12,7 +12,7 @@ interface AuthValue {
 
 const Context = createContext<AuthValue>();
 
-export default function Auth(props: ParentProps) {
+export default function AuthProvider(props: ParentProps) {
   const user = createAsync(() => querySession(), { deferStream: true });
   const signedIn = () => Boolean(user()?.id);
 
