@@ -48,7 +48,7 @@
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": "biome check --write --no-errors-on-unmatched",
-    "*.ts": "pnpm run test:staged",
+    "*.ts": "vitest related --run",
     "!src/db/*_sql.ts": ""
   },
   "engines": {
