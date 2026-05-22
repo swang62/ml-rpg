@@ -2,6 +2,10 @@ import { createMiddleware } from "@solidjs/start/middleware";
 import { checkRateLimit } from "~/server/rate-limiter";
 import { RATE_LIMIT_LOGIN, RATE_LIMIT_REGULAR } from "~/utils/constants";
 
+if (!import.meta.env.VITE_SITE_URL) {
+  throw new Error("VITE_SITE_URL is required.");
+}
+
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
 
 function isStaticAsset(url: string): boolean {
