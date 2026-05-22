@@ -47,9 +47,11 @@
     "vitest": "^4.1.6"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": "biome check --write --no-errors-on-unmatched",
-    "*.ts": "vitest related --run",
-    "!src/db/*_sql.ts": ""
+    "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": [
+      "biome check --write --no-errors-on-unmatched",
+      "vitest related --run --reporter=verbose"
+    ],
+    "!src/db/*_sql.ts": []
   },
   "engines": {
     "node": ">=22"
