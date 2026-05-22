@@ -8,6 +8,7 @@
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
     "test": "vitest run",
+    "test:staged": "vitest --run --changed",
     "preview": "vinxi start",
     "prepare": "husky || true",
     "seed": "dotenv -- tsx ./scripts/seed-db.ts",
@@ -47,7 +48,7 @@
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,jsonc,css,html,md,yml,yaml}": "biome check --write --no-errors-on-unmatched",
-    "*.ts": "vitest related --run",
+    "*.ts": "pnpm run test:staged",
     "!src/db/*_sql.ts": ""
   },
   "engines": {
