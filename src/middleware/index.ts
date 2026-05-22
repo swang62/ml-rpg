@@ -1,15 +1,8 @@
 import { createMiddleware } from "@solidjs/start/middleware";
-import { updateLastVisitedAt } from "~/db/users_sql";
 import { checkRateLimit } from "~/server/rate-limiter";
-import { getSession } from "~/server/session";
-import { getDb } from "~/server/storage";
 import { RATE_LIMIT_LOGIN, RATE_LIMIT_REGULAR } from "~/utils/constants";
-import { checkThrottle } from "~/utils/throttle";
-import "~/server/shutdown";
 
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
-const VISIT_THROTTLE_MS = 5 * 60_000;
-const visitThrottleCache = new Map<string, number>();
 
 function isStaticAsset(url: string): boolean {
   return STATIC_PREFIXES.some((prefix) => url.startsWith(prefix));
@@ -18,18 +11,6 @@ function isStaticAsset(url: string): boolean {
 function isAuthEndpoint(url: string): boolean {
   const checkURL = url.toLowerCase();
   return checkURL.includes("login") || checkURL.includes("signup");
-}
-
-async function trackLastVisited(): Promise<void> {
-  const { data } = await getSession();
-  if (!data.id) return;
-
-  const key = `visit:${data.id}`;
-  if (!checkThrottle(visitThrottleCache, key, VISIT_THROTTLE_MS, Date.now()))
-    return;
-
-  const db = getDb();
-  await updateLastVisitedAt(db, { id: data.id });
 }
 
 export default createMiddleware({
@@ -82,8 +63,6 @@ export default createMiddleware({
       "X-RateLimit-Remaining",
       String(result.remaining),
     );
-
-    await trackLastVisited();
     return;
   },
 });
