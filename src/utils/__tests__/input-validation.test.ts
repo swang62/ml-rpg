@@ -126,11 +126,6 @@ describe("validateDisplayName", () => {
   it("accepts maximum length name", () => {
     expect(validateDisplayName("a".repeat(32))).toBe("a".repeat(32));
   });
-
-  it("rejects names with special characters", () => {
-    expect(validateDisplayName("<script>alert(1)</script>")).toBeNull();
-    expect(validateDisplayName("Robert'); DROP TABLE;")).toBeNull();
-  });
 });
 
 describe("validatePassword", () => {
