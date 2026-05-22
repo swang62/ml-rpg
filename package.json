@@ -9,14 +9,12 @@
     "lint": "biome check --write . && pnpm typecheck",
     "test": "vitest run",
     "test:staged": "vitest --run --changed",
-    "preview": "vinxi start",
+    "preview": "dotenv -- vinxi start",
     "prepare": "husky || true",
     "seed": "dotenv -- tsx ./scripts/seed-db.ts",
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {
-    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
-    "@fontsource/press-start-2p": "^5.2.7",
     "@lancedb/lancedb": "^0.27.2",
     "@langchain/textsplitters": "^1.0.1",
     "@solidjs/meta": "^0.29.4",
@@ -56,5 +54,5 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.1.0"
+  "packageManager": "pnpm@11.2.2+sha512.36e6621fad506178936455e70247b8808ef4ec25797a9f437a93281a020484e2607f6a469a22e982987c3dbb8866e3071514ab10a4a1749e06edcd1ec118436f"
 }

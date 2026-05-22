@@ -41,4 +41,15 @@ describe("cleanLessonHtml", () => {
     const result = cleanLessonHtml(html);
     expect(result).toBe("<h1>Title</h1><code>code block</code><p>end</p>");
   });
+
+  it('strips JSX {" "} spacing expressions', () => {
+    const input = 'Use{" "}the{" "}force';
+    expect(cleanLessonHtml(input)).toBe("Use the force");
+  });
+
+  it("strips JSX expressions mixed with HTML", () => {
+    const input = '<p>You use{" "}<code>GET</code>{" "}requests</p>';
+    const result = cleanLessonHtml(input);
+    expect(result).toBe("<p>You use <code>GET</code> requests</p>");
+  });
 });

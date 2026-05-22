@@ -20,6 +20,8 @@ export function cleanLessonHtml(html?: string): string {
   if (!html) return "";
   return DOMPurify.sanitize(
     html
+      // Strip JSX {" "} spacing expressions left over from scraped .tsx files
+      .replace(/\{" "\}/g, " ")
       .replace(/&lt;code[^&]*?&gt;/g, (m) =>
         m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
       )

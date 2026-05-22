@@ -138,6 +138,7 @@ export default function PlayerHUD() {
             alt={level().title}
             width="28"
             height="28"
+            fetchpriority="high"
           />
         </div>
         <div class="player-hud__info">

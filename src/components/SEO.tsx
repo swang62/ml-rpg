@@ -1,4 +1,4 @@
-import { Link, Meta, Title } from "@solidjs/meta";
+import { Link, Meta, Style, Title } from "@solidjs/meta";
 import { createMemo } from "solid-js";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "~/utils/constants";
 
@@ -25,7 +25,39 @@ export default function SEO(props: SEOProps) {
     <>
       <Title>{title()}</Title>
       <Meta name="description" content={description()} />
-      <Meta name="robots" content="index, follow" />
+      <Meta name="robots" content="index, follow, noai, noimageai" />
+
+      {/* Preload fonts — breaks the CSS -> Fonts discovery chain */}
+      <Link
+        rel="preload"
+        as="font"
+        crossorigin="anonymous"
+        href="/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2"
+      />
+      <Link
+        rel="preload"
+        as="font"
+        crossorigin="anonymous"
+        href="/assets/fonts/press-start-2p-latin-400-normal.woff2"
+      />
+
+      {/* Self-hosted @font-face rules (inlined, no extra request) */}
+      <Style>{`
+        @font-face {
+          font-family: "Plus Jakarta Sans Variable";
+          font-style: normal;
+          font-display: swap;
+          font-weight: 200 800;
+          src: url("/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2-variations");
+        }
+        @font-face {
+          font-family: "Press Start 2P";
+          font-style: normal;
+          font-display: swap;
+          font-weight: 400;
+          src: url("/assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+        }
+        `}</Style>
 
       {/* Favicon */}
       <Link rel="icon" href="/favicon.ico" />

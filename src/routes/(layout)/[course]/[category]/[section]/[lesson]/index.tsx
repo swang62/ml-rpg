@@ -1,3 +1,5 @@
+import "~/legacy-shim.css";
+
 import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
 import ExternalLink from "lucide-solid/icons/external-link";
 

@@ -1,7 +1,4 @@
 import "./app.css";
-import "./legacy-shim.css";
-import "@fontsource-variable/plus-jakarta-sans";
-import "@fontsource/press-start-2p";
 
 import { MetaProvider } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
