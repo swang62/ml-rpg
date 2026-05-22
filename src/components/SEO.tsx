@@ -27,7 +27,7 @@ export default function SEO(props: SEOProps) {
       <Meta name="description" content={description()} />
       <Meta name="robots" content="index, follow, noai, noimageai" />
 
-      {/* Preload fonts — breaks the CSS -> Fonts discovery chain */}
+      {/* Preload fonts */}
       <Link
         rel="preload"
         as="font"
@@ -41,7 +41,7 @@ export default function SEO(props: SEOProps) {
         href="/assets/fonts/press-start-2p-latin-400-normal.woff2"
       />
 
-      {/* Self-hosted @font-face rules (inlined, no extra request) */}
+      {/* Self-hosted @font-face rules (inlined for fastest discover) */}
       <Style>{`
         @font-face {
           font-family: "Plus Jakarta Sans Variable";

@@ -16,7 +16,6 @@ export default function App() {
       root={(props) => (
         <MetaProvider>
           <SEO />
-
           <AuthProvider>
             <GlobalBackspaceHandler />
             <KeyboardNavHandler />
