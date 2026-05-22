@@ -3,6 +3,7 @@ import {
   getUserById,
   getUserByUserName,
   getUserByUserNameWithPassword,
+  updateLastVisitedAt,
   upsertUser,
 } from "~/db/users_sql";
 import { checkPassword, createHash, getSession } from "~/server/session";
@@ -16,6 +17,10 @@ export const querySession = query(async () => {
 
   const db = getDb();
   const user = await getUserById(db, { id: data.id });
+
+  // Track page visit for signed-in users
+  await updateLastVisitedAt(db, { id: data.id });
+
   return user ?? null;
 }, "session");
 
