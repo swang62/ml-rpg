@@ -15,7 +15,6 @@ import { getAnonCategoryReadCounts } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {
-    getCourseMetaQuery(params.course as string);
     getCourseReadCountsQuery(params.course as string);
   },
 } satisfies RouteDefinition;

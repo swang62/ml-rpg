@@ -58,13 +58,7 @@ export function validateUsername(username: unknown): string | null {
 // Display name validation
 // ---------------------------------------------------------------------------
 
-const DisplayNameSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(32)
-  // eslint-disable-next-line no-misleading-character-class
-  .regex(/^[a-zA-Z0-9 _\-'À-ÿ]+$/);
+const DisplayNameSchema = z.string().trim().min(1).max(32);
 
 /**
  * Validates a display name. Must be 1-32 chars, allow letters, numbers,

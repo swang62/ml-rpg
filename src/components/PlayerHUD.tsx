@@ -1,4 +1,4 @@
-import { createAsync } from "@solidjs/router";
+import { createAsync, type RouteDefinition } from "@solidjs/router";
 import {
   createEffect,
   createMemo,
@@ -19,6 +19,10 @@ import {
   version,
 } from "~/utils/local-storage";
 import { formatXP, getAvatarStyle, getLevel, xpToNextLevel } from "~/utils/xp";
+
+export const route = {
+  preload: () => getTotalXpQuery(),
+} satisfies RouteDefinition;
 
 export default function PlayerHUD() {
   const { user, signedIn } = useAuth();
