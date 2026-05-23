@@ -15,7 +15,7 @@ export default defineConfig({
       LANCEDB_PATH: "./.data/search",
       GROQ_API_KEY: "fake_api_key",
       VOYAGE_API_KEY: "fake_api_key",
-      VITE_SITE_URL: "https://localhost",
+      VITE_SITE_URL: "http://localhost:3000",
     },
   },
 });

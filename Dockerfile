@@ -1,8 +1,10 @@
 FROM node:26-alpine AS build
 
+# Build ARGs, not needed in production
 ARG CI=true
 ARG VITE_SITE_URL
-ENV VITE_SITE_URL=$VITE_SITE_URL
+ARG VITE_SITE_ID
+
 WORKDIR /app
 
 RUN npm install --global corepack@latest && \

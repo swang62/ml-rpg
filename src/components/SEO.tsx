@@ -1,6 +1,11 @@
 import { Link, Meta, Style, Title } from "@solidjs/meta";
 import { createMemo } from "solid-js";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "~/utils/constants";
+import {
+  SITE_DESCRIPTION,
+  SITE_ID,
+  SITE_NAME,
+  SITE_URL,
+} from "~/utils/constants";
 
 const OG_IMAGE = `${SITE_URL}/assets/screenshot-homepage.png`;
 
@@ -81,6 +86,15 @@ export default function SEO(props: SEOProps) {
       <Meta name="twitter:title" content={props.title || SITE_NAME} />
       <Meta name="twitter:description" content={description()} />
       <Meta name="twitter:image" content={image()} />
+
+      {SITE_ID && (
+        <script
+          defer
+          src="https://umami.stronglybrewed.dev/script.js"
+          data-website-id={SITE_ID}
+          data-performance="true"
+        />
+      )}
     </>
   );
 }
