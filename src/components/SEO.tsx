@@ -45,6 +45,12 @@ export default function SEO(props: SEOProps) {
         crossorigin="anonymous"
         href="/assets/fonts/press-start-2p-latin-400-normal.woff2"
       />
+      <Link
+        rel="preload"
+        as="font"
+        crossorigin="anonymous"
+        href="/assets/fonts/raleway-latin-wght-normal.woff2"
+      />
 
       {/* Self-hosted @font-face rules (inlined for fastest discover) */}
       <Style>{`
@@ -54,6 +60,13 @@ export default function SEO(props: SEOProps) {
           font-display: swap;
           font-weight: 200 800;
           src: url("/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2-variations");
+        }
+        @font-face {
+          font-family: "Raleway";
+          font-style: normal;
+          font-display: swap;
+          font-weight: 200 800;
+          src: url("/assets/fonts/raleway-latin-wght-normal.woff2") format("woff2-variations");
         }
         @font-face {
           font-family: "Press Start 2P";
