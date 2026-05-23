@@ -216,6 +216,7 @@ export default function AskAI() {
               <button
                 type="button"
                 class="askai-inputbar__send"
+                data-umami-event="ask-for-help"
                 onClick={handleSend}
                 disabled={
                   isLoading() ||

@@ -58,7 +58,7 @@ export const formSignup = action(async (formData: FormData) => {
   const username = validateUsername(rawUsername);
   const password = validatePassword(rawPassword);
   if (!username || !password) {
-    return new Error("Invalid username or password format");
+    throw new Error("Invalid username or password format");
   }
 
   const db = getDb();

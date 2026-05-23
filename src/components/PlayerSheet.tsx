@@ -565,6 +565,7 @@ export default function PlayerSheet(props: Props) {
                   <button
                     type="submit"
                     disabled={loginSubmission.pending}
+                    data-umami-event="login"
                     class="hover:cursor-pointer  w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loginSubmission.pending ? "Logging in..." : "Login"}
@@ -635,6 +636,7 @@ export default function PlayerSheet(props: Props) {
                   <button
                     type="submit"
                     disabled={signupSubmission.pending}
+                    data-umami-event="signup"
                     class="hover:cursor-pointer w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {signupSubmission.pending
