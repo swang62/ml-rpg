@@ -79,13 +79,16 @@ async function embedQuery(query: string): Promise<number[]> {
 async function hybridSearch(
   query: string,
   embedding: number[],
+  keywords: string[],
 ): Promise<ChunkResult[]> {
   const table = await getChunksTable();
   const reranker = await getReranker();
 
+  const ftsQuery = keywords.length > 0 ? keywords.join(" ") : query;
+
   const results = await table
     .query()
-    .fullTextSearch(query)
+    .fullTextSearch(ftsQuery)
     .nearestTo(embedding)
     .rerank(reranker)
     .limit(RAG_MAX_SOURCES)
@@ -121,6 +124,25 @@ async function detectJailbreak(query: string): Promise<boolean> {
   }
 }
 
+async function extractKeywords(query: string): Promise<string[]> {
+  const url = getEnv().SPACY_API_URL;
+  if (!url) return [];
+
+  try {
+    const response = await fetch(`${url}/extract-keywords`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { keywords: string[] };
+    return data.keywords ?? [];
+  } catch {
+    return [];
+  }
+}
+
 // Main entrypoint
 
 export async function queryRAG({
@@ -137,21 +159,33 @@ export async function queryRAG({
     return {
       answer: "You're asking too fast! Try again in a minute.",
       sources: [],
+      keywords: [],
     };
   }
 
   // -- Input sanitization --
   const sanitized = sanitizeSearchQuery(query);
   if (!sanitized) {
-    return { answer: "Please ask a valid question.", sources: [] };
+    return {
+      answer: "Please ask a valid question.",
+      sources: [],
+      keywords: [],
+    };
   }
   if (await detectJailbreak(sanitized)) {
-    return { answer: "Sorry, I can't help with that.", sources: [] };
+    return {
+      answer: "Sorry, I can't help with that.",
+      sources: [],
+      keywords: [],
+    };
   }
+
+  // -- keyword extraction --
+  const keywords = await extractKeywords(sanitized);
 
   // -- Vector DB + keyword search --
   const embedding = await embedQuery(sanitized);
-  const chunks = await hybridSearch(sanitized, embedding);
+  const chunks = await hybridSearch(sanitized, embedding, keywords);
   const sources = deduplicateSources(chunks);
 
   const context = chunks
@@ -203,5 +237,6 @@ export async function queryRAG({
   return {
     answer,
     sources: isNoResponse || isShortReply || isCourseInfo ? [] : sources,
+    keywords,
   };
 }
