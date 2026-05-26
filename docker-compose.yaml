@@ -9,6 +9,8 @@ services:
         - VITE_SITE_URL=${VITE_SITE_URL}
         - VITE_SITE_ID=${VITE_SITE_ID}
     restart: unless-stopped
+    depends_on:
+      - spacy-api
     ports:
       - ${PORT:-3333}:${PORT:-3333}
     volumes:
@@ -21,8 +23,6 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
       - SPACY_API_URL=http://spacy-api:8000
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
-    depends_on:
-      - spacy-api
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-3333}/api/health || exit 1
       interval: 5m

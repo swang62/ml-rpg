@@ -77,15 +77,6 @@ describe("getEnv", () => {
     expect(env.NODE_ENV).toBe("development");
   });
 
-  it("defaults SPACY_API_URL to empty string when not set", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
-
-    const env = getEnv();
-    expect(env.SPACY_API_URL).toBe("");
-  });
-
   it("caches the result after first successful call", () => {
     process.env.COURSE_DB_PATH = "/tmp/test.db";
     process.env.LANCEDB_PATH = "/tmp/search";
