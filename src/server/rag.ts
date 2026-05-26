@@ -84,11 +84,11 @@ async function hybridSearch(
   const table = await getChunksTable();
   const reranker = await getReranker();
 
-  const ftsQuery = keywords.length > 0 ? keywords.join(" ") : query;
+  const textQuery = keywords.length ? keywords.join(" ") : query;
 
   const results = await table
     .query()
-    .fullTextSearch(ftsQuery)
+    .fullTextSearch(textQuery)
     .nearestTo(embedding)
     .rerank(reranker)
     .limit(RAG_MAX_SOURCES)
