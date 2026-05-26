@@ -5,7 +5,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 
 COPY pyproject.toml .
-RUN uv sync --frozen && uv run python -m spacy download en_core_web_sm
+RUN uv sync --inexact && uv run -- spacy download en_core_web_sm
 
 COPY spacy-api/app.py .
 

@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_SITE_URL=${VITE_SITE_URL}
-        - VITE_SITE_ID=${VITE_SITE_ID}
+        - VITE_SITE_ID=${VITE_SITE_ID:-}
     restart: unless-stopped
     depends_on:
       - spacy-api
