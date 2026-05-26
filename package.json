@@ -4,8 +4,7 @@
   "scripts": {
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
-    "dev": "concurrently -n vite,spacy \"vinxi dev\" \"pnpm dev:spacy\"",
-    "dev:spacy": "uv sync --quiet && uv run python -m spacy download en_core_web_sm --quiet 2>/dev/null || true && uv run uvicorn app:app --host 0.0.0.0 --port 8000 --app-dir spacy-api",
+    "dev": "./scripts/dev.sh",
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
     "test": "vitest run",
@@ -36,7 +35,6 @@
     "@tailwindcss/postcss": "^4.3.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.6.2",
-    "concurrently": "^9.2.1",
     "dotenv-cli": "^11.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.2",
