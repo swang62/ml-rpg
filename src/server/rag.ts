@@ -128,12 +128,6 @@ export async function queryRAG({
 }: QueryRAGInput): Promise<QueryRAGResult> {
   "use server";
 
-  // -- Input sanitization --
-  const sanitized = sanitizeSearchQuery(query);
-  if (!sanitized) {
-    return { answer: "Please ask a valid question.", sources: [] };
-  }
-
   // -- Rate limiting --
   const session = await getSession();
   const rateLimitKey = session.data.id ? `rag:${session.data.id}` : "rag:anon";
@@ -145,13 +139,16 @@ export async function queryRAG({
     };
   }
 
-  // -- Input validation --
-  const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY * 2);
-
+  // -- Input sanitization --
+  const sanitized = sanitizeSearchQuery(query);
+  if (!sanitized) {
+    return { answer: "Please ask a valid question.", sources: [] };
+  }
   if (await detectJailbreak(sanitized)) {
     return { answer: "Sorry, I can't help with that.", sources: [] };
   }
 
+  // -- Vector DB + keyword search --
   const embedding = await embedQuery(sanitized);
   const chunks = await hybridSearch(sanitized, embedding);
   const sources = deduplicateSources(chunks);
@@ -172,6 +169,7 @@ export async function queryRAG({
     "Answer in plain text without markdown formatting.",
   ].join(" ");
 
+  const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY * 2);
   const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
     ...sanitizedHistory,
