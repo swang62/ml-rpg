@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { extractKeywords } from "~/server/rag";
 import { deduplicateSources } from "~/utils/search-utils";
 import type { ChunkResult } from "~/utils/types";
 
@@ -99,5 +100,12 @@ describe("deduplicateSources", () => {
     expect(result[0].title).toBe("First Title");
     // But relevance is the highest score
     expect(result[0].relevance).toBe(0.9);
+  });
+});
+
+describe("extractKeywords", () => {
+  it("returns empty array when SPACY_API_URL is not set", async () => {
+    const result = await extractKeywords("what is gradient descent");
+    expect(result).toEqual([]);
   });
 });
