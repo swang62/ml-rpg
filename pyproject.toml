@@ -3,4 +3,9 @@ name = "spacy-api"
 version = "0.1.0"
 description = "FastAPI NER service for keyword extraction"
 requires-python = ">=3.14"
-dependencies = ["fastapi>=0.115.0", "uvicorn[standard]>=0.30.0", "spacy>=3.8.0"]
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "spacy>=3.8.0",
+  "pip>=26.1.1",
+]

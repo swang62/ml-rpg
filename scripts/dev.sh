@@ -16,8 +16,8 @@ trap cleanup EXIT INT TERM
 cd "$PROJECT_DIR"
 
 # Ensure spaCy venv and model
-uv sync --quiet
-uv run python -m spacy download en_core_web_sm
+uv sync --quiet --inexact
+uv run -- spacy download en_core_web_sm
 
 # Start spaCy API
 echo "Starting spaCy API on port 8000..."
