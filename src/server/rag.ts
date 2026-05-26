@@ -44,6 +44,7 @@ export interface QueryRAGInput {
 export interface QueryRAGResult {
   answer: string;
   sources: SourceResult[];
+  keywords: string[];
 }
 
 async function embedQuery(query: string): Promise<number[]> {
