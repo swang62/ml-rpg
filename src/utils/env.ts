@@ -22,6 +22,7 @@ const envSchema = z.object({
     .default("development"),
   VOYAGE_API_KEY: z.string(),
   GROQ_API_KEY: z.string(),
+  SPACY_API_URL: z.string().default(""),
 });
 
 export type Env = z.infer<typeof envSchema>;
