@@ -55,6 +55,11 @@ describe("boldTerms", () => {
     expect(result).toBe("<strong>hello</strong> <strong>world</strong>");
   });
 
+  it("highlights words with dashes", () => {
+    const result = boldTerms("hello-world", ["hello", "world"]);
+    expect(result).toBe("<strong>hello</strong>-<strong>world</strong>");
+  });
+
   it("handles terms not found in text", () => {
     const result = boldTerms("hello world", ["missing"]);
     expect(result).toBe("hello world");
