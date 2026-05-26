@@ -5,6 +5,8 @@ import spacy
 app = FastAPI(title="spacy-api")
 nlp = spacy.load("en_core_web_sm")
 
+KEEP_ENTITY_LABELS = {"PRODUCT"}
+
 
 class QueryRequest(BaseModel):
     query: str
@@ -18,6 +20,12 @@ class KeywordResponse(BaseModel):
 async def extract_keywords(req: QueryRequest):
     doc = nlp(req.query)
     keywords: set[str] = set()
+
+    for ent in doc.ents:
+        if ent.label_ in KEEP_ENTITY_LABELS:
+            text = ent.text.lower().strip()
+            if len(text) > 1:
+                keywords.add(text)
 
     for chunk in doc.noun_chunks:
         text = chunk.text.lower().strip()
