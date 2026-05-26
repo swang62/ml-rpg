@@ -33,8 +33,8 @@ services:
   spacy-api:
     container_name: spacy-api
     build:
-      context: ./spacy-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.api
     restart: unless-stopped
 
 volumes:
