@@ -5,7 +5,7 @@ import spacy
 app = FastAPI(title="spacy-api")
 nlp = spacy.load("en_core_web_sm")
 
-KEEP_ENTITY_LABELS = {"PRODUCT"}
+KEEP_ENTITY_LABELS = {"PRODUCT", "WORK_OF_ART"}
 
 
 class QueryRequest(BaseModel):
@@ -33,7 +33,11 @@ async def extract_keywords(req: QueryRequest):
             keywords.add(text)
 
     for token in doc:
-        if token.pos_ in ("NOUN", "PROPN", "ADJ") and not token.is_stop and len(token.text) > 2:
+        if (
+            token.pos_ in ("NOUN", "PROPN", "ADJ")
+            and not token.is_stop
+            and len(token.text) > 2
+        ):
             keywords.add(token.lemma_.lower())
 
     return KeywordResponse(keywords=list(keywords))

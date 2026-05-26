@@ -5,7 +5,7 @@
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
     "dev": "concurrently -n vite,spacy \"vinxi dev\" \"pnpm dev:spacy\"",
-    "dev:spacy": "cd spacy-api && uv sync --quiet && uv run python -m spacy download en_core_web_sm --quiet 2>/dev/null || true && uv run uvicorn app:app --host 0.0.0.0 --port 8000",
+    "dev:spacy": "uv sync --quiet && uv run python -m spacy download en_core_web_sm --quiet 2>/dev/null || true && uv run uvicorn app:app --host 0.0.0.0 --port 8000 --app-dir spacy-api",
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
     "test": "vitest run",
