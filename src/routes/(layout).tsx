@@ -13,7 +13,7 @@ export default function RootLayout(props: RouteSectionProps) {
           <AskAI />
         </div>
       </header>
-      <div class="app-content">{props.children}</div>
+      {props.children}
     </div>
   );
 }

@@ -4,7 +4,9 @@ import ArrowLeft from "lucide-solid/icons/arrow-left";
 import ArrowRight from "lucide-solid/icons/arrow-right";
 import ArrowUp from "lucide-solid/icons/arrow-up";
 import ChevronRight from "lucide-solid/icons/chevron-right";
+
 import CornerDownLeft from "lucide-solid/icons/corner-down-left";
+
 import { createMemo } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { getCoursesQuery } from "~/server/course";
@@ -18,6 +20,15 @@ export default function HomePage() {
   return (
     <main class="page-level--world">
       <PageTitle />
+      <a
+        href="https://github.com/swang62/ml-rpg"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="github-link"
+        aria-label="View source on GitHub"
+      >
+        <img src="/assets/github.svg" alt="GitHub" width="20" height="20" />
+      </a>
       <section class="hero">
         <div class="hero__tag">World Hub</div>
         <h1>{SITE_NAME}</h1>

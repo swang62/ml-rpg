@@ -121,7 +121,7 @@ a {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: 72px 24px;
 }
 
 .container-medium {
@@ -200,6 +200,7 @@ a {
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .page-level--course {
@@ -224,13 +225,6 @@ a {
   flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-.app-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 24px 0 32px;
 }
 
 /* ===== Sticky header ===== */
@@ -934,7 +928,7 @@ a {
 }
 
 .nav-shortcuts-bottom {
-  margin-bottom: var(--nav-height);
+  margin-bottom: calc(var(--nav-height) * 1.5);
 }
 
 .hero-course-card:hover {
@@ -971,6 +965,27 @@ a {
   transition:
     background 0.2s ease,
     transform 0.2s ease;
+}
+
+/* ===== GitHub link (homepage) ===== */
+
+.github-link {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  opacity: 0.65;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  line-height: 0;
+}
+
+.github-link img {
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+.github-link:hover {
+  opacity: 1;
 }
 
 /* ===== Search ===== */
@@ -1981,10 +1996,6 @@ main {
     left: 50%;
     transform: translateX(-50%);
     top: 12px;
-  }
-
-  .app-content {
-    padding: 0 12px 54px;
   }
 }
 
