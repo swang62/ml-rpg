@@ -17,7 +17,7 @@ cd "$PROJECT_DIR"
 
 # Ensure spaCy venv and model
 uv sync --quiet
-uv run python -m spacy download en_core_web_sm --quiet 2>/dev/null || true
+uv pip install -q "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 
 # Start spaCy API
 echo "Starting spaCy API on port 8000..."
