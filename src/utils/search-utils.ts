@@ -38,7 +38,7 @@ export function boldTerms(text: string, terms: string[]): string {
   let result = text;
   for (const term of terms) {
     result = result.replace(
-      new RegExp(`(${escapeRegex(term)})`, "gi"),
+      new RegExp(`(${escapeRegex(term)})`, "i"),
       "<strong>$1</strong>",
     );
   }

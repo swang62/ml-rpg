@@ -46,7 +46,7 @@ describe("boldTerms", () => {
     const escaped = "&lt;script&gt;alert(1)&lt;/script&gt;";
     const result = boldTerms(escaped, ["script"]);
     expect(result).toBe(
-      "&lt;<strong>script</strong>&gt;alert(1)&lt;/<strong>script</strong>&gt;",
+      "&lt;<strong>script</strong>&gt;alert(1)&lt;/script&gt;",
     );
   });
 
