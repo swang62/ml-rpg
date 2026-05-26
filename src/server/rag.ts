@@ -124,7 +124,7 @@ async function detectJailbreak(query: string): Promise<boolean> {
   }
 }
 
-async function extractKeywords(query: string): Promise<string[]> {
+export async function extractKeywords(query: string): Promise<string[]> {
   const url = getEnv().SPACY_API_URL;
   if (!url) return [];
 
