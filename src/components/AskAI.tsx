@@ -19,6 +19,7 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   sources?: SourceResult[];
+  keywords?: string[];
 }
 
 const GREETING: ChatMessage = {
@@ -105,7 +106,12 @@ export default function AskAI() {
       const result = await queryRAG({ query, history });
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: result.answer, sources: result.sources },
+        {
+          role: "assistant",
+          content: result.answer,
+          sources: result.sources,
+          keywords: result.keywords,
+        },
       ]);
     } catch (err) {
       const error = err as Error;
@@ -183,6 +189,7 @@ export default function AskAI() {
                     role={msg.role}
                     content={msg.content}
                     sources={msg.sources}
+                    keywords={msg.keywords}
                     onClose={() => setIsOpen(false)}
                   />
                 )}
