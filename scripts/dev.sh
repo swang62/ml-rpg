@@ -24,6 +24,9 @@ echo "Starting spaCy API on port 8000..."
 uv run uvicorn app:app --host 0.0.0.0 --port 8000 --app-dir spacy-api &
 SPACY_PID=$!
 
+# Point Vinxi to the local spaCy API
+export SPACY_API_URL="http://localhost:8000"
+
 # Start Vinxi dev
 echo "Starting Vinxi dev server..."
 vinxi dev
