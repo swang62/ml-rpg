@@ -8,11 +8,9 @@ import spacy
 GREETINGS_PATH = Path(__file__).with_name("greetings.csv")
 
 app = FastAPI(title="spacy-api")
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load("en_core_web_sm", disable=["parser", "lemmatizer", "ner"])
 
-KEEP_ENTITIES = {"ORG", "PRODUCT", "WORK_OF_ART"}
 MIN_TEXT_SIZE = 3
-MAX_TEXT_SIZE = 1000
 
 
 class QueryRequest(BaseModel):
@@ -50,15 +48,7 @@ async def extract_keywords(req: QueryRequest):
         return KeywordResponse(keywords=[])
 
     document = nlp(query)
-    entities = document.ents
     keywords: set[str] = set()
-
-    for entity in entities:
-        if (
-            entity.label_ in KEEP_ENTITIES
-            and len(formatted(entity.text)) >= MIN_TEXT_SIZE
-        ):
-            keywords.add(formatted(entity.text))
 
     for token in document:
         if (
