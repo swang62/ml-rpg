@@ -1,5 +1,6 @@
-export interface ChunkResult {
+export type ChunkData = {
   id: string;
+  vector: number[];
   text: string;
   lessonTitle: string;
   lessonUrl: string;
@@ -7,12 +8,15 @@ export interface ChunkResult {
   sectionTitle: string;
   courseTitle: string;
   chunkIndex: number;
-  score: number;
-}
+  _relevance_score: number;
+};
+
+export type ChunkResult = Omit<ChunkData, "vector">;
 
 export interface SourceResult {
   title: string;
   url: string;
+  text: string;
   categoryTitle: string;
   sectionTitle: string;
   courseTitle: string;

@@ -20,6 +20,7 @@ import {
 import { getEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
 import { extractRelevantText } from "~/utils/search-utils";
+import type { ChunkData } from "~/utils/types";
 
 let _engine: MiniSearch<SearchDocument> | null = null;
 let _vectorStoreExists: boolean | undefined;
@@ -133,19 +134,6 @@ interface LessonGroup {
   lessonSlug: string;
   texts: string[];
 }
-
-// biome-ignore lint/suspicious/noExplicitAny: lance db data
-type ChunkData = Record<string, any> & {
-  id: string;
-  vector: number[];
-  text: string;
-  lessonTitle: string;
-  lessonUrl: string;
-  categoryTitle: string;
-  sectionTitle: string;
-  courseTitle: string;
-  chunkIndex: number;
-};
 
 export async function ensureVectorStore(): Promise<void> {
   "use server";
@@ -299,6 +287,7 @@ async function buildVectorIndex() {
           sectionTitle: group.sectionTitle,
           courseTitle: group.courseTitle,
           chunkIndex: ci,
+          _relevance_score: 0,
         });
       });
     });
