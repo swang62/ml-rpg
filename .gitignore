@@ -10,6 +10,8 @@ dist
 .fallow
 .tmp
 .vscode
+.venv
+.pytest_cache
 
 # Environment
 .env

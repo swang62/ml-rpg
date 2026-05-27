@@ -7,6 +7,6 @@ WORKDIR /app
 COPY pyproject.toml .
 RUN uv sync --inexact && uv run -- spacy download en_core_web_sm
 
-COPY spacy-api/app.py .
+COPY spacy-api/* .
 
 CMD ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
