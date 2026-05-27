@@ -12,7 +12,7 @@ const makeChunk = (overrides: Partial<ChunkResult> = {}): ChunkResult => ({
   sectionTitle: "Basics",
   courseTitle: "Course",
   chunkIndex: 0,
-  score: 0.8,
+  _relevance_score: 0.8,
   ...overrides,
 });
 
@@ -32,8 +32,8 @@ describe("deduplicateSources", () => {
 
   it("deduplicates chunks with the same lessonUrl, keeping highest score", () => {
     const chunks = [
-      makeChunk({ lessonUrl: "/same", score: 0.5 }),
-      makeChunk({ lessonUrl: "/same", score: 0.9 }),
+      makeChunk({ lessonUrl: "/same", _relevance_score: 0.5 }),
+      makeChunk({ lessonUrl: "/same", _relevance_score: 0.9 }),
     ];
     const result = deduplicateSources(chunks);
     expect(result).toHaveLength(1);
@@ -42,9 +42,9 @@ describe("deduplicateSources", () => {
 
   it("keeps the highest score when deduplicating multiple chunks", () => {
     const chunks = [
-      makeChunk({ lessonUrl: "/a", score: 0.3 }),
-      makeChunk({ lessonUrl: "/a", score: 0.7 }),
-      makeChunk({ lessonUrl: "/a", score: 0.5 }),
+      makeChunk({ lessonUrl: "/a", _relevance_score: 0.3 }),
+      makeChunk({ lessonUrl: "/a", _relevance_score: 0.7 }),
+      makeChunk({ lessonUrl: "/a", _relevance_score: 0.5 }),
     ];
     const result = deduplicateSources(chunks);
     expect(result).toHaveLength(1);
@@ -53,9 +53,9 @@ describe("deduplicateSources", () => {
 
   it("preserves separate lessons", () => {
     const chunks = [
-      makeChunk({ lessonUrl: "/lesson-1", score: 0.8 }),
-      makeChunk({ lessonUrl: "/lesson-2", score: 0.6 }),
-      makeChunk({ lessonUrl: "/lesson-3", score: 0.4 }),
+      makeChunk({ lessonUrl: "/lesson-1", _relevance_score: 0.8 }),
+      makeChunk({ lessonUrl: "/lesson-2", _relevance_score: 0.6 }),
+      makeChunk({ lessonUrl: "/lesson-3", _relevance_score: 0.4 }),
     ];
     const result = deduplicateSources(chunks);
     expect(result).toHaveLength(3);
@@ -63,9 +63,9 @@ describe("deduplicateSources", () => {
 
   it("sorts by relevance descending", () => {
     const chunks = [
-      makeChunk({ lessonUrl: "/low", score: 0.2 }),
-      makeChunk({ lessonUrl: "/high", score: 0.9 }),
-      makeChunk({ lessonUrl: "/mid", score: 0.5 }),
+      makeChunk({ lessonUrl: "/low", _relevance_score: 0.2 }),
+      makeChunk({ lessonUrl: "/high", _relevance_score: 0.9 }),
+      makeChunk({ lessonUrl: "/mid", _relevance_score: 0.5 }),
     ];
     const result = deduplicateSources(chunks);
     expect(result.map((s) => s.relevance)).toEqual([0.9, 0.5, 0.2]);
@@ -73,7 +73,7 @@ describe("deduplicateSources", () => {
 
   it("limits to RAG_MAX_SOURCES (3)", () => {
     const chunks = Array.from({ length: 10 }, (_, i) =>
-      makeChunk({ lessonUrl: `/lesson-${i}`, score: (10 - i) / 10 }),
+      makeChunk({ lessonUrl: `/lesson-${i}`, _relevance_score: (10 - i) / 10 }),
     );
     const result = deduplicateSources(chunks);
     expect(result).toHaveLength(3);
@@ -85,13 +85,13 @@ describe("deduplicateSources", () => {
         lessonUrl: "/same",
         lessonTitle: "First Title",
         categoryTitle: "Category A",
-        score: 0.5,
+        _relevance_score: 0.5,
       }),
       makeChunk({
         lessonUrl: "/same",
         lessonTitle: "Different Title",
         categoryTitle: "Category B",
-        score: 0.9,
+        _relevance_score: 0.9,
       }),
     ];
     const result = deduplicateSources(chunks);

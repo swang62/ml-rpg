@@ -102,17 +102,18 @@ export function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
   for (const chunk of chunks) {
     const existing = seen.get(chunk.lessonUrl);
     if (existing) {
-      if (chunk.score > existing.relevance) {
-        existing.relevance = chunk.score;
+      if (chunk._relevance_score > existing.relevance) {
+        existing.relevance = chunk._relevance_score;
       }
     } else {
       seen.set(chunk.lessonUrl, {
         title: chunk.lessonTitle,
         url: chunk.lessonUrl,
+        text: chunk.text,
         categoryTitle: chunk.categoryTitle,
         sectionTitle: chunk.sectionTitle,
         courseTitle: chunk.courseTitle,
-        relevance: chunk.score,
+        relevance: chunk._relevance_score,
       });
     }
   }
