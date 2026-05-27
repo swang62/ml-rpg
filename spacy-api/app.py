@@ -1,7 +1,11 @@
+import csv
+from pathlib import Path
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import spacy
-import csv
+
+GREETINGS_PATH = Path(__file__).with_name("greetings.csv")
 
 app = FastAPI(title="spacy-api")
 nlp = spacy.load("en_core_web_sm")
@@ -21,7 +25,7 @@ class KeywordResponse(BaseModel):
 
 def initialize_nlp():
     greetings = []
-    with open("spacy-api/greetings.csv", "r") as file:
+    with open(GREETINGS_PATH, "r") as file:
         rows = csv.reader(file)
         for row in rows:
             for word in row:
