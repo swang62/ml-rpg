@@ -7,7 +7,7 @@
     "dev": "./scripts/dev.sh",
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
-    "test": "vitest run && uv run --group dev pytest spacy-api/test -v",
+    "test": "vitest run && uv run --group dev pytest spacy-api/__tests__ -v",
     "test:staged": "vitest --run --changed",
     "preview": "dotenv -- vinxi start",
     "prepare": "husky || true",
@@ -49,7 +49,10 @@
       "biome check --write --no-errors-on-unmatched",
       "vitest related --run --reporter=verbose"
     ],
-    "!src/db/*_sql.ts": []
+    "!src/db/*_sql.ts": [],
+    "**/test_*.py": [
+      "uv run --group dev pytest"
+    ]
   },
   "engines": {
     "node": ">=22"
