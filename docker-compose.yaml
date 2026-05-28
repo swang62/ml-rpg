@@ -50,5 +50,35 @@ services:
       start_period: 15s
       retries: 3
 
+  llama-api:
+    container_name: llama-api
+    image: ghcr.io/ggml-org/llama.cpp:server
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./llama_api/models/bob-q4_k_m.gguf:/app/model.gguf:ro
+    command:
+      - -m
+      - /app/model.gguf
+      - --host
+      - 0.0.0.0
+      - --port
+      - 8080
+      - --sleep-idle-seconds
+      - "300"
+      - --ctx-size
+      - "4096"
+      - --parallel
+      - "1"
+      - --threads
+      - "4"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
 volumes:
   course-data:

@@ -23,6 +23,7 @@ const envSchema = z.object({
   VOYAGE_API_KEY: z.string(),
   GROQ_API_KEY: z.string(),
   RAG_API_URL: z.url(),
+  LLAMA_API_URL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
