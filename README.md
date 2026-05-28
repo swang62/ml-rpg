@@ -50,6 +50,20 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ---
 
+## Bob — Your Local Guide
+
+Before you arrived, Bob was the Grand Librarian of the Arcane Archives of Knowledge, a vast repository of machine learning and data engineering wisdom that spanned every textbook, paper, and notebook ever digitized. When the Great Fragmentation split the digital realms apart, Bob found himself bound to the Course World — the very world you're now exploring.
+
+He's been here ever since, watching travelers arrive, level up, and move on. He knows every corner of this place: how XP flows through the ranks, where the hidden shortcuts are, which quests unlock what, and the layout of every World, Level, Quest, and Objective.
+
+But he's also trapped. His knowledge ends at the Course World's borders. Ask him about anything outside machine learning, data engineering, or this platform, and he genuinely doesn't know — he's never been able to leave.
+
+Bob is friendly, a little weathered, always glad to see a new face. He keeps his answers short and warm. No frills. He's been doing this a long time.
+
+> "Hi, I'm Bob. Welcome to Machine Learning (the RPG). What can I help you with?"
+
+---
+
 ## Motivation
 
 I created this repo to initially learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new web development libraries and RAG/agentic workflows and implementation. Also practicing my frontend design UI/UX skills. Truly meta-level learning on learning action.
