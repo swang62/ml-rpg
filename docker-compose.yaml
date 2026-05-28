@@ -40,6 +40,7 @@ services:
       - course-data:/app/.data
     environment:
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
 
 volumes:
