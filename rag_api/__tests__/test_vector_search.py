@@ -1,7 +1,7 @@
 import pytest
 
-from rag_api.retrieval.vector_search import deduplicate_sources
 from rag_api.config import MAX_SOURCES
+from rag_api.retrieval.vector_search import deduplicate_sources
 
 
 def make_chunk(**overrides):
