@@ -1,8 +1,6 @@
 import csv
 from pathlib import Path
 
-import spacy
-
 from rag_api.config import MIN_TEXT_SIZE
 
 GREETINGS_PATH = Path(__file__).parent.parent / "greetings.csv"
@@ -14,6 +12,8 @@ def _load_nlp():
     global _nlp
     if _nlp is not None:
         return _nlp
+
+    import spacy
 
     nlp = spacy.load("en_core_web_sm", disable=["parser", "lemmatizer", "ner"])
 
