@@ -11,9 +11,7 @@ export type ChunkData = {
   _relevance_score: number;
 };
 
-export type ChunkResult = Omit<ChunkData, "vector">;
-
-export interface SourceResult {
+export type ChunkResult = {
   title: string;
   url: string;
   text: string;
@@ -21,4 +19,9 @@ export interface SourceResult {
   sectionTitle: string;
   courseTitle: string;
   relevance: number;
+};
+
+export interface SourceResult {
+  title: string;
+  url: string;
 }

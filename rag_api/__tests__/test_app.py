@@ -8,7 +8,10 @@ client = TestClient(app)
 def test_short_query():
     response = client.post("/retrieve", json={"query": "ab"})
     assert response.status_code == 200
-    assert response.json() == {"sources": [], "keywords": []}
+    data = response.json()
+    assert data["sources"] == []
+    assert data["keywords"] == []
+    assert data["chunks"] == []
 
 
 def test_empty_query():
@@ -17,6 +20,7 @@ def test_empty_query():
     data = response.json()
     assert data["sources"] == []
     assert data["keywords"] == []
+    assert data["chunks"] == []
 
 
 def test_invalid_method():

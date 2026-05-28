@@ -8,6 +8,11 @@ class RetrieveRequest(BaseModel):
 class SourceResult(BaseModel):
     title: str
     url: str
+
+
+class ChunkResult(BaseModel):
+    title: str
+    url: str
     text: str
     categoryTitle: str
     sectionTitle: str
@@ -16,5 +21,6 @@ class SourceResult(BaseModel):
 
 
 class RetrieveResponse(BaseModel):
+    chunks: list[ChunkResult]
     sources: list[SourceResult]
     keywords: list[str]

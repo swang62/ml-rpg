@@ -1,5 +1,5 @@
 from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MAX_SOURCES
-from ..schemas import SourceResult
+from ..schemas import ChunkResult, SourceResult
 
 _table = None
 
@@ -31,7 +31,6 @@ def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
         .to_list()
     )
 
-    # Only return github repo url if about the course
     for r in chunks:
         if r.get("lessonUrl") == GITHUB_REPO_URL:
             return [r]
@@ -39,26 +38,37 @@ def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
     return chunks
 
 
+def to_chunk_result(raw: dict) -> ChunkResult:
+    return ChunkResult(
+        title=raw["lessonTitle"],
+        url=raw["lessonUrl"],
+        text=raw["text"],
+        categoryTitle=raw["categoryTitle"],
+        sectionTitle=raw["sectionTitle"],
+        courseTitle=raw["courseTitle"],
+        relevance=raw.get("_relevance_score", 0.0),
+    )
+
+
 def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
-    seen: dict[str, SourceResult] = {}
+    seen_scores: dict[str, float] = {}
+    seen_results: dict[str, SourceResult] = {}
 
     for chunk in chunks:
         lesson_url = chunk["lessonUrl"]
         score = chunk.get("_relevance_score", 0.0)
-        existing = seen.get(lesson_url)
 
-        if existing is not None:
-            if score > existing.relevance:
-                existing.relevance = score
-        else:
-            seen[lesson_url] = SourceResult(
+        if lesson_url not in seen_results:
+            seen_results[lesson_url] = SourceResult(
                 title=chunk["lessonTitle"],
                 url=chunk["lessonUrl"],
-                text=chunk["text"],
-                categoryTitle=chunk["categoryTitle"],
-                sectionTitle=chunk["sectionTitle"],
-                courseTitle=chunk["courseTitle"],
-                relevance=score,
             )
+            seen_scores[lesson_url] = score
+        elif score > seen_scores[lesson_url]:
+            seen_scores[lesson_url] = score
 
-    return sorted(seen.values(), key=lambda s: s.relevance, reverse=True)
+    return sorted(
+        seen_results.values(),
+        key=lambda s: seen_scores[s.url],
+        reverse=True,
+    )
