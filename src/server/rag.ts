@@ -7,7 +7,7 @@ import {
 } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
-import type { SourceResult } from "~/utils/types";
+import type { ChunkResult, SourceResult } from "~/utils/types";
 import { checkRateLimit } from "./rate-limiter";
 import { getSession } from "./session";
 
@@ -86,7 +86,8 @@ export async function queryRAG({
   if (!response.ok) {
     throw new Error(`Retrieval API error: ${response.status}`);
   }
-  const { sources, keywords } = (await response.json()) as {
+  const { chunks, sources, keywords } = (await response.json()) as {
+    chunks: ChunkResult[];
     sources: SourceResult[];
     keywords: string[];
   };
@@ -104,7 +105,7 @@ export async function queryRAG({
   ].join(" ");
 
   const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY * 2);
-  const context = sources.map((c) => `[${c.title}]: ${c.text}`).join("\n\n");
+  const context = chunks.map((c) => `[${c.title}]: ${c.text}`).join("\n\n");
 
   const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
