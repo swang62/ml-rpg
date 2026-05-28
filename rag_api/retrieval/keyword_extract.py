@@ -47,7 +47,7 @@ def extract_keywords(query: str) -> list[str]:
 
     for token in doc:
         if (
-            token.pos_ in ("NOUN", "PROPN", "ADJ")
+            token.pos_ in ("NUM", "NOUN", "PROPN", "ADJ")
             and not token.is_stop
             and len(formatted(token.text)) >= MIN_TEXT_SIZE
         ):

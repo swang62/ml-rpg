@@ -37,7 +37,6 @@ async def lifespan(_app: FastAPI):
         logger.exception("failed to connect to LanceDB — hybrid search disabled")
     logger.info("warm-up complete")
     yield
-    logger.info("shutting down")
     close_vectordb()
     await close_client()
 
@@ -49,10 +48,8 @@ app = FastAPI(title="rag-api", lifespan=lifespan)
 async def retrieve_endpoint(req: RetrieveRequest) -> RetrieveResponse:
     try:
         if len(req.query) < MIN_TEXT_SIZE:
-            logger.debug("empty query — returning empty")
             return RetrieveResponse(chunks=[], keywords=[], sources=[])
 
         return await retrieve(req.query)
     except Exception:
-        logger.exception("rag retrieval failed")
         raise HTTPException(status_code=500, detail="internal error")
