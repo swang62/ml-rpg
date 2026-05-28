@@ -33,6 +33,11 @@ def _load_nlp():
     return _nlp
 
 
+def warm_nlp() -> None:
+    """Pre-load the spaCy model so the first request isn't cold."""
+    _load_nlp()
+
+
 def _formatted(word: str) -> str:
     return word.strip().lower()
 
