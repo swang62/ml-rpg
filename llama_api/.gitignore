@@ -1,0 +1,8 @@
+models/*.gguf
+models/fused/
+models/adapters/
+data/raw/
+data/train.jsonl
+data/valid.jsonl
+data/training.jsonl
+__pycache__/
