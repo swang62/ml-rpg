@@ -24,4 +24,5 @@ export type ChunkResult = {
 export interface SourceResult {
   title: string;
   url: string;
+  score: number;
 }
