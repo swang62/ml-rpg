@@ -20,6 +20,7 @@ VOYAGE_MODEL = "voyage-context-3"
 VOYAGE_API_URL = "https://api.voyageai.com/v1/contextualizedembeddings"
 GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg"
 
+MIN_RAG_SCORE = 0.02
 MAX_SOURCES = 3
 MIN_TEXT_SIZE = 3
 MAX_TEXT_SIZE = 1000
