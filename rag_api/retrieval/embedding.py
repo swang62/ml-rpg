@@ -1,6 +1,6 @@
 import httpx
 
-from ..config import EMBEDDING_MODEL, VOYAGE_API_KEY, VOYAGE_API_URL
+from ..config import VOYAGE_MODEL, VOYAGE_API_KEY, VOYAGE_API_URL
 
 
 async def embed_query(query: str) -> list[float]:
@@ -13,16 +13,14 @@ async def embed_query(query: str) -> list[float]:
             },
             json={
                 "inputs": [[query]],
-                "model": EMBEDDING_MODEL,
+                "model": VOYAGE_MODEL,
                 "input_type": "query",
             },
         )
 
     if not response.is_success:
         err_text = response.text
-        raise RuntimeError(
-            f"Voyage API error: {response.status_code} {err_text}"
-        )
+        raise RuntimeError(f"Voyage API error: {response.status_code} {err_text}")
 
     data = response.json()
     return data[0]["data"][0]["embedding"]

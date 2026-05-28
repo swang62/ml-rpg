@@ -5,23 +5,25 @@ from rag_api.app import app
 client = TestClient(app)
 
 
-class TestRetrieveEndpoint:
-    def test_short_query(self):
-        response = client.post("/retrieve", json={"query": "ab"})
-        assert response.status_code == 200
-        assert response.json() == {"sources": [], "keywords": []}
+def test_short_query():
+    response = client.post("/retrieve", json={"query": "ab"})
+    assert response.status_code == 200
+    assert response.json() == {"sources": [], "keywords": []}
 
-    def test_empty_query(self):
-        response = client.post("/retrieve", json={"query": ""})
-        assert response.status_code == 200
-        data = response.json()
-        assert data["sources"] == []
-        assert data["keywords"] == []
 
-    def test_invalid_method(self):
-        response = client.get("/retrieve")
-        assert response.status_code == 405
+def test_empty_query():
+    response = client.post("/retrieve", json={"query": ""})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["sources"] == []
+    assert data["keywords"] == []
 
-    def test_missing_field(self):
-        response = client.post("/retrieve", json={})
-        assert response.status_code == 422
+
+def test_invalid_method():
+    response = client.get("/retrieve")
+    assert response.status_code == 405
+
+
+def test_missing_field():
+    response = client.post("/retrieve", json={})
+    assert response.status_code == 422
