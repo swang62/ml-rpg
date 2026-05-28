@@ -1,4 +1,4 @@
-from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MAX_SOURCES
+from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MIN_RAG_SCORE, MAX_SOURCES
 from ..schemas import ChunkResult, SourceResult
 
 _table = None
@@ -35,7 +35,7 @@ def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
         if r.get("lessonUrl") == GITHUB_REPO_URL:
             return [r]
 
-    return chunks
+    return [c for c in chunks if c.get("_relevance_score", 0.0) >= MIN_RAG_SCORE]
 
 
 def to_chunk_result(raw: dict) -> ChunkResult:
