@@ -16,12 +16,12 @@ trap cleanup EXIT INT TERM
 cd "$PROJECT_DIR"
 
 # Ensure spaCy venv and model
-uv sync --quiet --inexact
+uv sync --inexact
 uv run -- spacy download en_core_web_sm
 
 # Start rag API
 echo "Starting rag API on port 8000..."
-uv run uvicorn app:app --host 0.0.0.0 --port 8000 --app-dir rag_api &
+uv run uvicorn rag_api.app:app --host 0.0.0.0 --port 8000 &
 PID=$!
 
 # Start Vinxi dev
