@@ -15,9 +15,9 @@ trap cleanup EXIT INT TERM
 
 cd "$PROJECT_DIR"
 
-# Ensure spaCy venv and model
+# Ensure spaCy model — skip download if already installed
 uv sync --inexact
-uv run -- spacy download en_core_web_sm
+uv run python -c "import en_core_web_sm" 2>/dev/null || uv run -- spacy download en_core_web_sm
 
 # Start rag API
 echo "Starting rag API on port 8000..."
