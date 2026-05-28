@@ -4,9 +4,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
+from rag_api.config import MIN_TEXT_SIZE
+
 from .retrieval.embedding import close_client
 from .retrieval.keyword_extraction import warm_nlp
-from .retrieval.vector_search import get_table, close_table
+from .retrieval.vector_search import get_vectordb, close_vectordb
 from .schemas import RetrieveRequest, RetrieveResponse
 from .retrieval import retrieve
 
@@ -25,13 +27,13 @@ async def lifespan(_app: FastAPI):
     except Exception:
         logger.exception("failed to load spaCy model — keyword extraction disabled")
     try:
-        await asyncio.to_thread(get_table)
+        await asyncio.to_thread(get_vectordb)
     except Exception:
         logger.exception("failed to connect to LanceDB — hybrid search disabled")
     logger.info("warm-up complete")
     yield
     logger.info("shutting down")
-    close_table()
+    close_vectordb()
     await close_client()
 
 
@@ -41,9 +43,13 @@ app = FastAPI(title="rag-api", lifespan=lifespan)
 @app.post("/retrieve", response_model=RetrieveResponse)
 async def retrieve_endpoint(req: RetrieveRequest) -> RetrieveResponse:
     try:
+        if len(req.query) < MIN_TEXT_SIZE:
+            logger.debug("empty query — returning empty")
+            return RetrieveResponse(keywords=[], sources=[])
+
         return await retrieve(req.query)
     except Exception:
-        logger.exception("retrieve failed")
+        logger.exception("rag retrieval failed")
         raise HTTPException(status_code=500, detail="internal error")
 
 

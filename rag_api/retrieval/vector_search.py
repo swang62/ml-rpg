@@ -4,7 +4,7 @@ from ..schemas import SourceResult
 _table = None
 
 
-def _get_table():
+def get_vectordb():
     global _table
     if _table is not None:
         return _table
@@ -16,24 +16,18 @@ def _get_table():
     return _table
 
 
-def close_table():
+def close_vectordb():
     global _table
     _table = None
 
 
-def hybrid_search(
-    embedding: list[float], keywords: list[str]
-) -> list[dict]:
-    text_query = " ".join(keywords)
-    if not text_query:
-        return []
-
-    table = _get_table()
+def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
+    vectordb = get_vectordb()
     results = (
-        table.search(query_type="hybrid")
+        vectordb.search(query_type="hybrid")
         .vector(embedding)
-        .text(text_query)
-        .limit(MAX_SOURCES)
+        .text(" ".join(keywords))
+        .limit(MAX_SOURCES * 3)
         .to_list()
     )
 
@@ -66,6 +60,4 @@ def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
                 relevance=score,
             )
 
-    return sorted(seen.values(), key=lambda s: s.relevance, reverse=True)[
-        :MAX_SOURCES
-    ]
+    return sorted(seen.values(), key=lambda s: s.relevance, reverse=True)[:MAX_SOURCES]

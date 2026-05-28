@@ -21,3 +21,4 @@ GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg"
 
 MAX_SOURCES = 3
 MIN_TEXT_SIZE = 3
+MAX_TEXT_SIZE = 1000

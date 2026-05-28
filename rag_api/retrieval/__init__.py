@@ -1,5 +1,7 @@
 import logging
 
+from rag_api.config import MAX_TEXT_SIZE
+
 from ..schemas import RetrieveResponse
 from .embedding import embed_query
 from .keyword_extraction import extract_keywords
@@ -7,20 +9,16 @@ from .vector_search import deduplicate_sources, hybrid_search
 
 __all__ = ["retrieve"]
 
-logger = logging.getLogger("rag_api.retrieval")
+logger = logging.getLogger("rag_api")
 
 
 async def retrieve(query: str) -> RetrieveResponse:
-    logger.info("retrieve: query=%r", query[:100])
-
-    if not query:
-        logger.info("empty query — returning empty")
-        return RetrieveResponse(sources=[], keywords=[])
+    logger.debug("retrieve: query=%r", query[:MAX_TEXT_SIZE])
 
     keywords = extract_keywords(query)
     logger.debug("extracted keywords: %s", keywords)
     if not keywords:
-        logger.info("no keywords found — returning empty")
+        logger.debug("no keywords found — returning empty")
         return RetrieveResponse(sources=[], keywords=[])
 
     embedding = await embed_query(query)
@@ -30,7 +28,7 @@ async def retrieve(query: str) -> RetrieveResponse:
     logger.debug("hybrid search returned %d chunks", len(chunks))
 
     sources = deduplicate_sources(chunks)
-    logger.info("deduped to %d sources", len(sources))
+    logger.debug("deduped to %d sources", len(sources))
     for s in sources:
         logger.debug("  source: %s (score=%.3f)", s.url, s.relevance)
 
