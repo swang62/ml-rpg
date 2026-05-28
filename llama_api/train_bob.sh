@@ -14,23 +14,19 @@ echo "--- Step 1: Ensuring dependencies ---"
 uv sync --group train
 echo ""
 
-# Step 2: Extract platform data
-echo "--- Step 2: Extracting platform data ---"
-uv run python "$SCRIPTS_DIR/extract_platform_data.py"
-echo ""
-
-# Step 3: Generate training data via Groq
-echo "--- Step 3: Generating training data ---"
+# Step 2: Generate training data via Groq
+echo "--- Step 2: Generating training data ---"
+export GROQ_API_KEY="${GROQ_API_KEY:-}"
 uv run python "$SCRIPTS_DIR/generate_training_data.py"
 echo ""
 
-# Step 4: Format for MLX
-echo "--- Step 4: Formatting for MLX ---"
-uv run python "$SCRIPTS_DIR/format_training.py"
+# Step 3: Format and split for MLX
+echo "--- Step 3: Formatting for MLX ---"
+uv run python "$SCRIPTS_DIR/preprocessing.py"
 echo ""
 
-# Step 5: Train LoRA adapters
-echo "--- Step 5: Training LoRA adapters ---"
+# Step 4: Train LoRA adapters
+echo "--- Step 4: Training LoRA adapters ---"
 mkdir -p "$MODELS_DIR/adapters"
 mlx_lm.lora \
     --model HuggingFaceTB/SmolLM2-1.7B-Instruct \
@@ -44,8 +40,8 @@ mlx_lm.lora \
     --num-layers 24
 echo ""
 
-# Step 6: Fuse LoRA into base model
-echo "--- Step 6: Fusing LoRA into base model ---"
+# Step 5: Fuse LoRA into base model
+echo "--- Step 5: Fusing LoRA into base model ---"
 mkdir -p "$MODELS_DIR/fused"
 mlx_lm.fuse \
     --model HuggingFaceTB/SmolLM2-1.7B-Instruct \
@@ -53,16 +49,16 @@ mlx_lm.fuse \
     --save-path "$MODELS_DIR/fused"
 echo ""
 
-# Step 7: Convert to GGUF
-echo "--- Step 7: Converting to GGUF ---"
+# Step 6: Convert to GGUF
+echo "--- Step 6: Converting to GGUF ---"
 LLAMA_CPP_DIR="${LLAMA_CPP_DIR:-$ROOT_DIR/../llama.cpp}"
 CONVERT_SCRIPT="$LLAMA_CPP_DIR/convert_hf_to_gguf.py"
 QUANTIZE_BIN="$LLAMA_CPP_DIR/build/bin/llama-quantize"
 
 if [ ! -f "$CONVERT_SCRIPT" ]; then
     echo "ERROR: llama.cpp not found at $LLAMA_CPP_DIR"
-    echo "Please clone it: git clone https://github.com/ggml-org/llama.git $LLAMA_CPP_DIR"
-    echo "And build the quantize tool: cmake -B build && cmake --build build -t llama-quantize"
+    echo "Please clone it: git clone https://github.com/ggml-org/llama.cpp.git $LLAMA_CPP_DIR"
+    echo "And build: cmake -B build && cmake --build build -t llama-quantize"
     exit 1
 fi
 
