@@ -7,7 +7,9 @@ WORKDIR /app
 COPY pyproject.toml .
 COPY rag_api/ /app/rag_api/
 
-RUN uv sync --quiet --inexact && uv run -- spacy download en_core_web_sm
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --inexact && \
+  uv run python -c "import en_core_web_sm" 2>/dev/null || uv run -- spacy download en_core_web_sm
 
 ENV PYTHONPATH=/app
 CMD ["uv", "run", "uvicorn", "rag_api.app:app", "--host", "0.0.0.0", "--port", "8000"]
