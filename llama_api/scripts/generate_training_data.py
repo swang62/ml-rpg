@@ -1,9 +1,13 @@
 import json
-import os
 import time
 from pathlib import Path
 
-from groq import Groq
+import httpx
+
+
+API_BASE_URL = "https://openrouter.ai/api/v1"
+API_KEY = "sk-or-v1-..."
+API_MODEL = "meta-llama/llama-3.3-70b-instruct"
 
 
 def get_project_root() -> Path:
@@ -149,7 +153,7 @@ Bob is polite, friendly, clearly says he cannot help, redirects to what he CAN d
 
 
 def generate_category(
-    client: Groq, category: str, count: int
+    client: httpx.Client, category: str, count: int
 ) -> list[dict]:
     prompt = CATEGORY_PROMPTS[category].format(count=count)
     full_prompt = f"""{BOB_PERSONA}
@@ -165,15 +169,23 @@ def generate_category(
 
 Return ONLY a valid JSON array. No markdown, no explanation."""
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": full_prompt}],
-        temperature=0.8,
-        max_tokens=4096,
-        response_format={"type": "json_object"},
+    response = client.post(
+        f"{API_BASE_URL}/chat/completions",
+        json={
+            "model": API_MODEL,
+            "messages": [{"role": "user", "content": full_prompt}],
+            "temperature": 0.8,
+            "max_tokens": 4096,
+            "response_format": {"type": "json_object"},
+        },
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
+        },
     )
-
-    raw = response.choices[0].message.content.strip()
+    response.raise_for_status()
+    data = response.json()
+    raw = data["choices"][0]["message"]["content"].strip()
     data = json.loads(raw)
 
     if isinstance(data, dict):
@@ -189,7 +201,7 @@ Return ONLY a valid JSON array. No markdown, no explanation."""
 
 
 def main():
-    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    client = httpx.Client()
 
     categories = [
         ("platform_qa", 50),
