@@ -1,5 +1,3 @@
-import lancedb
-
 from rag_api.config import GITHUB_REPO_URL, LANCEDB_PATH, MAX_SOURCES
 from rag_api.schemas import SourceResult
 
@@ -10,6 +8,8 @@ def _get_table():
     global _table
     if _table is not None:
         return _table
+
+    import lancedb
 
     db = lancedb.connect(LANCEDB_PATH)
     _table = db.open_table("chunks")
