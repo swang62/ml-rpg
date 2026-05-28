@@ -44,6 +44,11 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="rag-api", lifespan=lifespan)
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.post("/retrieve", response_model=RetrieveResponse)
 async def retrieve_endpoint(req: RetrieveRequest) -> RetrieveResponse:
     try:

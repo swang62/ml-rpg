@@ -10,7 +10,8 @@ services:
         - VITE_SITE_ID=${VITE_SITE_ID:-}
     restart: unless-stopped
     depends_on:
-      - rag-api
+      rag-api:
+        condition: service_healthy
     ports:
       - ${PORT:-3333}:${PORT:-3333}
     volumes:
@@ -25,7 +26,7 @@ services:
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-3333}/api/health || exit 1
-      interval: 5m
+      interval: 1m
       timeout: 10s
       start_period: 10s
       retries: 3
@@ -42,6 +43,12 @@ services:
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 1m
+      timeout: 10s
+      start_period: 15s
+      retries: 3
 
 volumes:
   course-data:
