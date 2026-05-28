@@ -1,7 +1,7 @@
 [project]
-name = "rag-api"
+name = "ml-rpg"
 version = "0.1.0"
-description = "RAG retrieval API - keyword extraction, embedding, hybrid search"
+description = "ML-RPG - Backend services (RAG API + training scripts)"
 requires-python = ">=3.14"
 dependencies = [
   "fastapi>=0.115.0",
@@ -15,6 +15,7 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest>=8.0.0", "pytest-asyncio>=0.24.0", "httpx>=0.28.0", "debugpy>=1.8.0"]
+train = ["mlx-lm>=0.20.0", "groq>=0.12.0"]
 
 [tool.setuptools.packages.find]
 include = ["rag_api*"]
