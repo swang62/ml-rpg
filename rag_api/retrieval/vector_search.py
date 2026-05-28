@@ -55,6 +55,7 @@ def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
 
     for chunk in chunks:
         lesson_url = chunk["lessonUrl"]
+        lesson_title = chunk["lessonTitle"]
         score = chunk.get("_relevance_score", 0.0)
         existing_source = seen.get(lesson_url)
 
@@ -63,7 +64,7 @@ def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
                 existing_source.score = score
         else:
             seen[lesson_url] = SourceResult(
-                title=chunk["lessonTitle"], url=chunk["lessonUrl"], score=score
+                title=lesson_title, url=lesson_url, score=score
             )
 
     return sorted(seen.values(), key=lambda s: s.score, reverse=True)
