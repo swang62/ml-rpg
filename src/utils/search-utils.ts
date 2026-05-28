@@ -1,6 +1,4 @@
 import DOMPurify from "isomorphic-dompurify";
-import { RAG_MAX_SOURCES } from "./constants";
-import type { ChunkResult, SourceResult } from "./types";
 
 /** Escape HTML special characters for safe innerHTML usage. */
 export function escapeHtml(text: string): string {
@@ -90,35 +88,4 @@ export function extractRelevantText(html: string): string {
   }
 
   return stripHtmlTags(parts.join(" "));
-}
-
-// ---------------------------------------------------------------------------
-// RAG (semantic vector search)
-// ---------------------------------------------------------------------------
-
-export function deduplicateSources(chunks: ChunkResult[]): SourceResult[] {
-  const seen = new Map<string, SourceResult>();
-
-  for (const chunk of chunks) {
-    const existing = seen.get(chunk.lessonUrl);
-    if (existing) {
-      if (chunk._relevance_score > existing.relevance) {
-        existing.relevance = chunk._relevance_score;
-      }
-    } else {
-      seen.set(chunk.lessonUrl, {
-        title: chunk.lessonTitle,
-        url: chunk.lessonUrl,
-        text: chunk.text,
-        categoryTitle: chunk.categoryTitle,
-        sectionTitle: chunk.sectionTitle,
-        courseTitle: chunk.courseTitle,
-        relevance: chunk._relevance_score,
-      });
-    }
-  }
-
-  return [...seen.values()]
-    .sort((a, b) => b.relevance - a.relevance)
-    .slice(0, RAG_MAX_SOURCES);
 }

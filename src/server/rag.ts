@@ -1,40 +1,17 @@
-import { connect, rerankers, type Table } from "@lancedb/lancedb";
 import Groq from "groq-sdk";
 import {
   GITHUB_REPO_URL,
   RAG_BOT_NAME,
-  RAG_EMBEDDING_MODEL,
   RAG_MAX_HISTORY,
-  RAG_MAX_SOURCES,
   RATE_LIMIT_CHAT,
 } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
-import { deduplicateSources } from "~/utils/search-utils";
-import type { ChunkResult, SourceResult } from "~/utils/types";
+import type { SourceResult } from "~/utils/types";
 import { checkRateLimit } from "./rate-limiter";
-import { ensureVectorStore } from "./search";
 import { getSession } from "./session";
 
 const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
-
-let _vectorDB: Table | null = null;
-async function getChunksTable() {
-  if (!_vectorDB) {
-    await ensureVectorStore();
-    const db = await connect(getEnv().LANCEDB_PATH);
-    _vectorDB = await db.openTable("chunks");
-  }
-  return _vectorDB;
-}
-
-let _reranker: rerankers.RRFReranker | null = null;
-async function getReranker() {
-  if (!_reranker) {
-    _reranker = await rerankers.RRFReranker.create();
-  }
-  return _reranker;
-}
 
 export interface QueryRAGInput {
   query: string;
@@ -45,61 +22,6 @@ export interface QueryRAGResult {
   answer: string;
   sources: SourceResult[];
   keywords: string[];
-}
-
-async function embedQuery(query: string): Promise<number[]> {
-  const apiKey = getEnv().VOYAGE_API_KEY;
-  if (!apiKey) throw new Error("VOYAGE_API_KEY not set");
-
-  const response = await fetch(
-    "https://api.voyageai.com/v1/contextualizedembeddings",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: [[query]],
-        model: RAG_EMBEDDING_MODEL,
-        input_type: "query",
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Voyage API error: ${response.status} ${errText}`);
-  }
-
-  const { data } = await response.json();
-  return data[0].data[0].embedding;
-}
-
-async function hybridSearch(
-  embedding: number[],
-  keywords: string[],
-): Promise<ChunkResult[]> {
-  const table = await getChunksTable();
-  const reranker = await getReranker();
-  const textQuery = keywords.join(" ");
-
-  // Don't search if no keywords/nouns are detected
-  if (!textQuery.length) return [];
-
-  const results = (await table
-    .query()
-    .fullTextSearch(textQuery)
-    .nearestTo(embedding)
-    .rerank(reranker)
-    .limit(RAG_MAX_SOURCES)
-    .toArray()) as ChunkResult[];
-
-  // If course data is detected, just return the course info
-  const courseInfo = results.find((r) => r.lessonUrl === GITHUB_REPO_URL);
-  if (courseInfo) return [courseInfo];
-
-  return results;
 }
 
 async function detectJailbreak(query: string): Promise<boolean> {
@@ -113,25 +35,6 @@ async function detectJailbreak(query: string): Promise<boolean> {
     return !Number.isNaN(score) && score > 0.5;
   } catch {
     return false;
-  }
-}
-
-export async function extractKeywords(query: string): Promise<string[]> {
-  const url = getEnv().SPACY_API_URL;
-  if (!url) return [];
-
-  try {
-    const response = await fetch(`${url}/extract-keywords`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!response.ok) return [];
-    const data = (await response.json()) as { keywords: string[] };
-    return data.keywords ?? [];
-  } catch {
-    return [];
   }
 }
 
@@ -172,13 +75,21 @@ export async function queryRAG({
     };
   }
 
-  // -- keyword extraction --
-  const keywords = await extractKeywords(sanitized);
-
-  // -- Vector DB + keyword search --
-  const embedding = await embedQuery(sanitized);
-  const chunks = await hybridSearch(embedding, keywords);
-  const sources = deduplicateSources(chunks);
+  // -- Source retrieval via rag-api --
+  const ragUrl = getEnv().RAG_API_URL;
+  const response = await fetch(`${ragUrl}/retrieve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query: sanitized }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) {
+    throw new Error(`Retrieval API error: ${response.status}`);
+  }
+  const { sources, keywords } = (await response.json()) as {
+    sources: SourceResult[];
+    keywords: string[];
+  };
 
   const systemPrompt = [
     `You are a helpful local guide named ${RAG_BOT_NAME} in a gamified learning platform called 'Machine Learning (the RPG)'.`,
