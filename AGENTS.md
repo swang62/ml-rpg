@@ -17,11 +17,13 @@ pnpm dev              # dev server (HMR enabled)
 pnpm build            # production build
 pnpm preview          # serve built app
 pnpm lint             # biome check --write . && pnpm typecheck
-pnpm test             # vitest run
+pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
 pnpm seed             # tsx ./scripts/seed-db.ts — re-seeds course.db from scraped lesson files
 pnpm build:docker     # docker compose up --build --force-recreate -d
 ```
+
+> Always use `uv sync --inexact` (never plain `uv sync`). spaCy models are installed as pip packages that aren't tracked by uv.lock, so plain `uv sync` would remove them.
 
 > Never touch `pnpm dev` — the user controls it. HMR reflects edits instantly. Run `pnpm lint` before pushing.
 
