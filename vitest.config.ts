@@ -16,7 +16,7 @@ export default defineConfig({
       GROQ_API_KEY: "fake_api_key",
       VOYAGE_API_KEY: "fake_api_key",
       VITE_SITE_URL: "http://localhost:3000",
-      SPACY_API_URL: "http://localhost:8000",
+      RAG_API_URL: "http://localhost:8000",
     },
   },
 });
