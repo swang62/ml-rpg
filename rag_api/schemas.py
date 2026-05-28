@@ -8,6 +8,7 @@ class RetrieveRequest(BaseModel):
 class SourceResult(BaseModel):
     title: str
     url: str
+    score: float
 
 
 class ChunkResult(BaseModel):

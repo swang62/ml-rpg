@@ -12,11 +12,14 @@ from .retrieval.vector_search import get_vectordb, close_vectordb
 from .schemas import RetrieveRequest, RetrieveResponse
 from .retrieval import retrieve
 
-logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL, logging.INFO),
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
-logger = logging.getLogger("api")
+_log_level = getattr(logging, LOG_LEVEL, logging.INFO)
+logging.basicConfig(level=_log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+
+# Silence noisy libraries — only show their WARNING+ messages
+for lib in ("httpx", "httpcore", "lancedb", "uvicorn.access", "uvicorn.error"):
+    logging.getLogger(lib).setLevel(logging.WARNING)
+
+logger = logging.getLogger("rag_api")
 
 
 @asynccontextmanager
@@ -45,7 +48,7 @@ async def retrieve_endpoint(req: RetrieveRequest) -> RetrieveResponse:
     try:
         if len(req.query) < MIN_TEXT_SIZE:
             logger.debug("empty query — returning empty")
-            return RetrieveResponse(keywords=[], sources=[])
+            return RetrieveResponse(chunks=[], keywords=[], sources=[])
 
         return await retrieve(req.query)
     except Exception:
