@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from rag_api.app import app
+from ..app import app
 
 client = TestClient(app)
 

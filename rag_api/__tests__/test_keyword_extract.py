@@ -1,6 +1,6 @@
 import pytest
 
-from rag_api.retrieval.keyword_extract import extract_keywords
+from ..retrieval.keyword_extract import extract_keywords
 
 spacy = pytest.importorskip("spacy")
 
