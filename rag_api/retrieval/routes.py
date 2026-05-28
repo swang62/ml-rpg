@@ -1,6 +1,6 @@
 import logging
 
-from rag_api.config import MAX_TEXT_SIZE
+from ..config import MAX_TEXT_SIZE
 
 from ..schemas import RetrieveResponse
 from .embedding import embed_query

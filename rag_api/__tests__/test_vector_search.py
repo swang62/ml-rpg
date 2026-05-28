@@ -1,4 +1,4 @@
-from rag_api.retrieval.vector_search import deduplicate_sources
+from ..retrieval.vector_search import deduplicate_sources
 
 
 def make_chunk(**overrides):

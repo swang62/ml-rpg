@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
-from rag_api.config import LOG_LEVEL, MIN_TEXT_SIZE
+from .config import LOG_LEVEL, MIN_TEXT_SIZE
 
 from .retrieval.embedding import close_client
 from .retrieval.keyword_extract import load_nlp_core
@@ -56,9 +56,3 @@ async def retrieve_endpoint(req: RetrieveRequest) -> RetrieveResponse:
     except Exception:
         logger.exception("rag retrieval failed")
         raise HTTPException(status_code=500, detail="internal error")
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("rag_api.app:app", host="0.0.0.0", port=8000, reload=True)
