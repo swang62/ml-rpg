@@ -113,14 +113,36 @@ export async function queryRAG({
     { role: "user", content: `Context:\n${context}\n\nQuestion: ${sanitized}` },
   ];
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
-    messages,
-    temperature: 0.3,
-    max_completion_tokens: 512,
-  });
+  const llmUrl = getEnv().LLAMA_API_URL;
 
-  const answer = completion.choices[0]?.message?.content ?? "";
+  let answer: string;
+  if (llmUrl) {
+    const llmResponse = await fetch(`${llmUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "bob",
+        messages,
+        temperature: 0.3,
+        max_tokens: 512,
+      }),
+    });
+    if (!llmResponse.ok) {
+      throw new Error(`LLM API error: ${llmResponse.status}`);
+    }
+    const llmData = (await llmResponse.json()) as {
+      choices: { message: { content: string } }[];
+    };
+    answer = llmData.choices[0]?.message?.content ?? "";
+  } else {
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages,
+      temperature: 0.3,
+      max_completion_tokens: 512,
+    });
+    answer = completion.choices[0]?.message?.content ?? "";
+  }
 
   // Filter out sources
   const isShortReply = answer.length <= 100;
