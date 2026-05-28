@@ -7,7 +7,11 @@ _dotenv_path = Path(__file__).parent.parent / ".env"
 if _dotenv_path.exists():
     load_dotenv(_dotenv_path)
 
-LANCEDB_PATH: str = os.environ["LANCEDB_PATH"]
+_raw_lancedb_path = os.environ["LANCEDB_PATH"]
+_lancedb_p = Path(_raw_lancedb_path)
+if not _lancedb_p.is_absolute():
+    _lancedb_p = Path(__file__).parent.parent / _raw_lancedb_path
+LANCEDB_PATH: str = str(_lancedb_p.resolve())
 VOYAGE_API_KEY: str = os.environ["VOYAGE_API_KEY"]
 
 EMBEDDING_MODEL = "voyage-context-3"
