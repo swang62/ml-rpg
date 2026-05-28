@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  secrets-scan:
+  secrets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
