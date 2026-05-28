@@ -16,7 +16,7 @@ async def retrieve(query: str) -> RetrieveResponse:
         return RetrieveResponse(sources=[], keywords=[])
 
     embedding = await embed_query(query)
-    chunks = await hybrid_search(embedding, keywords)
+    chunks = hybrid_search(embedding, keywords)
     sources = deduplicate_sources(chunks)
 
     return RetrieveResponse(sources=sources, keywords=keywords)

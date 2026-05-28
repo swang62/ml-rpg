@@ -21,7 +21,7 @@ def close_table():
     _table = None
 
 
-async def hybrid_search(
+def hybrid_search(
     embedding: list[float], keywords: list[str]
 ) -> list[dict]:
     text_query = " ".join(keywords)
