@@ -12,6 +12,11 @@ dist
 .vscode
 .venv
 .pytest_cache
+__pycache__/
+
+# llama
+llama_api/models/
+llama_api/data/
 
 # Environment
 .env

@@ -2,71 +2,67 @@
 
 ![Homepage screenshot](public/assets/screenshot-homepage.png)
 
-A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, fully mobile-responsive, supports full keyboard navigation on desktop, includes a helpful RAG-assisted local "tour guide" to help along your journey.
+A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, fully mobile-responsive, supports full keyboard navigation on desktop, includes a helpful RAG-assisted local "librarian" to help along your journey.
 
 ## Summary
 
-A retro video game-themed (Hyperlight Drifter inspired) content-navigation site with a built-in leveling system (just like an RPG!):
+A retro video game-themed (Hyperlight Drifter inspired) learning course with a built-in leveling system (just like an RPG!):
 
 1. **World** (course) — a high-level curriculum
-2. **Level** (category) — a topical category within a world
-3. **Quest** (section) — a specific subject within a level
-4. **Objective** (lesson) — an individual lesson with its own page and external links
+2. **Level** (category) — a topical category within a course
+3. **Quest** (section) — a specific subject within a category
+4. **Objective** (lesson) — an individual lesson within a section
 
-Each objective/lesson awards XP when completed. Players level up gradually through 20 ranks as lessons are completed. Progress is tracked server-side, or locally in the browser if no login is detected. No paywall or restricted content, login is purely for global "saving".
+Each objective/lesson awards XP when completed. Players level up gradually through 20 ranks as lessons are completed. Progress is tracked server-side, or locally in the browser if no login is detected. No paywall or restricted content, login is purely for global "saves".
 
 ## Core Features
 
 ### Course Information
 
-- Currently only 2 courses, machine learning and data engineering
+- Currently only 2 courses for now, machine learning and data engineering
 - Each course has roughly 10-20 categories
 - Each category contains 5-10 sections
 - Each section contains 5-7 lessons
-- Total lessons are about ~1000 lessons
+- Total lessons are about ~1000 lessons across bother courses
 
-### Navigation / Search
+### Navigation
 
 - Keyboard navigation, use arrow keys (select cards), enter (select), backspace (back)
 - Built-in keyword search to instantly find matching lessons
-- Chat with a "local guide" (Groq + semantic hybrid search) to find what you're looking for, and help summarize core concepts and links to relevant lessons.
+- Chat with a "local guide" to find what you're looking for, help summarize core concepts and provide links to relevant lessons
   
-### XP & Leveling system
+### XP & Leveling
 
-- Each objective awards a multiple of `25 XP` (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
-- 20 ranks: Novice (0), Villager (1), Squire (2), Knight (3), Mage (4), Warlord (5), Champion (6), Legend (7), Mythic (8), Sage (9), Hero (10), Paladin (11), Warden (12), Overlord (13), Titan (14), Elder (15), Guardian (16), Sovereign (17), Celestial (18), Divine (19), Eternal (20) — increasing difficulty curve
+- Each objective/lesson awards a multiple of `25 XP`, increasing linearly with lesson count (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
+- 20 ranks: Novice (0), Villager (1), Squire (2), Knight (3), Mage (4), Warlord (5), Champion (6), Legend (7), Mythic (8), Sage (9), Hero (10), Paladin (11), Warden (12), Overlord (13), Titan (14), Elder (15), Guardian (16), Sovereign (17), Celestial (18), Divine (19), Eternal (20)
+- Each rank has increasing XP thresholds until the final max XP of 70,000
 
 ### Player Tracking
 
-- Login is completely optional, default user is Anon.
-- For guest/anonymous users, all data is tracked in the browser, fully local.
-- Player stats are rendered as RPG-style player HUD, shows dynamic XP and level status
-- Custom avatars with each rank, border glows at higher ranks
-
-### Read Tracking
-
-- Objectives are marked complete when a user reads the full lesson
-- Users can manually reset progress on the quest page, or in the Player HUD detailed stats section
+- Login is completely optional, default user is Anon
+- For guest/anonymous users, all data is tracked locally in the browser
+- Player stats are shown in a RPG-style player HUD, dynamic XP and level status, expands into full profile
+- Custom avatars with each rank, higher ranks have upgraded visuals
 
 ---
 
-## Bob — Your Local Guide
+## Who is Bob?
 
-Before you arrived, Bob was the Grand Librarian of the Arcane Archives of Knowledge, a vast repository of machine learning and data engineering wisdom that spanned every textbook, paper, and notebook ever digitized. When the Great Fragmentation split the digital realms apart, Bob found himself bound to the Course World — the very world you're now exploring.
+Before you arrived, Bob was a lowly librarian of the Arcane Archives of Knowledge, a vast library of machine learning and data engineering wisdom collected over the many ages. When the Great Divide split the digital realms apart, Bob found himself bound to the World of the Archives and unable to leave — the very world you're now exploring.
 
-He's been here ever since, watching travelers arrive, level up, and move on. He knows every corner of this place: how XP flows through the ranks, where the hidden shortcuts are, which quests unlock what, and the layout of every World, Level, Quest, and Objective.
+He's been here ever since, watching travelers come and go, helping them along their journey, reading through all the archives. He knows every corner of this place: how XP flows through the ranks, where the hidden shortcuts are, which quests unlock what, and the full layout of every World.
 
-But he's also trapped. His knowledge ends at the Course World's borders. Ask him about anything outside machine learning, data engineering, or this platform, and he genuinely doesn't know — he's never been able to leave.
+But he's also trapped. His knowledge ends at the Archive World's borders. Ask him about anything outside of machine learning, data engineering, or this world, and he genuinely doesn't know — he's never been able to leave.
 
-Bob is friendly, a little weathered, always glad to see a new face. He keeps his answers short and warm. No frills. He's been doing this a long time.
+Bob is friendly, a little weathered, but always glad to see a new face. He likes to chat but also gets straight to the point. He's been doing this a long time.
 
-> "Hi, I'm Bob. Welcome to Machine Learning (the RPG). What can I help you with?"
+> "Hi, I'm Bob. Welcome to Machine Learning (the RPG).
 
 ---
 
 ## Motivation
 
-I created this repo to initially learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new web development libraries and RAG/agentic workflows and implementation. Also practicing my frontend design UI/UX skills. Truly meta-level learning on learning action.
+I created this repo to initially self-learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new AI techniques and RAG/agentic workflows. Also practicing my frontend design UI/UX skills. Truly meta-level learning.
 
 ## Development
 
