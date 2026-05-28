@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
-from rag_api.config import MIN_TEXT_SIZE
+from rag_api.config import LOG_LEVEL, MIN_TEXT_SIZE
 
 from .retrieval.embedding import close_client
 from .retrieval.keyword_extraction import warm_nlp
@@ -13,7 +13,7 @@ from .schemas import RetrieveRequest, RetrieveResponse
 from .retrieval import retrieve
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger("rag_api")
