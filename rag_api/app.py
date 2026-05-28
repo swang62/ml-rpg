@@ -10,6 +10,10 @@ from .retrieval.vector_search import get_table, close_table
 from .schemas import RetrieveRequest, RetrieveResponse
 from .retrieval import retrieve
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 logger = logging.getLogger("rag_api")
 
 
