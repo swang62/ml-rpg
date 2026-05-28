@@ -81,7 +81,7 @@ export async function queryRAG({
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query: sanitized }),
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(10000),
   });
   if (!response.ok) {
     throw new Error(`Retrieval API error: ${response.status}`);
