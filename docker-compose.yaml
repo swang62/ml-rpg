@@ -10,7 +10,7 @@ services:
         - VITE_SITE_ID=${VITE_SITE_ID:-}
     restart: unless-stopped
     depends_on:
-      - spacy-api
+      - rag-api
     ports:
       - ${PORT:-3333}:${PORT:-3333}
     volumes:
@@ -21,7 +21,7 @@ services:
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - PORT=${PORT:-3333}
       - SESSION_SECRET=${SESSION_SECRET}
-      - SPACY_API_URL=http://spacy-api:8000
+      - RAG_API_URL=http://rag-api:8000
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-3333}/api/health || exit 1
@@ -30,12 +30,17 @@ services:
       start_period: 10s
       retries: 3
 
-  spacy-api:
-    container_name: spacy-api
+  rag-api:
+    container_name: rag-api
     build:
       context: .
-      dockerfile: spacy-api/Dockerfile
+      dockerfile: rag_api/Dockerfile
     restart: unless-stopped
+    volumes:
+      - course-data:/app/.data
+    environment:
+      - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
+      - VOYAGE_API_KEY=${VOYAGE_API_KEY}
 
 volumes:
   course-data:
