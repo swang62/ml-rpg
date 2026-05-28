@@ -11,11 +11,13 @@ _raw_lancedb_path = os.environ["LANCEDB_PATH"]
 _lancedb_p = Path(_raw_lancedb_path)
 if not _lancedb_p.is_absolute():
     _lancedb_p = Path(__file__).parent.parent / _raw_lancedb_path
+
 LANCEDB_PATH: str = str(_lancedb_p.resolve())
 VOYAGE_API_KEY: str = os.environ["VOYAGE_API_KEY"]
 
-EMBEDDING_MODEL = "voyage-context-3"
-MAX_SOURCES = 3
-MIN_TEXT_SIZE = 3
+VOYAGE_MODEL = "voyage-context-3"
 VOYAGE_API_URL = "https://api.voyageai.com/v1/contextualizedembeddings"
 GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg"
+
+MAX_SOURCES = 3
+MIN_TEXT_SIZE = 3
