@@ -117,7 +117,7 @@ export async function queryRAG({
 
   let answer: string;
   if (llmUrl) {
-    const llmResponse = await fetch(`${llmUrl}/v1/chat/completions`, {
+    const response = await fetch(`${llmUrl}/v1/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -127,10 +127,10 @@ export async function queryRAG({
         max_tokens: 512,
       }),
     });
-    if (!llmResponse.ok) {
-      throw new Error(`LLM API error: ${llmResponse.status}`);
+    if (!response.ok) {
+      throw new Error(`llama API error: ${response.status}`);
     }
-    const llmData = (await llmResponse.json()) as {
+    const llmData = (await response.json()) as {
       choices: { message: { content: string } }[];
     };
     answer = llmData.choices[0]?.message?.content ?? "";
