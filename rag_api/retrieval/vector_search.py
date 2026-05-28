@@ -23,19 +23,20 @@ def close_vectordb():
 
 def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
     vectordb = get_vectordb()
-    results = (
+    chunks = (
         vectordb.search(query_type="hybrid")
         .vector(embedding)
         .text(" ".join(keywords))
-        .limit(MAX_SOURCES * 3)
+        .limit(MAX_SOURCES)
         .to_list()
     )
 
-    for r in results:
+    # Only return github repo url if about the course
+    for r in chunks:
         if r.get("lessonUrl") == GITHUB_REPO_URL:
             return [r]
 
-    return results
+    return chunks
 
 
 def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
@@ -60,4 +61,4 @@ def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
                 relevance=score,
             )
 
-    return sorted(seen.values(), key=lambda s: s.relevance, reverse=True)[:MAX_SOURCES]
+    return sorted(seen.values(), key=lambda s: s.relevance, reverse=True)

@@ -33,7 +33,9 @@ export default function AskAIMessage(props: Props) {
       <div
         class="askai-message__content"
         innerHTML={
-          props.role === "assistant" && props.keywords?.length
+          props.role === "assistant" &&
+          props.keywords?.length &&
+          props.sources?.length
             ? boldTerms(escapeHtml(props.content), props.keywords)
             : escapeHtml(props.content)
         }
