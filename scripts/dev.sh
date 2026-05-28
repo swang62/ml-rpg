@@ -19,9 +19,9 @@ cd "$PROJECT_DIR"
 uv sync --inexact
 uv run python -c "import en_core_web_sm" 2>/dev/null || uv run -- spacy download en_core_web_sm
 
-# Start rag API
-echo "Starting rag API on port 8000..."
-uv run uvicorn rag_api.app:app --host 0.0.0.0 --port 8000 &
+# Start rag API (debugpy always enabled for VS Code attach)
+echo "Starting rag API on port 8000 (debugger on 5678)..."
+uv run python -m debugpy --listen 0.0.0.0:5678 -m uvicorn rag_api.app:app --host 0.0.0.0 --port 8000 &
 PID=$!
 
 # Start Vinxi dev
