@@ -4,7 +4,7 @@ from rag_api.config import MAX_TEXT_SIZE
 
 from ..schemas import RetrieveResponse
 from .embedding import embed_query
-from .nlp import extract_keywords
+from .keyword_extract import extract_keywords
 from .vector_search import deduplicate_sources, hybrid_search, to_chunk_result
 
 logger = logging.getLogger("rag_api")
@@ -19,7 +19,7 @@ async def retrieve(query: str) -> RetrieveResponse:
         return RetrieveResponse(chunks=[], sources=[], keywords=[])
 
     embedding = await embed_query(query)
-    logger.debug("embedding dims=%d", len(embedding))
+    logger.debug("generated voyage embedding dims=%d", len(embedding))
 
     chunks = hybrid_search(embedding, keywords)
     logger.debug("hybrid search returned %d raw chunks", len(chunks))

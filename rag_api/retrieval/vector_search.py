@@ -1,4 +1,4 @@
-from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MIN_RAG_SCORE, MAX_SOURCES
+from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MIN_RAG_SCORE, MAX_RAG_CHUNKS
 from ..schemas import ChunkResult, SourceResult
 
 _table = None
@@ -27,7 +27,7 @@ def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
         vectordb.search(query_type="hybrid")
         .vector(embedding)
         .text(" ".join(keywords))
-        .limit(MAX_SOURCES)
+        .limit(MAX_RAG_CHUNKS)
         .to_list()
     )
 

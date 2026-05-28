@@ -8,7 +8,7 @@ GREETINGS_PATH = Path(__file__).parent.parent / "data" / "greetings.csv"
 _nlp = None
 
 
-def _load_nlp():
+def load_nlp_core():
     global _nlp
     if _nlp is not None:
         return _nlp
@@ -33,12 +33,7 @@ def _load_nlp():
     return _nlp
 
 
-def warm_nlp() -> None:
-    """Pre-load the spaCy model so the first request isn't cold."""
-    _load_nlp()
-
-
-def _formatted(word: str) -> str:
+def formatted(word: str) -> str:
     return word.strip().lower()
 
 
@@ -46,7 +41,7 @@ def extract_keywords(query: str) -> list[str]:
     if len(query) < MIN_TEXT_SIZE:
         return []
 
-    nlp = _load_nlp()
+    nlp = load_nlp_core()
     doc = nlp(query)
     keywords: set[str] = set()
 
@@ -54,8 +49,8 @@ def extract_keywords(query: str) -> list[str]:
         if (
             token.pos_ in ("NOUN", "PROPN", "ADJ")
             and not token.is_stop
-            and len(_formatted(token.text)) >= MIN_TEXT_SIZE
+            and len(formatted(token.text)) >= MIN_TEXT_SIZE
         ):
-            keywords.add(_formatted(token.text))
+            keywords.add(formatted(token.text))
 
     return list(keywords)

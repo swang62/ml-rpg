@@ -7,16 +7,18 @@ from fastapi import FastAPI, HTTPException
 from rag_api.config import LOG_LEVEL, MIN_TEXT_SIZE
 
 from .retrieval.embedding import close_client
-from .retrieval.keyword_extraction import warm_nlp
+from .retrieval.keyword_extract import load_nlp_core
 from .retrieval.vector_search import get_vectordb, close_vectordb
 from .schemas import RetrieveRequest, RetrieveResponse
-from .retrieval import retrieve
+from .retrieval.routes import retrieve
 
 _log_level = getattr(logging, LOG_LEVEL, logging.INFO)
-logging.basicConfig(level=_log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logging.basicConfig(
+    level=_log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
 # Silence noisy libraries — only show their WARNING+ messages
-for lib in ("httpx", "httpcore", "lancedb", "uvicorn.access", "uvicorn.error"):
+for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access"):
     logging.getLogger(lib).setLevel(logging.WARNING)
 
 logger = logging.getLogger("rag_api")
@@ -26,7 +28,7 @@ logger = logging.getLogger("rag_api")
 async def lifespan(_app: FastAPI):
     logger.info("starting up — pre-warming spaCy and LanceDB")
     try:
-        await asyncio.to_thread(warm_nlp)
+        await asyncio.to_thread(load_nlp_core)
     except Exception:
         logger.exception("failed to load spaCy model — keyword extraction disabled")
     try:
