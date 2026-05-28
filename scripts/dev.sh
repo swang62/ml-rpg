@@ -6,9 +6,9 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cleanup() {
   echo ""
-  echo "Stopping spaCy API..."
-  kill "${SPACY_PID:-}" 2>/dev/null || true
-  wait "${SPACY_PID:-}" 2>/dev/null || true
+  echo "Stopping rag API..."
+  kill "${PID:-}" 2>/dev/null || true
+  wait "${PID:-}" 2>/dev/null || true
   echo "Done."
 }
 trap cleanup EXIT INT TERM
@@ -19,10 +19,10 @@ cd "$PROJECT_DIR"
 uv sync --quiet --inexact
 uv run -- spacy download en_core_web_sm
 
-# Start spaCy API
-echo "Starting spaCy API on port 8000..."
-uv run uvicorn app:app --host 0.0.0.0 --port 8000 --app-dir spacy-api &
-SPACY_PID=$!
+# Start rag API
+echo "Starting rag API on port 8000..."
+uv run uvicorn app:app --host 0.0.0.0 --port 8000 --app-dir rag_api &
+PID=$!
 
 # Start Vinxi dev
 echo "Starting Vinxi dev server..."
