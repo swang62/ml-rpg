@@ -38,5 +38,5 @@ async def embed_query(query: str) -> list[float]:
         err_text = response.text
         raise RuntimeError(f"Voyage API error: {response.status_code} {err_text}")
 
-    data = response.json()
-    return data[0]["data"][0]["embedding"]
+    body = response.json()
+    return body["data"][0]["data"][0]["embedding"]
