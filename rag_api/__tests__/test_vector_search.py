@@ -57,11 +57,11 @@ def test_sorts_by_relevance():
     assert [s.title for s in result] == ["high", "mid", "low"]
 
 
-def test_preserves_first_title():
+def test_highest_score_wins():
     chunks = [
         make_chunk(lessonUrl="/same", lessonTitle="First", _relevance_score=0.5),
         make_chunk(lessonUrl="/same", lessonTitle="Second", _relevance_score=0.9),
     ]
     result = deduplicate_sources(chunks)
     assert len(result) == 1
-    assert result[0].title == "First"
+    assert result[0].title == "Second"

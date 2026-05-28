@@ -51,24 +51,20 @@ def to_chunk_result(raw: dict) -> ChunkResult:
 
 
 def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
-    seen_scores: dict[str, float] = {}
-    seen_results: dict[str, SourceResult] = {}
+    seen: dict[str, tuple[SourceResult, float]] = {}
 
     for chunk in chunks:
         lesson_url = chunk["lessonUrl"]
         score = chunk.get("_relevance_score", 0.0)
+        existing = seen.get(lesson_url)
 
-        if lesson_url not in seen_results:
-            seen_results[lesson_url] = SourceResult(
-                title=chunk["lessonTitle"],
-                url=chunk["lessonUrl"],
+        if existing is None or score > existing[1]:
+            seen[lesson_url] = (
+                SourceResult(
+                    title=chunk["lessonTitle"],
+                    url=chunk["lessonUrl"],
+                ),
+                score,
             )
-            seen_scores[lesson_url] = score
-        elif score > seen_scores[lesson_url]:
-            seen_scores[lesson_url] = score
 
-    return sorted(
-        seen_results.values(),
-        key=lambda s: seen_scores[s.url],
-        reverse=True,
-    )
+    return [s for s, _ in sorted(seen.values(), key=lambda x: x[1], reverse=True)]
