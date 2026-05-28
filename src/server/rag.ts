@@ -11,7 +11,7 @@ import {
 import { getEnv } from "~/utils/env";
 import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
 import { deduplicateSources } from "~/utils/search-utils";
-import type { ChunkData, ChunkResult, SourceResult } from "~/utils/types";
+import type { ChunkResult, SourceResult } from "~/utils/types";
 import { checkRateLimit } from "./rate-limiter";
 import { ensureVectorStore } from "./search";
 import { getSession } from "./session";
@@ -149,7 +149,7 @@ export async function queryRAG({
   const rateResult = checkRateLimit(rateLimitKey, RATE_LIMIT_CHAT);
   if (!rateResult.allowed) {
     return {
-      answer: "You're asking too fast! Try again in a minute.",
+      answer: `You're asking too fast! Try again in ${Math.ceil(rateResult.resetMs / 1000)}s`,
       sources: [],
       keywords: [],
     };
