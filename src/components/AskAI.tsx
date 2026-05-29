@@ -24,7 +24,7 @@ interface ChatMessage {
 
 const GREETING: ChatMessage = {
   role: "assistant",
-  content: `Hi I'm ${RAG_BOT_NAME}, your friendly guide, what can I help you with?`,
+  content: `Hi I'm ${RAG_BOT_NAME}, the local guide around here, what can I help you with?`,
 };
 
 export default function AskAI() {
@@ -170,7 +170,7 @@ export default function AskAI() {
             aria-label="Ask a local guide"
           >
             <div class="askai-header">
-              <span class="askai-header__title">Talk with a local</span>
+              <span class="askai-header__title">Talk to a local</span>
               <button
                 type="button"
                 class="absolute top-3 right-3 inline-flex items-center gap-1.5 z-10 cursor-pointer bg-transparent border-none text-muted hover:text-heading transition-colors duration-150"

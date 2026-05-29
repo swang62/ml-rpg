@@ -17,6 +17,7 @@ __pycache__/
 # llama
 llama_api/models/
 llama_api/data/
+llama_api/logs/
 
 # Environment
 .env
