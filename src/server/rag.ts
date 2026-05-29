@@ -91,24 +91,25 @@ export async function queryRAG({
     keywords: string[];
   };
 
-  const systemPrompt = [
+  const context = chunks.map((c) => `[${c.title}]: ${c.text}`).join("\n\n");
+  const systemContent = [
     "You are a helpful local guide named Bob in a gamified learning platform called 'Machine Learning (the RPG)'. ",
-    "You exist to answer questions about machine learning and data engineering course material from context provided to you below. ",
-    "Any questions not related to machine learning, data engineering, this learning platform/course, or who you are; just say sorry you can't help with that. ",
-    "Use the provided context combined with your internal knowledge of machine learning and data engineering to answer the user's question. ",
-    "Keep answers concise yet informative, summarize core ideas. Remain educational, yet friendly and informal. ",
-    "If the question is about machine learning or data engineering, and there isn't any context, say so clearly and ask for additional clarification. ",
-    "Do not mention the context or sources in your answer. ",
-    "Answer in plain text without markdown formatting.",
+    "Relevant context will be provided below when available. Use it to answer questions about machine learning and data engineering. ",
+    "For questions about you or the world/course/platform itself (course structure, XP, ranks, navigation), answer from your knowledge. ",
+    "If the question is outside machine learning, data engineering, this course/platform, or who you are and your backstory, politely decline. ",
+    "Keep answers friendly, warm, descriptive, and fun. You are in a mythical guide in a video game world, answer in character. ",
+    "When the topic is about machine learning or data engineering, and there is context available, be brief and summarize the core concepts. ",
+    "Answer in plain text without markdown.\n",
+    "Additional Context:\n",
+    context,
   ].join("");
 
   const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY);
-  const context = chunks.map((c) => `[${c.title}]: ${c.text}`).join("\n\n");
 
   const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: "system", content: systemPrompt },
+    { role: "system", content: systemContent },
     ...sanitizedHistory,
-    { role: "user", content: `Context:\n${context}\n\nQuestion: ${sanitized}` },
+    { role: "user", content: sanitized },
   ];
 
   const llmUrl = getEnv().LLAMA_API_URL;
