@@ -23,6 +23,7 @@ services:
       - PORT=${PORT:-3333}
       - SESSION_SECRET=${SESSION_SECRET}
       - RAG_API_URL=http://rag-api:8000
+      - LLAMA_API_URL=http://llama-api:8080
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-3333}/api/health || exit 1
@@ -44,7 +45,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" ]
       interval: 1m
       timeout: 10s
       start_period: 15s
@@ -52,29 +53,21 @@ services:
 
   llama-api:
     container_name: llama-api
-    image: ghcr.io/ggml-org/llama.cpp:server
+    build:
+      context: .
+      dockerfile: llama_api/Dockerfile
     restart: unless-stopped
     ports:
       - 8080:8080
     volumes:
-      - ./llama_api/models/bob-q4_k_m.gguf:/app/model.gguf:ro
-    command:
-      - -m
-      - /app/model.gguf
-      - --host
-      - 0.0.0.0
-      - --port
-      - 8080
-      - --sleep-idle-seconds
-      - "300"
-      - --ctx-size
-      - "4096"
-      - --parallel
-      - "1"
-      - --threads
-      - "4"
+      - ./llama_api/models:/app/models
+    environment:
+      - MODEL_PATH=/app/models/bob-q4_k_m.gguf
+      - HF_MODEL_REPO=scubastevve/ml-rpg-bob
+      - HF_MODEL_FILE=bob-q4_k_m.gguf
+      - HF_TOKEN=${HF_TOKEN:-}
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/health" ]
       interval: 30s
       timeout: 5s
       start_period: 30s

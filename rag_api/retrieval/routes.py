@@ -1,7 +1,6 @@
 import logging
 
 from ..config import MAX_TEXT_SIZE
-
 from ..schemas import RetrieveResponse
 from .embedding import embed_query
 from .keyword_extract import extract_keywords

@@ -93,9 +93,7 @@ ts_lines = []
 ts_lines.append('  "data-engineering": {')
 ts_lines.append('    base: "/data-engineering",')
 ts_lines.append('    title: "Data Engineering",')
-ts_lines.append(
-    "    getCategoryPath: (category: string) => `/data-engineering/${category}`,"
-)
+ts_lines.append("    getCategoryPath: (category: string) => `/data-engineering/${category}`,")
 ts_lines.append("    getSectionPath: (category: string, section: string) =>")
 ts_lines.append("      `/data-engineering/${category}/${section}`,")
 ts_lines.append("    categories: [")

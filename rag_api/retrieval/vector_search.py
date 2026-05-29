@@ -1,4 +1,4 @@
-from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MIN_RAG_SCORE, MAX_RAG_CHUNKS
+from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MAX_RAG_CHUNKS, MIN_RAG_SCORE
 from ..schemas import ChunkResult, SourceResult
 
 _table = None
@@ -63,8 +63,6 @@ def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
             if score > existing_source.score:
                 existing_source.score = score
         else:
-            seen[lesson_url] = SourceResult(
-                title=lesson_title, url=lesson_url, score=score
-            )
+            seen[lesson_url] = SourceResult(title=lesson_title, url=lesson_url, score=score)
 
     return sorted(seen.values(), key=lambda s: s.score, reverse=True)
