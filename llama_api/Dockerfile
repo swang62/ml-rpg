@@ -1,19 +1,12 @@
-FROM ghcr.io/ggml-org/llama.cpp:server AS base
+FROM ghcr.io/ggml-org/llama.cpp:server
 
-FROM scratch AS final
-COPY --from=base / /
+COPY llama_api/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-COPY models/bob-q4_k_m.gguf /app/model.gguf
+ENV MODEL_PATH=/app/model.gguf \
+    HF_MODEL_REPO=scubastevve/ml-rpg-bob \
+    HF_MODEL_FILE=bob-q4_k_m.gguf
 
 EXPOSE 8080
 
-ENTRYPOINT ["llama-server"]
-CMD [
-  "-m", "/app/model.gguf",
-  "--host", "0.0.0.0",
-  "--port", "8080",
-  "--sleep-idle-seconds", "300",
-  "--ctx-size", "4096",
-  "--parallel", "1",
-  "--threads", "4"
-]
+ENTRYPOINT ["/app/start.sh"]

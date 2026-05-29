@@ -101,7 +101,6 @@ Rendered via dynamic routes at `/[course]/[category]/[section]/[lesson]`.
 ### Key features
 
 - **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), 70k XP max. Avatar border glows at higher tiers.
-- **Read tracking:** `IntersectionObserver` in `LessonTracker` marks lessons complete when scrolled into view. Toast notification on completion.
 - **Keyword Search:** MiniSearch index (title + extracted text) built on first query. Prefix + fuzzy matching (0.2), capped at 5 results.
 - **RAG (Ask Bob):** Hybrid search (vector + BM25) across LanceDB → top chunks sent to Groq (`llama-3.1-8b-instant`) with jailbreak detection via `llama-prompt-guard`. Max 3 chat history turns.
 - **Rate limiting:** Per-IP sliding window middleware. 200 req/60s general, 10 req/60s login. Returns 429 with standard headers.

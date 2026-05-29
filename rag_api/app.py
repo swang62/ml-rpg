@@ -5,17 +5,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
 from .config import LOG_LEVEL, MIN_TEXT_SIZE
-
 from .retrieval.embedding import close_client
 from .retrieval.keyword_extract import load_nlp_core
-from .retrieval.vector_search import get_vectordb, close_vectordb
-from .schemas import RetrieveRequest, RetrieveResponse
 from .retrieval.routes import retrieve
+from .retrieval.vector_search import close_vectordb, get_vectordb
+from .schemas import RetrieveRequest, RetrieveResponse
 
 _log_level = getattr(logging, LOG_LEVEL, logging.INFO)
-logging.basicConfig(
-    level=_log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
+logging.basicConfig(level=_log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
 # Silence noisy libraries — only show their WARNING+ messages
 for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access"):

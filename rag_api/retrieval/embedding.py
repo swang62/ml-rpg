@@ -1,6 +1,6 @@
 import httpx
 
-from ..config import VOYAGE_MODEL, VOYAGE_API_KEY, VOYAGE_API_URL
+from ..config import VOYAGE_API_KEY, VOYAGE_API_URL, VOYAGE_MODEL
 
 _client: httpx.AsyncClient | None = None
 

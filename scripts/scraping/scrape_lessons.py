@@ -130,9 +130,7 @@ def extract_lesson_html(raw_html: str) -> str | None:
     if inner:
         lesson_col = inner
 
-    gate_btn = lesson_col.find(
-        "button", string=re.compile(r"Sign in to View More", re.I)
-    )
+    gate_btn = lesson_col.find("button", string=re.compile(r"Sign in to View More", re.I))
     if gate_btn:
         container = gate_btn.find_parent("div", style=re.compile(r"flex-direction"))
         if container:
@@ -171,9 +169,7 @@ def extract_lesson_html(raw_html: str) -> str | None:
     card = lesson_col.find("div", class_=re.compile(r"\bmb-4\b.*\bborder\b"))
     if card and card.has_attr("class"):
         keep = [
-            c
-            for c in card["class"]
-            if c not in ("border", "border-2", "border-dark", "rounded")
+            c for c in card["class"] if c not in ("border", "border-2", "border-dark", "rounded")
         ]
         card["class"] = keep
 
@@ -341,9 +337,7 @@ def main_agent_browser(output_dir: Path, redo_failed: bool):
         if (output_dir / l["course"] / f"{l['section']}__{l['slug']}.tsx").exists()
     )
     remaining = (
-        total
-        - already
-        - sum(1 for l in all_lessons if l["slug"] in failed and not redo_failed)
+        total - already - sum(1 for l in all_lessons if l["slug"] in failed and not redo_failed)
     )
     print(
         f"Found {total} total, {already} files exist, {len(failed)} previously failed, ~{remaining} to scrape"

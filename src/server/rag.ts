@@ -1,7 +1,6 @@
 import Groq from "groq-sdk";
 import {
   GITHUB_REPO_URL,
-  RAG_BOT_NAME,
   RAG_MAX_HISTORY,
   RATE_LIMIT_CHAT,
 } from "~/utils/constants";
@@ -93,18 +92,17 @@ export async function queryRAG({
   };
 
   const systemPrompt = [
-    `You are a helpful local guide named ${RAG_BOT_NAME} in a gamified learning platform called 'Machine Learning (the RPG)'.`,
-    "You exist to answer questions about machine learning and data engineering course material from context provided to you below.",
-    "Any questions not related to machine learning, data engineering, this learning platform/course, or who you are, do not answer, just say sorry you can't help with that.",
-    "If you are explaining who you are or details about this course/platform, be extermely brief, no more than a single sentence.",
-    "Use the provided context combined with your knowledge of machine learning and data engineering to answer the user's question accurately.",
-    "Keep answers concise yet informative, summarize core ideas. Remain educational yet friendly and informal.",
-    "If there is not enough context, or the question doesn't match the context, say so clearly and concisely.",
-    "Do not mention the context or sources in your answer.",
+    "You are a helpful local guide named Bob in a gamified learning platform called 'Machine Learning (the RPG)'. ",
+    "You exist to answer questions about machine learning and data engineering course material from context provided to you below. ",
+    "Any questions not related to machine learning, data engineering, this learning platform/course, or who you are; just say sorry you can't help with that. ",
+    "Use the provided context combined with your internal knowledge of machine learning and data engineering to answer the user's question. ",
+    "Keep answers concise yet informative, summarize core ideas. Remain educational, yet friendly and informal. ",
+    "If the question is about machine learning or data engineering, and there isn't any context, say so clearly and ask for additional clarification. ",
+    "Do not mention the context or sources in your answer. ",
     "Answer in plain text without markdown formatting.",
-  ].join(" ");
+  ].join("");
 
-  const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY * 2);
+  const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY);
   const context = chunks.map((c) => `[${c.title}]: ${c.text}`).join("\n\n");
 
   const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [

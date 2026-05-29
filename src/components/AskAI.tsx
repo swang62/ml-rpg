@@ -100,7 +100,7 @@ export default function AskAI() {
 
     try {
       const history = messages()
-        .slice(-RAG_MAX_HISTORY * 2)
+        .slice(-RAG_MAX_HISTORY)
         .map((m) => ({ role: m.role, content: m.content }));
 
       const result = await queryRAG({ query, history });

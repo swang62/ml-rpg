@@ -1,0 +1,13 @@
+# LoRA hyperparameters for Bob fine-tuning
+# CLI args take precedence over values here
+fine_tune_type: lora
+optimizer: adamw
+iters: 150
+steps_per_eval: 20
+learning_rate: 2e-5
+batch_size: 4
+num_layers: 24
+lora_parameters:
+  rank: 8
+  dropout: 0.1
+  scale: 20.0
