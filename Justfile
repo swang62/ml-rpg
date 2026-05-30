@@ -6,7 +6,7 @@ finetuning_model := "unsloth/Llama-3.2-3B-Instruct"
 ollama_model := env_var_or_default("OLLAMA_MODEL", "gpt-oss:20b")
 
 # Preprocessing
-examples_per_category := "60"
+examples_per_category := "100"
 test_set_pct := "0.1"
 
 # HF upload
@@ -18,6 +18,8 @@ root_dir := "llama_api"
 data_dir := root_dir + "/data"
 models_dir := root_dir + "/models"
 log_dir := root_dir + "/logs"
+
+# @llama_api/scripts/patch-gguf-converter.sh "$LLAMA_CPP_DIR" "$LLAMA_MODELS_DIR"
 
 # Run the full pipeline with timestamped log, no upload
 default:
@@ -35,7 +37,6 @@ check:
     @test -f "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" || { echo "ERROR: llama.cpp scripts are missing"; exit 1; }
     @test -f "$LLAMA_CPP_DIR/build/bin/llama-quantize" || { echo "ERROR: llama.cpp binaries are missing"; exit 1; }
     @test -f "$LLAMA_CPP_DIR/build/bin/llama-server" || { echo "ERROR: llama.cpp binaries are missing"; exit 1; }
-    @llama_api/scripts/patch-gguf-converter.sh "$LLAMA_CPP_DIR" "$LLAMA_MODELS_DIR"
 
 
 # Step 2: Generate training data
@@ -51,7 +52,9 @@ generate: check
 preprocess: check
     @echo "--- Step 3: Formatting for MLX ---"
     -@bash -c '\
-        kill -9 $(lsof -ti:8001) 2>/dev/null || true; \
+        kill_rag() { kill -9 $(lsof -ti:8001) 2>/dev/null || true; }; \
+        trap kill_rag EXIT; \
+        kill_rag; \
         uv run uvicorn rag_api.app:app --host 127.0.0.1 --port 8001 > /dev/stdout 2>&1 & \
         echo "[preprocess] Waiting for rag-api on :8001 ..."; \
         for i in $(seq 1 30); do \
@@ -66,8 +69,7 @@ preprocess: check
             --output-dir "{{data_dir}}" \
             --rag-api-url "http://localhost:8001" \
             --val-pct "{{test_set_pct}}" \
-            --model-family llama; \
-        kill -9 $(lsof -ti:8001) 2>/dev/null || true \
+            --model-family llama \
     '
 
 
@@ -81,7 +83,8 @@ train: check
         --data "{{data_dir}}" \
         --adapter-path "{{models_dir}}/adapters" \
         --config "lora_config.yaml" \
-        --max-seq-len 1024
+        --max-seq-len 1024 \
+        --save-every 999999
 
 
 # Step 5: Fuse LoRA into base model
@@ -93,11 +96,9 @@ fuse:
         --adapter-path "{{models_dir}}/adapters" \
         --save-path "{{models_dir}}/fused"
 
-
 # Step 6: Convert to GGUF
 convert: check
     @echo "--- Step 6: Converting to GGUF ---"
-    @llama_api/scripts/patch-gguf-converter.sh "$LLAMA_CPP_DIR" "{{models_dir}}/fused" > /dev/null 2>&1
     @echo "[convert] Running convert_hf_to_gguf.py ..."
     @uv run python "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" \
         "{{models_dir}}/fused" \

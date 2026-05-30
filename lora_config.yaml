@@ -1,10 +1,13 @@
 # LoRA hyperparameters for Bob fine-tuning
 fine_tune_type: lora
 optimizer: adamw
-iters: 150
-steps_per_eval: 50
+optimizer_config:
+  adamw:
+    weight_decay: 0.01
+iters: 120
+steps_per_eval: 40
 learning_rate: 2e-5
-batch_size: 4
+batch_size: 8
 num_layers: 28
 lora_parameters:
   rank: 8
