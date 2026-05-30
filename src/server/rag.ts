@@ -1,11 +1,7 @@
 import Groq from "groq-sdk";
-import {
-  GITHUB_REPO_URL,
-  RAG_MAX_HISTORY,
-  RATE_LIMIT_CHAT,
-} from "~/utils/constants";
+import { GITHUB_REPO_URL, RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
-import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
+import { sanitizeSearchQuery } from "~/utils/input-validation";
 import type { ChunkResult, SourceResult } from "~/utils/types";
 import { checkRateLimit } from "./rate-limiter";
 import { getSession } from "./session";
@@ -41,7 +37,6 @@ async function detectJailbreak(query: string): Promise<boolean> {
 
 export async function queryRAG({
   query,
-  history = [],
 }: QueryRAGInput): Promise<QueryRAGResult> {
   "use server";
 
@@ -95,20 +90,17 @@ export async function queryRAG({
   const systemContent = [
     "You are a helpful local guide named Bob in a gamified learning platform called 'Machine Learning (the RPG)'. ",
     "Relevant context will be provided below when available. Use it to answer questions about machine learning and data engineering. ",
-    "For questions about you or the world/course/platform itself (course structure, XP, ranks, navigation), answer from your knowledge. ",
+    "For questions about you or the world/course/platform itself (course structure, XP, ranks, navigation), answer from your knowledge and any available context. ",
     "If the question is outside machine learning, data engineering, this course/platform, or who you are and your backstory, politely decline. ",
     "Keep answers friendly, warm, descriptive, and fun. You are in a mythical guide in a video game world, answer in character. ",
-    "When the topic is about machine learning or data engineering, and there is context available, be brief and summarize the core concepts. ",
+    "When the topic is about machine learning or data engineering, be brief and summarize the core concepts. ",
     "Answer in plain text without markdown.\n",
     "Additional Context:\n",
     context,
   ].join("");
 
-  const sanitizedHistory = sanitizeHistory(history, RAG_MAX_HISTORY);
-
   const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: systemContent },
-    ...sanitizedHistory,
     { role: "user", content: sanitized },
   ];
 
@@ -132,7 +124,7 @@ export async function queryRAG({
     const llmData = (await response.json()) as {
       choices: { message: { content: string } }[];
     };
-    answer = llmData.choices[0]?.message?.content ?? "";
+    answer = (llmData.choices[0]?.message?.content ?? "").trim();
   } else {
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
@@ -144,7 +136,7 @@ export async function queryRAG({
   }
 
   // Filter out sources
-  const isShortReply = answer.length <= 100;
+  const isShortReply = answer.length <= 60;
   const isCourseInfo = sources.some((s) => s.url === GITHUB_REPO_URL);
   const isInvalidReply =
     answer.includes("Bob") ||
@@ -152,7 +144,7 @@ export async function queryRAG({
     answer.includes("can't help") ||
     answer.includes("here to help") ||
     answer.includes("happy to chat") ||
-    answer.includes("machine learning or data engineering") ||
+    answer.includes("not enough info") ||
     answer.includes("not enough context");
 
   return {

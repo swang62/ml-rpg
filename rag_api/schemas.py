@@ -5,6 +5,23 @@ class RetrieveRequest(BaseModel):
     query: str
 
 
+class BatchChunkResult(BaseModel):
+    title: str
+    text: str
+
+
+class BatchQueryResult(BaseModel):
+    chunks: list[BatchChunkResult]
+
+
+class RetrieveBatchRequest(BaseModel):
+    queries: list[str]
+
+
+class RetrieveBatchResponse(BaseModel):
+    results: list[BatchQueryResult]
+
+
 class SourceResult(BaseModel):
     title: str
     url: str

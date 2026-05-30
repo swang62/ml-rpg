@@ -21,12 +21,12 @@ def close_vectordb():
     _table = None
 
 
-def hybrid_search(embedding: list[float], keywords: list[str]) -> list[dict]:
+def hybrid_search(embedding: list[float], query: str) -> list[dict]:
     vectordb = get_vectordb()
     chunks = (
         vectordb.search(query_type="hybrid")
         .vector(embedding)
-        .text(" ".join(keywords))
+        .text(query)
         .limit(MAX_RAG_CHUNKS)
         .to_list()
     )
@@ -63,6 +63,8 @@ def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:
             if score > existing_source.score:
                 existing_source.score = score
         else:
-            seen[lesson_url] = SourceResult(title=lesson_title, url=lesson_url, score=score)
+            seen[lesson_url] = SourceResult(
+                title=lesson_title, url=lesson_url, score=score
+            )
 
     return sorted(seen.values(), key=lambda s: s.score, reverse=True)

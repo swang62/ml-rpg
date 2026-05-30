@@ -20,17 +20,22 @@ cd "$PROJECT_DIR"
 uv sync --inexact
 uv run python -c "import en_core_web_sm" 2>/dev/null || uv run -- spacy download en_core_web_sm
 
-# Start llama-server (local Bob model) on port 8080
+# Find the patched llama-server (self-built, not Homebrew)
+LLAMA_CPP_DIR="${LLAMA_CPP_DIR:-/Users/steve/dev/llama.cpp}"
+LLAMA_SERVER="$LLAMA_CPP_DIR/build/bin/llama-server"
+
+# Start llama-server on port 8080
 MODEL_PATH="llama_api/models/bob.gguf"
-if [ -f "$MODEL_PATH" ]; then
-  echo "Starting llama-server on port 8080..."
-  llama-server \
+if [ -f "$MODEL_PATH" ] && [ -x "$LLAMA_SERVER" ]; then
+  echo "Starting llama-server (patched) on port 8080..."
+  "$LLAMA_SERVER" \
     -m "$MODEL_PATH" \
     --host 127.0.0.1 \
     --port 8080 \
     --ctx-size 8192 \
     --parallel 1 \
     --threads 4 \
+    --cache-ram 0 \
     --sleep-idle-seconds 60 &
   PID_LLAMA=$!
 else

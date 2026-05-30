@@ -8,7 +8,6 @@ export type ChunkData = {
   sectionTitle: string;
   courseTitle: string;
   chunkIndex: number;
-  _relevance_score: number;
 };
 
 export type ChunkResult = {

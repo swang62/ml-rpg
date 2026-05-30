@@ -287,7 +287,6 @@ async function buildVectorIndex() {
           sectionTitle: group.sectionTitle,
           courseTitle: group.courseTitle,
           chunkIndex: ci,
-          _relevance_score: 0,
         });
       });
     });
