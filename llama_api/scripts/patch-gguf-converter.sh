@@ -18,7 +18,7 @@ if [ ! -f "$BASE_PY" ]; then
     echo "WARNING: $BASE_PY not found — run convert_hf_to_gguf_update.py first"
 else
     if grep -q "$CHKHSH" "$BASE_PY"; then
-        echo "[ok] Python converter already has Gemma 3 tokenizer"
+        echo "[ok] Python converter script patched"
     else
         LINE=$(grep -n "if chkhsh == " "$BASE_PY" | tail -1 | cut -d: -f1)
         if [ -n "$LINE" ]; then
@@ -38,7 +38,7 @@ if [ ! -f "$VOCAB_CPP" ]; then
     echo "WARNING: $VOCAB_CPP not found"
 else
     if grep -q 'tokenizer_pre == "gemma-3"' "$VOCAB_CPP"; then
-        echo "[ok] C++ runtime already has Gemma 3 pre-tokenizer"
+        echo "[ok] llama.cpp runtime patched"
     else
         sed -i '' 's/tokenizer_pre == "gemma4")/tokenizer_pre == "gemma-3" ||\n                    tokenizer_pre == "gemma4")/' "$VOCAB_CPP"
         echo "[patched] C++ runtime — added Gemma 3 pre-tokenizer type"
@@ -68,9 +68,9 @@ if [ -d "$MODEL_DIR" ] && [ -f "$CONFIG_FILE" ]; then
 <start_of_turn>model
 {% endif %}
 TEMPLATE
-        echo "[ok] Fused model chat template set (gemma)"
+        echo "[ok] Chat template patched (gemma)"
     else
-        echo "[skip] Chat template patch only applies to gemma models (detected: $MODEL_TYPE)"
+        echo "[skip] Chat template patch only applies to gemma (detected: $MODEL_TYPE)"
     fi
 fi
 
