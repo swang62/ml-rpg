@@ -128,9 +128,9 @@ def generate_batch(
                 api_key="ollama",  # type: ignore
             ),
         )
-        LoadDataFromDicts(
-            data=data, output_mappings={"prompt": "instruction"}
-        ).connect(text_generation)
+        LoadDataFromDicts(data=data, output_mappings={"prompt": "instruction"}).connect(
+            text_generation
+        )
 
     suppress_distilabel()
     distiset = pipeline.run(
@@ -322,7 +322,7 @@ def main():
     tqdm.write(f"Wrote markdown -> {md_path}")
 
     total = len(all_examples)
-    tqdm.write(f"\nDone! {total} total examples -> {args.output}")
+    tqdm.write(f"\nDone! {total} generated examples -> {args.output}")
     for cat in categories:
         actual = sum(1 for e in all_examples if e["category"] == cat)
         expected = args.examples_per_category

@@ -11,13 +11,11 @@ from .prompts import SYSTEM_PROMPT
 from .utils import FORMATTERS, get_project_root
 
 MODEL_NAME_BY_FAMILY = {
-    "gemma": "google/gemma-3-4b-it",
     "llama": "unsloth/Llama-3.2-3B-Instruct",
     "chatml": None,
 }
 
 RESPONSE_MARKERS = {
-    "gemma": "<start_of_turn>model\n",
     "llama": "<|start_header_id|>assistant<|end_header_id|>\n\n",
     "chatml": "<|im_start|>assistant\n",
 }
@@ -91,25 +89,6 @@ def fetch_contexts_batch(questions: list[str], rag_url: str) -> list[str]:
         return [""] * len(questions)
 
     return [chunks_to_text(r.get("chunks", [])) for r in results]
-
-
-def write_markdown(split_data: list[dict], path: Path, split_name: str) -> None:
-    by_cat = defaultdict(list)
-    for ex in split_data:
-        by_cat[ex.get("category", "unknown")].append(ex)
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(f"# {split_name.title()} Set\n\n")
-        for cat in sorted(by_cat):
-            f.write(f"## {cat}\n\n")
-            for ex in by_cat[cat]:
-                msgs = ex["messages"]
-                user_msg = next((m["content"] for m in msgs if m["role"] == "user"), "")
-                asst_msg = next(
-                    (m["content"] for m in msgs if m["role"] == "assistant"), ""
-                )
-                f.write(f"```\nQ: {user_msg}\n")
-                f.write(f"A: {asst_msg}\n```\n\n")
 
 
 def main():
@@ -208,8 +187,7 @@ def main():
     pct = 100 * total_valid / len(examples)
     print(f"Read {len(examples)} examples across {len(by_category)} categories:")
     for cat, group in sorted(by_category.items()):
-        n_v = max(1, round(len(group) * args.val_pct))
-        print(f"  {cat}: {len(group)} total ({n_v} valid, {len(group) - n_v} train)")
+        print(f"  {cat}: {len(group)} total")
     print(f"Split: {total_train} train + {total_valid} valid ({pct:.1f}% validation)")
 
     # Write JSONL + MD for each split
@@ -236,10 +214,6 @@ def main():
                     item["mask"] = mask
                 f.write(json.dumps(item, ensure_ascii=False) + "\n")
         print(f"Wrote {len(split_data)} examples to {jsonl_path}")
-
-        md_path = args.output_dir / "raw" / f"{split_name}.md"
-        write_markdown(split_data, md_path, split_name)
-        print(f"Wrote {len(split_data)} examples to {md_path}")
 
 
 if __name__ == "__main__":

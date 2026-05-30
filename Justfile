@@ -22,15 +22,13 @@ data_dir := root_dir + "/data"
 models_dir := root_dir + "/models"
 log_dir := root_dir + "/logs"
 
-# @llama_api/scripts/patch-gguf-converter.sh "$LLAMA_CPP_DIR" "$LLAMA_MODELS_DIR"
-
 # Run the full pipeline with timestamped log, no upload
 default:
     @mkdir -p "{{log_dir}}" && \
     LOG="{{log_dir}}/train-$(date +%Y%m%d-%H%M%S).log" && \
     START=$(date +%s) && \
     echo "=== Pipeline started at $(date) ===" | tee -a "$LOG" && \
-    TIMEFORMAT="{{elapsed}}"; time ( just check generate preprocess train fuse convert 2>&1 | tee -a "$LOG" ) && \
+    just check generate preprocess train fuse convert test upload 2>&1 | tee -a "$LOG" && \
     ELAPSED=$(($(date +%s) - START)) && \
     MIN=$((ELAPSED / 60)) && \
     SEC=$((ELAPSED % 60)) && \
@@ -48,7 +46,6 @@ default:
     echo "" && \
     echo "=== Results ===" && \
     echo "  Total elapsed:    $ELAPSED_STR" && \
-    echo "  Training data:    $(wc -l < "{{data_dir}}/train.jsonl") train + $(wc -l < "{{data_dir}}/valid.jsonl") valid pairs" && \
     echo "  Final train loss: ${TRAIN_LOSS:-N/A}" && \
     echo "  Final val loss:   ${VAL_LOSS:-N/A}" && \
     echo "  GGUF:             $(du -h "{{models_dir}}/{{hf_model_file}}" 2>/dev/null | cut -f1)" && \
@@ -56,7 +53,7 @@ default:
     echo "=== Pipeline finished at $(date) ===" \
 
 
-# Step 1: Ensure dependencies and custom patches
+# Step 1: Ensure dependencies
 check:
     @echo "--- Step 1: Ensuring dependencies ---"
     @TIMEFORMAT="{{elapsed}}"; time uv sync --group train --inexact
@@ -141,19 +138,32 @@ convert: check
     '
 
 
-# Step 7: Upload to HuggingFace
-upload:
-    @echo "--- Step 7: Uploading to HuggingFace ---"
-    @if [ -n "$HF_TOKEN" ]; then \
-        echo "Uploading {{hf_model_file}} to {{hf_model_repo}} ..."; \
-        hf upload "{{hf_model_repo}}" "{{models_dir}}/{{hf_model_file}}" "{{hf_model_file}}" --repo-type model; \
-        echo "Upload complete: https://huggingface.co/{{hf_model_repo}}"; \
-    else \
-        echo "HF_TOKEN not set -- skipping upload."; \
-        echo "Set HF_TOKEN in .env to auto-upload to {{hf_model_repo}}"; \
-    fi
+# Step 7: Test the GGUF with random questions from training data
+test:
+    @echo "--- Testing GGUF model ---"
+    @TIMEFORMAT="{{elapsed}}"; time uv run python -m llama_api.scripts.eval_model \
+        "{{models_dir}}/{{hf_model_file}}" \
+        "{{data_dir}}/valid.jsonl" \
+        8082 \
+        "$LLAMA_CPP_DIR/build/bin/llama-server" \
+        10
 
-# Pre-download the finetuning model
+
+# Step 8: Upload to HuggingFace
+upload:
+    @echo "--- Step 8: Uploading to HuggingFace ---"
+    @TIMEFORMAT="{{elapsed}}"; time bash -c '\
+        if [ -n "$HF_TOKEN" ]; then \
+            echo "Uploading {{hf_model_file}} to {{hf_model_repo}} ..."; \
+            hf upload "{{hf_model_repo}}" "{{models_dir}}/{{hf_model_file}}" "{{hf_model_file}}" --repo-type model; \
+            echo "Upload complete: https://huggingface.co/{{hf_model_repo}}"; \
+        else \
+            echo "HF_TOKEN not set -- skipping upload."; \
+            echo "Set HF_TOKEN in .env to auto-upload to {{hf_model_repo}}"; \
+        fi \
+    '
+
+# Preload the finetuning model
 download:
     @echo "--- Downloading {{finetuning_model}} ---"
     @hf download "{{finetuning_model}}"

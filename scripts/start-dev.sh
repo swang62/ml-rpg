@@ -36,7 +36,6 @@ LV=3
 case "${LOG_LEVEL:-INFO}" in
   ERROR|error)   LV="0" ;;
   WARN|warn)     LV="1" ;;
-  DEBUG|debug)   LV="4" ;;
 esac
 
 # Start llama-server on port 8080
