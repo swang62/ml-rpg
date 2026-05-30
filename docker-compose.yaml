@@ -60,10 +60,11 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     volumes:
-      - ./llama_api/models:/app/models
+      - llama-model:/app/models
     environment:
       - HF_MODEL_REPO=scubastevve/ml-rpg-bob
       - HF_MODEL_FILE=bob.gguf
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     healthcheck:
       test: curl -f http://127.0.0.1:8080/health || exit 0
       interval: 1m
@@ -73,3 +74,4 @@ services:
 
 volumes:
   course-data:
+  llama-model:

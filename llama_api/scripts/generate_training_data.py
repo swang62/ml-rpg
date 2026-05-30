@@ -18,7 +18,7 @@ from distilabel.steps import LoadDataFromDicts
 from distilabel.steps.tasks import TextGeneration
 
 from .prompts import BOB_PERSONA, CATEGORY_PROMPTS, PLATFORM_FACTS
-from .utils import QAPairs, clean_text, get_project_root, parse_pairs
+from .utils import clean_text, get_project_root, parse_pairs
 # ruff: isort: on
 
 
@@ -87,19 +87,15 @@ def load_category_pairs(path: Path) -> list[dict]:
             try:
                 pair = json.loads(stripped)
             except json.JSONDecodeError as e:
-                log.warning(
-                    "  Removing invalid JSON at %s line %d: %s", path.name, i, e
-                )
+                tqdm.write(f"  Removing invalid JSON at {path.name} line {i}: {e}")
                 continue
             if (
                 not isinstance(pair, dict)
                 or "question" not in pair
                 or "answer" not in pair
             ):
-                log.warning(
-                    "  Removing bad entry at %s line %d: missing question/answer",
-                    path.name,
-                    i,
+                tqdm.write(
+                    f"  Removing bad entry at {path.name} line {i}: missing question/answer"
                 )
                 continue
             lines.append(line)
@@ -119,7 +115,7 @@ def append_pairs(path: Path, pairs: list[dict]) -> None:
 
 def generate_batch(
     category: str, count: int, existing_pairs: list[dict], model: str, base_url: str
-) -> tuple[list[dict], str, int]:
+) -> tuple[list[dict], int]:
     prompt = build_prompt(category, count, existing_pairs)
     data = [{"category": category, "prompt": prompt}]
 
@@ -155,7 +151,7 @@ def generate_batch(
     row = list(distiset["default"]["train"])[0]
     generation = row["generation"]
     if generation is None:
-        return [], "", 0
+        return [], 0
 
     pairs = parse_pairs(generation)
 
@@ -169,7 +165,7 @@ def generate_batch(
     ]
     duplicates = len(pairs) - len(new_pairs)
 
-    return new_pairs, generation, duplicates
+    return new_pairs, duplicates
 
 
 def write_markdown(per_category: dict[str, list[dict]], path: Path) -> None:
@@ -244,10 +240,10 @@ def main():
             target = args.examples_per_category
 
             if n >= target:
-                log.info("%s: %d/%d — skipping", category, n, target)
+                tqdm.write(f"{category}: {n}/{target} — skipping")
                 continue
 
-            log.info("%s: %d/%d existing — continuing", category, n, target)
+            tqdm.write(f"{category}: {n}/{target} existing — continuing")
             bar = tqdm(
                 total=target,
                 initial=n,
@@ -267,13 +263,9 @@ def main():
 
                 bar.write(f"  Batch {batch_num}: requesting {batch_request} pairs")
                 print("\n")
-                new_pairs, raw, duplicates = generate_batch(
+                new_pairs, duplicates = generate_batch(
                     category, batch_request, existing_pairs, args.model, args.base_url
                 )
-
-                if raw:
-                    raw_path = raw_dir / f"{category}-{batch_num}.txt"
-                    raw_path.write_text(clean_text(raw), encoding="utf-8")
 
                 if duplicates:
                     bar.write(f"  Removed {duplicates} duplicates")
@@ -325,7 +317,7 @@ def main():
             f.write(json.dumps(example, ensure_ascii=False) + "\n")
 
     # Write markdown
-    md_path = raw_dir / "generated.md"
+    md_path = raw_dir / "formatted.md"
     write_markdown(per_category, md_path)
     tqdm.write(f"Wrote markdown -> {md_path}")
 
