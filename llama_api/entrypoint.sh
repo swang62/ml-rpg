@@ -12,13 +12,12 @@ LV=3
 case "${LOG_LEVEL:-INFO}" in
     ERROR|error)   LV="0" ;;
     WARN|warn)     LV="1" ;;
-    DEBUG|debug)   LV="4" ;;
 esac
 
 # Download model from HuggingFace if missing
 if [ ! -f "$MODEL_LOCATION" ]; then
     echo "Downloading $HF_MODEL_FILE from $HF_MODEL_REPO ..."
-    curl -L -# -o "$MODEL_LOCATION" "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE"
+    curl -L -# -C - -o "$MODEL_LOCATION" "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE"
 fi
 
 echo "Starting llama-server with model: $HF_MODEL_FILE"

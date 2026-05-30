@@ -58,19 +58,9 @@ def format_llama(messages: list[dict]) -> str:
     return "".join(parts)
 
 
-def format_gemma(messages: list[dict]) -> str:
-    parts = []
-    for msg in messages:
-        role = "model" if msg["role"] == "assistant" else msg["role"]
-        content = msg["content"]
-        parts.append(f"<start_of_turn>{role}\n{content}<end_of_turn>")
-    return "\n".join(parts)
-
-
 FORMATTERS = {
     "chatml": format_chatml,
     "llama": format_llama,
-    "gemma": format_gemma,
 }
 
 
