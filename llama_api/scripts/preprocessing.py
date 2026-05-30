@@ -12,7 +12,7 @@ from .utils import FORMATTERS, get_project_root
 
 MODEL_NAME_BY_FAMILY = {
     "gemma": "google/gemma-3-4b-it",
-    "llama": "meta-llama/Llama-3.2-3B-Instruct",
+    "llama": "unsloth/Llama-3.2-3B-Instruct",
     "chatml": None,
 }
 
@@ -141,7 +141,7 @@ def main():
     )
     parser.add_argument(
         "--model-family",
-        default="chatml",
+        default="llama",
         choices=list(FORMATTERS.keys()),
         help="Chat template format",
     )
