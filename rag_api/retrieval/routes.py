@@ -20,7 +20,7 @@ async def retrieve(query: str) -> RetrieveResponse:
     embedding = await embed_query(query)
     logger.debug("generated voyage embedding dims=%d", len(embedding))
 
-    chunks = hybrid_search(embedding, keywords)
+    chunks = hybrid_search(embedding, query)
     logger.debug("hybrid search returned %d raw chunks", len(chunks))
 
     chunk_results = [to_chunk_result(c) for c in chunks]

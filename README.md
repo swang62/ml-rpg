@@ -33,9 +33,9 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
   
 ### XP & Leveling
 
-- Each objective/lesson awards a multiple of `25 XP`, increasing linearly with lesson count (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
+- Each objective/lesson awards a multiple of `25 XP`, increasing with lesson count (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
 - 20 ranks: Novice (0), Villager (1), Squire (2), Knight (3), Mage (4), Warlord (5), Champion (6), Legend (7), Mythic (8), Sage (9), Hero (10), Paladin (11), Warden (12), Overlord (13), Titan (14), Elder (15), Guardian (16), Sovereign (17), Celestial (18), Divine (19), Eternal (20)
-- Each rank has increasing XP thresholds until the final max XP of 70,000
+- Each rank has increasing XP thresholds until the final max level 20, which requires 70,000 total XP
 
 ### Player Tracking
 

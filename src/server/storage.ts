@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, unlinkSync } from "node:fs";
 import Database from "better-sqlite3";
 import { runMigrations } from "~/middleware/migrations";
+import { ensureVectorStore } from "~/server/search";
 import { EMPTY_DB_PATH } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 
@@ -35,6 +36,9 @@ export function getDb(): Database.Database {
   if (!_migrationsRun) {
     _migrationsRun = true;
     runMigrations(_db);
+    ensureVectorStore().catch((err) =>
+      console.error("[storage] Vector store build failed:", err),
+    );
   }
 
   return _db;

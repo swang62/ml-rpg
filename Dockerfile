@@ -1,4 +1,4 @@
-FROM node:26-alpine AS build
+FROM node:24.13-alpine AS build
 
 # Build ARGs, not needed in production
 ARG CI=true
@@ -7,8 +7,10 @@ ARG VITE_SITE_ID
 
 WORKDIR /app
 
-RUN npm install --global corepack@latest && \
-  corepack enable && corepack prepare pnpm@latest --activate
+RUN --mount=type=cache,target=/root/.npm \
+  --mount=type=cache,target=/root/.cache/node/corepack \
+  npm install --global corepack@latest && \
+  corepack enable && corepack prepare pnpm@11.2.2 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
@@ -18,7 +20,7 @@ COPY . .
 
 RUN pnpm build
 
-FROM node:26-alpine
+FROM node:24.13-alpine
 
 ARG PORT=3333
 EXPOSE $PORT

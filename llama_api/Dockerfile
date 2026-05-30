@@ -1,13 +1,10 @@
 FROM ghcr.io/ggml-org/llama.cpp:server
 
-# Install hf CLI for model downloads
-RUN curl -LsSf https://hf.co/cli/install.sh | bash -s
-
-COPY llama_api/entrypoint.sh /app/entrypoint.sh
+COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-ENV HF_MODEL_REPO=ggml-org/gemma-3-4b-it-GGUF
-ENV HF_MODEL_FILE=gemma-3-4b-it-Q4_K_M.gguf
+ENV HF_MODEL_REPO=scubastevve/ml-rpg-bob
+ENV HF_MODEL_FILE=bob.gguf
 
 EXPOSE 8080
 

@@ -11,7 +11,7 @@ import {
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { queryRAG } from "~/server/rag";
-import { RAG_BOT_NAME, RAG_MAX_HISTORY, SHORTCUTS } from "~/utils/constants";
+import { RAG_BOT_NAME, SHORTCUTS } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import type { SourceResult } from "~/utils/types";
 
@@ -99,11 +99,11 @@ export default function AskAI() {
     setIsLoading(true);
 
     try {
-      const history = messages()
-        .slice(-RAG_MAX_HISTORY)
-        .map((m) => ({ role: m.role, content: m.content }));
+      // const history = messages()
+      //   .slice(-RAG_MAX_HISTORY)
+      //   .map((m) => ({ role: m.role, content: m.content }));
 
-      const result = await queryRAG({ query, history });
+      const result = await queryRAG({ query });
       setMessages((prev) => [
         ...prev,
         {

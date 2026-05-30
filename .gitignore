@@ -12,7 +12,9 @@ dist
 .vscode
 .venv
 .pytest_cache
+.ruff_cache
 __pycache__/
+.nohup*
 
 # llama
 llama_api/models/
