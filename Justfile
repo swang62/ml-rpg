@@ -66,7 +66,7 @@ preprocess: check
             --output-dir "{{data_dir}}" \
             --rag-api-url "http://localhost:8001" \
             --val-pct "{{test_set_pct}}" \
-            --model-family gemma; \
+            --model-family llama; \
         kill -9 $(lsof -ti:8001) 2>/dev/null || true \
     '
 
@@ -127,4 +127,4 @@ upload:
 # Pre-download the finetuning model
 download:
     @echo "--- Downloading {{finetuning_model}} ---"
-    @hf download "{{finetuning_model}}" --type model
+    @hf download "{{finetuning_model}}"

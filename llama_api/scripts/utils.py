@@ -78,6 +78,28 @@ def strip_control_chars(text: str) -> str:
     return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
 
 
+def clean_text(text: str) -> str:
+    text = strip_control_chars(text)
+    text = re.sub(
+        "[\U0001F300-\U0001FAFF"    # Misc Symbols, Emoticons, Enclosed, etc.
+        "\U0001F600-\U0001F64F"     # Emoticons
+        "\U0001F680-\U0001F6FF"     # Transport & Map
+        "\U0001F1E0-\U0001F1FF"     # Flags
+        "\U00002600-\U000027BF"     # Misc Symbols, Dingbats
+        "\U0000FE00-\U0000FE0F"     # Variation Selectors
+        "\U0000200B-\U0000200F"     # Zero-width spaces, LTR/RTL marks
+        "\U0000202A-\U0000202E"     # Bidi override/embedding
+        "\U0000FEFF"                # BOM
+        "\U000000AD"                # Soft hyphen
+        "\U00002060"                # Word joiner
+        "\U0000FFFD"                # Replacement character
+        "]",
+        "",
+        text,
+    )
+    return text.strip()
+
+
 def strip_code_fences(raw: str) -> str:
     raw = raw.strip()
     if raw.startswith("```"):
@@ -121,6 +143,8 @@ def normalize_pair(item: object) -> dict | None:
             aliased[dst] = v
     if "question" not in aliased or "answer" not in aliased:
         return None
+    aliased["question"] = clean_text(aliased["question"])
+    aliased["answer"] = clean_text(aliased["answer"])
     QAPair(**aliased)
     return {"question": aliased["question"], "answer": aliased["answer"]}
 

@@ -17,7 +17,7 @@ from distilabel.steps import LoadDataFromDicts
 from distilabel.steps.tasks import TextGeneration
 
 from .prompts import BOB_PERSONA, CATEGORY_PROMPTS, PLATFORM_FACTS
-from .utils import get_project_root, parse_pairs, strip_control_chars
+from .utils import clean_text, get_project_root, parse_pairs
 # ruff: isort: on
 
 logging.basicConfig(
@@ -137,7 +137,7 @@ def main():
                 continue
 
             raw_path = raw_dir / f"{category}.txt"
-            raw_path.write_text(strip_control_chars(generation), encoding="utf-8")
+            raw_path.write_text(clean_text(generation), encoding="utf-8")
             bar.write(f"  Saved raw -> {raw_path.name}")
 
             try:
