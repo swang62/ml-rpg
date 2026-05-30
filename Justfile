@@ -13,6 +13,9 @@ test_set_pct := "0.1"
 hf_model_repo := env_var_or_default("HF_MODEL_REPO", "scubastevve/ml-rpg-bob")
 hf_model_file := env_var_or_default("HF_MODEL_FILE", "bob.gguf")
 
+# Timing format (bash TIMEFORMAT — shows elapsed real time only)
+elapsed := "\n[elapsed]: %lR\n"
+
 # Derived paths
 root_dir := "llama_api"
 data_dir := root_dir + "/data"
@@ -25,15 +28,38 @@ log_dir := root_dir + "/logs"
 default:
     @mkdir -p "{{log_dir}}" && \
     LOG="{{log_dir}}/train-$(date +%Y%m%d-%H%M%S).log" && \
-    just check generate preprocess train fuse convert 2>&1 | tee "$LOG" && \
+    START=$(date +%s) && \
+    echo "=== Pipeline started at $(date) ===" | tee -a "$LOG" && \
+    TIMEFORMAT="{{elapsed}}"; time ( just check generate preprocess train fuse convert 2>&1 | tee -a "$LOG" ) && \
+    ELAPSED=$(($(date +%s) - START)) && \
+    MIN=$((ELAPSED / 60)) && \
+    SEC=$((ELAPSED % 60)) && \
+    HR=$((MIN / 60)) && \
+    MIN=$((MIN % 60)) && \
+    if [ "$HR" -gt 0 ]; then \
+        ELAPSED_STR="${HR}h ${MIN}m ${SEC}s"; \
+    elif [ "$MIN" -gt 0 ]; then \
+        ELAPSED_STR="${MIN}m ${SEC}s"; \
+    else \
+        ELAPSED_STR="${SEC}s"; \
+    fi && \
+    TRAIN_LOSS=$(grep -o 'Iter [0-9]*: Train loss [0-9.]*' "$LOG" | tail -1 | sed 's/.*Train loss //') && \
+    VAL_LOSS=$(grep -o 'Iter [0-9]*: Val loss [0-9.]*' "$LOG" | tail -1 | sed 's/.*Val loss //') && \
     echo "" && \
-    echo "Upload manually to HF after you evaluate, full log saved to $LOG" \
+    echo "=== Results ===" && \
+    echo "  Total elapsed:    $ELAPSED_STR" && \
+    echo "  Training data:    $(wc -l < "{{data_dir}}/train.jsonl") train + $(wc -l < "{{data_dir}}/valid.jsonl") valid pairs" && \
+    echo "  Final train loss: ${TRAIN_LOSS:-N/A}" && \
+    echo "  Final val loss:   ${VAL_LOSS:-N/A}" && \
+    echo "  GGUF:             $(du -h "{{models_dir}}/{{hf_model_file}}" 2>/dev/null | cut -f1)" && \
+    echo "  Log:              ${LOG}" && \
+    echo "=== Pipeline finished at $(date) ===" \
 
 
 # Step 1: Ensure dependencies and custom patches
 check:
     @echo "--- Step 1: Ensuring dependencies ---"
-    @uv sync --group train --inexact
+    @TIMEFORMAT="{{elapsed}}"; time uv sync --group train --inexact
     @test -f "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" || { echo "ERROR: llama.cpp scripts are missing"; exit 1; }
     @test -f "$LLAMA_CPP_DIR/build/bin/llama-quantize" || { echo "ERROR: llama.cpp binaries are missing"; exit 1; }
     @test -f "$LLAMA_CPP_DIR/build/bin/llama-server" || { echo "ERROR: llama.cpp binaries are missing"; exit 1; }
@@ -42,7 +68,7 @@ check:
 # Step 2: Generate training data
 generate: check
     @echo "--- Step 2: Generating training data ---"
-    @uv run python -m llama_api.scripts.generate_training_data \
+    @TIMEFORMAT="{{elapsed}}"; time uv run python -m llama_api.scripts.generate_training_data \
         --model "{{ollama_model}}" \
         --examples-per-category "{{examples_per_category}}" \
         --output "{{data_dir}}/training_raw.jsonl"
@@ -64,7 +90,7 @@ preprocess: check
             fi; \
             sleep 1; \
         done; \
-        uv run python -m llama_api.scripts.preprocessing \
+        TIMEFORMAT="{{elapsed}}"; time uv run python -m llama_api.scripts.preprocessing \
             --input "{{data_dir}}/training_raw.jsonl" \
             --output-dir "{{data_dir}}" \
             --rag-api-url "http://localhost:8001" \
@@ -77,7 +103,7 @@ preprocess: check
 train: check
     @echo "--- Step 4: Training LoRA adapters ---"
     @mkdir -p "{{models_dir}}/adapters"
-    @uv run mlx_lm.lora \
+    @TIMEFORMAT="{{elapsed}}"; time uv run mlx_lm.lora \
         --model "{{finetuning_model}}" \
         --train \
         --data "{{data_dir}}" \
@@ -91,7 +117,7 @@ train: check
 fuse:
     @echo "--- Step 5: Fusing LoRA into base model ---"
     @mkdir -p "{{models_dir}}/fused"
-    @uv run mlx_lm.fuse \
+    @TIMEFORMAT="{{elapsed}}"; time uv run mlx_lm.fuse \
         --model "{{finetuning_model}}" \
         --adapter-path "{{models_dir}}/adapters" \
         --save-path "{{models_dir}}/fused"
@@ -99,18 +125,20 @@ fuse:
 # Step 6: Convert to GGUF
 convert: check
     @echo "--- Step 6: Converting to GGUF ---"
-    @echo "[convert] Running convert_hf_to_gguf.py ..."
-    @uv run python "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" \
-        "{{models_dir}}/fused" \
-        --outfile "{{models_dir}}/fused-f16.gguf" \
-        --outtype f16 > /tmp/convert.log 2>&1
-    @echo "[convert] Done — f16 GGUF ready"
-    @echo "[convert] Quantizing to Q4_K_M ..."
-    @"$LLAMA_CPP_DIR/build/bin/llama-quantize" \
-        "{{models_dir}}/fused-f16.gguf" \
-        "{{models_dir}}/{{hf_model_file}}" \
-        q4_k_m > /tmp/quantize.log 2>&1
-    @echo "[convert] Done — {{hf_model_file}} ready"
+    @TIMEFORMAT="{{elapsed}}"; time bash -c '\
+        echo "[convert] Running convert_hf_to_gguf.py ..."; \
+        uv run python "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" \
+            "{{models_dir}}/fused" \
+            --outfile "{{models_dir}}/fused-f16.gguf" \
+            --outtype f16 > /tmp/convert.log 2>&1; \
+        echo "[convert] Done — f16 GGUF ready"; \
+        echo "[convert] Quantizing to Q4_K_M ..."; \
+        "$LLAMA_CPP_DIR/build/bin/llama-quantize" \
+            "{{models_dir}}/fused-f16.gguf" \
+            "{{models_dir}}/{{hf_model_file}}" \
+            q4_k_m > /tmp/quantize.log 2>&1; \
+        echo "[convert] Done — {{hf_model_file}} ready" \
+    '
 
 
 # Step 7: Upload to HuggingFace

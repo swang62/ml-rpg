@@ -3,6 +3,13 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Load .env so LOG_LEVEL and other vars are available
+if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    . "$PROJECT_DIR/.env"
+    set +a
+fi
+
 cleanup() {
   echo ""
   echo "Stopping services..."
@@ -24,12 +31,21 @@ uv run python -c "import en_core_web_sm" 2>/dev/null || uv run -- spacy download
 LLAMA_CPP_DIR="${LLAMA_CPP_DIR:-/Users/steve/dev/llama.cpp}"
 LLAMA_SERVER="$LLAMA_CPP_DIR/build/bin/llama-server"
 
+# Map LOG_LEVEL to llama-server -lv (0=error, 1=warn, 3=info, 4=debug)
+LV=3
+case "${LOG_LEVEL:-INFO}" in
+  ERROR|error)   LV="0" ;;
+  WARN|warn)     LV="1" ;;
+  DEBUG|debug)   LV="4" ;;
+esac
+
 # Start llama-server on port 8080
 MODEL_PATH="llama_api/models/bob.gguf"
 if [ -f "$MODEL_PATH" ] && [ -x "$LLAMA_SERVER" ]; then
-  echo "Starting llama-server (patched) on port 8080..."
+  echo "Starting llama-server on port 8080..."
   "$LLAMA_SERVER" \
     -m "$MODEL_PATH" \
+    -lv "$LV" \
     --host 127.0.0.1 \
     --port 8080 \
     --ctx-size 8192 \

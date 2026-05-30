@@ -62,7 +62,7 @@ PLATFORM_FACTS = """Machine Learning (the RPG) is a retro video game-themed lear
 - P: Open player profile
 - S: Sign up
 - L: Log in / Log out
-- R: Reset XP / progress
+- R: Reset XP / Reset Progress
 
 ## Player Tracking & Persistence
 - Login is completely optional, default user is Anon

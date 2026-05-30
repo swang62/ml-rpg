@@ -3,13 +3,17 @@ set -e
 
 HF_MODEL_REPO="${HF_MODEL_REPO:-scubastevve/ml-rpg-bob}"
 HF_MODEL_FILE="${HF_MODEL_FILE:-bob.gguf}"
+MODEL_LOCATION="${MODEL_PATH:-/app/models}/$HF_MODEL_FILE"
 
-MODEL_PATH="/app/models"
-MODEL_LOCATION="$MODEL_PATH/$HF_MODEL_FILE"
+LLAMA_SERVER_ARGS="---host 0.0.0.0 --port 8080 --sleep-idle-seconds 300 --ctx-size 8192 --cache-ram 0 --parallel 1 --threads 4"
 
-LLAMA_SERVER_ARGS="${LLAMA_SERVER_ARGS:---host 0.0.0.0 --port 8080 --sleep-idle-seconds 300 --ctx-size 8192 --cache-ram 0 --parallel 1 --threads 4}"
-
-mkdir -p "$(dirname "$MODEL_PATH")"
+# Map LOG_LEVEL to llama-server -lv (0=error, 1=warn, 3=info, 4=debug)
+LV=3
+case "${LOG_LEVEL:-INFO}" in
+    ERROR|error)   LV="0" ;;
+    WARN|warn)     LV="1" ;;
+    DEBUG|debug)   LV="4" ;;
+esac
 
 # Download model from HuggingFace if missing
 if [ ! -f "$MODEL_LOCATION" ]; then
@@ -18,4 +22,4 @@ if [ ! -f "$MODEL_LOCATION" ]; then
 fi
 
 echo "Starting llama-server with model: $HF_MODEL_FILE"
-exec /app/llama-server -m "$MODEL_PATH/$HF_MODEL_FILE" $LLAMA_SERVER_ARGS
+exec /app/llama-server -m "$MODEL_LOCATION" -lv "$LV" $LLAMA_SERVER_ARGS
