@@ -47,7 +47,7 @@ if [ -f "$MODEL_PATH" ] && [ -x "$LLAMA_SERVER" ]; then
     -lv "$LV" \
     --host 127.0.0.1 \
     --port 8080 \
-    --ctx-size 8192 \
+    --ctx-size 1024 \
     --parallel 1 \
     --threads 4 \
     --cache-ram 0 \
