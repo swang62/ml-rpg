@@ -7,9 +7,6 @@ MODEL_LOCATION="${MODEL_PATH:-/app/models}/$HF_MODEL_FILE"
 
 LLAMA_SERVER_ARGS="--host 0.0.0.0 --port 8080 --sleep-idle-seconds 300 --ctx-size 1024 --cache-ram 0 --parallel 1 --threads 4"
 
-# Clean up old sidecar files (no longer used)
-rm -f "$MODEL_LOCATION.etag" "${MODEL_LOCATION}.new"
-
 # Map LOG_LEVEL to llama-server -lv (0=error, 1=warn, 3=info, 4=debug)
 LV=3
 case "${LOG_LEVEL:-INFO}" in
@@ -17,44 +14,43 @@ case "${LOG_LEVEL:-INFO}" in
     WARN|warn)     LV="1" ;;
 esac
 
-# Get the repo's last commit date from the HF API
-# API returns format: 2026-05-30T16:30:27.000Z
-REMOTE_RAW=$(curl -s --connect-timeout 10 \
-    "https://huggingface.co/api/models/$HF_MODEL_REPO" 2>/dev/null | \
-    grep -o '"lastModified":"[^"]*"' | cut -d'"' -f4) || true
-
-# Reformat both dates identically for display and comparison
-REMOTE_DATE_FMT=""
-if [ -n "$REMOTE_RAW" ]; then
-    REMOTE_DATE_FMT=$(echo "$REMOTE_RAW" | sed 's/T/ /; s/\.000Z/ UTC/')
+# Fetch remote ETag (x-repo-commit = git commit SHA at HEAD)
+REMOTE_ETAG=""
+HF_HEADERS=$(curl -sI --connect-timeout 10 \
+    "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE" 2>/dev/null) || true
+if [ -n "$HF_HEADERS" ]; then
+    REMOTE_ETAG=$(echo "$HF_HEADERS" | grep -i "^x-repo-commit:" | sed 's/.*: //' | tr -d '\r\n')
 fi
 
-LOCAL_DATE_FMT=""
-if [ -f "$MODEL_LOCATION" ]; then
-    LOCAL_DATE_FMT=$(date -u -r "$MODEL_LOCATION" "+%Y-%m-%d %H:%M:%S UTC" 2>/dev/null || echo "unknown")
+# Read local ETag from sidecar file
+LOCAL_ETAG=""
+if [ -f "$MODEL_LOCATION.etag" ]; then
+    LOCAL_ETAG=$(cat "$MODEL_LOCATION.etag" | tr -d '\r\n')
 fi
 
-# Compare using lexicographic order (ISO 8601 dates sort correctly)
-# String format: YYYY-MM-DD HH:MM:SS UTC — identical for both
-if [ -z "$REMOTE_RAW" ] && [ -f "$MODEL_LOCATION" ]; then
-    echo "[model] Cannot reach HuggingFace — using local model ($LOCAL_DATE_FMT)"
-elif [ -z "$REMOTE_RAW" ] && [ ! -f "$MODEL_LOCATION" ]; then
+# Decide: download if no local model, or ETags don't match
+if [ -z "$REMOTE_ETAG" ] && [ -f "$MODEL_LOCATION" ]; then
+    echo "[model] Cannot reach HuggingFace — using local model ($LOCAL_ETAG)"
+elif [ -z "$REMOTE_ETAG" ] && [ ! -f "$MODEL_LOCATION" ]; then
     echo "[model] ERROR: Cannot reach HuggingFace and no local model found"
     exit 1
-elif [ -z "$LOCAL_DATE_FMT" ] || [ "$REMOTE_DATE_FMT" \> "$LOCAL_DATE_FMT" ]; then
-    echo "[model] Remote:  $REMOTE_DATE_FMT"
-    echo "[model] Local:   ${LOCAL_DATE_FMT:-none}"
-    if [ -z "$LOCAL_DATE_FMT" ]; then
-        echo "[model] No local model found — downloading $HF_MODEL_FILE ..."
-    else
-        echo "[model] Remote is newer — downloading update ..."
-    fi
-    curl -L -o "${MODEL_LOCATION}.new" \
+elif [ "$REMOTE_ETAG" = "$LOCAL_ETAG" ] && [ -f "$MODEL_LOCATION" ]; then
+    echo "[model] Up to date ($REMOTE_ETAG)"
+elif [ -n "$LOCAL_ETAG" ] && [ -f "$MODEL_LOCATION" ]; then
+    echo "[model] New version: $LOCAL_ETAG -> $REMOTE_ETAG"
+    echo "[model] Downloading update ..."
+    curl -L -# -o "${MODEL_LOCATION}.new" \
         "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE" && \
-        mv "${MODEL_LOCATION}.new" "$MODEL_LOCATION"
-    echo "[model] Download complete (dated $REMOTE_DATE_FMT)"
+        mv "${MODEL_LOCATION}.new" "$MODEL_LOCATION" && \
+        echo "$REMOTE_ETAG" > "$MODEL_LOCATION.etag"
+    echo "[model] Update complete ($REMOTE_ETAG)"
 else
-    echo "[model] Model is up to date (remote: $REMOTE_DATE_FMT, local: $LOCAL_DATE_FMT)"
+    echo "[model] Downloading $HF_MODEL_FILE ..."
+    curl -L -# -o "${MODEL_LOCATION}.new" \
+        "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE" && \
+        mv "${MODEL_LOCATION}.new" "$MODEL_LOCATION" && \
+        echo "$REMOTE_ETAG" > "$MODEL_LOCATION.etag"
+    echo "[model] Download complete ($REMOTE_ETAG)"
 fi
 
 echo "Starting llama-server with model: $HF_MODEL_FILE"
