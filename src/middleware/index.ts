@@ -8,11 +8,11 @@ if (!import.meta.env.VITE_SITE_URL) {
 
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
 
-function isStaticAsset(url: string): boolean {
+export function isStaticAsset(url: string): boolean {
   return STATIC_PREFIXES.some((prefix) => url.startsWith(prefix));
 }
 
-function isAuthEndpoint(url: string): boolean {
+export function isAuthEndpoint(url: string): boolean {
   const checkURL = url.toLowerCase();
   return checkURL.includes("login") || checkURL.includes("signup");
 }

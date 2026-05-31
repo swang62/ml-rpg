@@ -40,15 +40,6 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
-def format_chatml(messages: list[dict]) -> str:
-    parts = []
-    for msg in messages:
-        role = msg["role"]
-        content = msg["content"]
-        parts.append(f"<|im_start|>{role}\n{content}<|im_end|>")
-    return "\n".join(parts)
-
-
 def format_llama(messages: list[dict]) -> str:
     parts = []
     for msg in messages:
@@ -59,7 +50,6 @@ def format_llama(messages: list[dict]) -> str:
 
 
 FORMATTERS = {
-    "chatml": format_chatml,
     "llama": format_llama,
 }
 

@@ -9,7 +9,7 @@
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write . && pnpm typecheck",
     "test": "vitest run && pnpm test:python",
-    "test:python": "uv run --group dev pytest rag_api/__tests__ -v",
+    "test:python": "uv run --group dev pytest rag_api/__tests__ llama_api/__tests__ -v",
     "preview": "dotenv -- vinxi start",
     "prepare": "husky || true",
     "seed": "dotenv -- tsx ./scripts/seed-db.ts",

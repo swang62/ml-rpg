@@ -26,7 +26,7 @@ train = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["rag_api*"]
+include = ["rag_api*", "llama_api*"]
 
 [tool.ruff]
 target-version = "py313"

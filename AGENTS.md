@@ -9,6 +9,7 @@
 - **LanceDB** — Vector store for hybrid semantic/keyword RAG search
 - **MiniSearch** — In-memory full-text search for lesson pages
 - **LLama3.2 + Voyage AI** — Fine-tuned LLM and embeddings for the "Ask Bob" chat
+- **MLX**, **Ollama**, **llama.cpp** — Custom fine-tuning pipeline for Bob
 
 ## Commands
 
@@ -21,6 +22,7 @@ pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
 pnpm seed             # tsx ./scripts/seed-db.ts — re-seeds course.db from scraped lesson files
 pnpm build:docker     # docker compose up --build --force-recreate -d
+pnpm build:finetune   # full fine-tuning pipeline
 ```
 
 > Always use `uv sync --inexact` (never plain `uv sync`). spaCy models are installed as pip packages that aren't tracked by uv.lock, so a plain `uv sync` would remove them
@@ -45,6 +47,8 @@ src/
   routes/         File-system routing (SolidStart convention)
   server/         SSR functions organized by domain ('use server')
   utils/          Pure helpers
+llama_api/        Bob LLM fine-tuning pipeline
+rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 ```
 
 ## Code Style Preferences
@@ -76,16 +80,20 @@ src/
 - **Database:** Lazy init in `getDb()` — copies `empty.db` to `COURSE_DB_PATH` if missing, runs schema migrations.
 - **Vector store:** Lazy init — builds LanceDB index from all lessons via Voyage AI embeddings. Both are self-healing.
 
+### Fine-tuning Pipeline
+
+A custom `llama_api/` pipeline that generates synthetic training data via Ollama, fine-tunes a Llama 3.2 3B model with LoRA using mlx-lm on Apple Silicon, fuses adapters, converts to GGUF, and serves via a llama.cpp server container. 
+
 ### Key features
 
 - **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), 70k XP max.
 - **Keyword Search:** MiniSearch index (title + extracted text) built on first query in-memory. 
-- **RAG (Ask Bob):** Hybrid search (vector + BM25) using LanceDB → top chunks sent to custom fine-tuned llama3.2 model, rate-limting, input sanitizing, jailbreak detection via `llama-prompt-guard`.
-- **Rate limiting:** Per-IP sliding window middleware, most strict on auth, AI chat, API calls
+- **RAG (Ask Bob):** Hybrid search using LanceDB → FastAPI backend for top chunks retrieval → sent to custom fine-tuned llama3.2 model (llama.cpp), rate-limiting, input sanitizing, jailbreak detection via `llama-prompt-guard`.
+- **Rate limiting:** Per-IP sliding window middleware, most strict on auth, AI chat
 
 ### Testing
 
-Tests in `__tests__/` co-located with source. Run with `pnpm test` (`vitest run`). **Required for all new code.** Cover happy path, edge cases, and invalid/malicious inputs.
+Tests in `__tests__/` co-located with source. Run with `pnpm test`. **Required for all new code logic (pure functions only, integration and E2E tests only when asked).** Cover happy path, edge cases, and invalid/malicious inputs.
 
 ## Commits
 
