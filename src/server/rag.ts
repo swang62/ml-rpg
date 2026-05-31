@@ -113,7 +113,7 @@ export async function queryRAG({
         model: "bob",
         messages,
         temperature: 0.3,
-        max_tokens: 512,
+        max_tokens: 1024,
       }),
     },
   );
