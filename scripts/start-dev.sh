@@ -27,10 +27,6 @@ cd "$PROJECT_DIR"
 uv sync --inexact
 uv run python -c "import en_core_web_sm" 2>/dev/null || uv run -- spacy download en_core_web_sm
 
-# Find the patched llama-server (self-built, not Homebrew)
-LLAMA_CPP_DIR="${LLAMA_CPP_DIR:-/Users/steve/dev/llama.cpp}"
-LLAMA_SERVER="$LLAMA_CPP_DIR/build/bin/llama-server"
-
 # Map LOG_LEVEL to llama-server -lv (0=error, 1=warn, 3=info, 4=debug)
 LV=3
 case "${LOG_LEVEL:-INFO}" in
@@ -40,9 +36,9 @@ esac
 
 # Start llama-server on port 8080
 MODEL_PATH="llama_api/models/bob.gguf"
-if [ -f "$MODEL_PATH" ] && [ -x "$LLAMA_SERVER" ]; then
+if [ -f "$MODEL_PATH" ]; then
   echo "Starting llama-server on port 8080..."
-  "$LLAMA_SERVER" \
+  llama-server \
     -m "$MODEL_PATH" \
     -lv "$LV" \
     --host 127.0.0.1 \
