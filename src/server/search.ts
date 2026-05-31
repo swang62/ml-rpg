@@ -219,21 +219,37 @@ async function buildVectorIndex() {
   }
 
   console.log("[startup] Generating embeddings via Voyage AI...");
-  const apiKey = getEnv().VOYAGE_API_KEY;
-  if (!apiKey) {
-    console.error(
-      "[startup] VOYAGE_API_KEY required, cannot build vector store",
-    );
+  let tableData: ChunkData[];
+  try {
+    tableData = await embedLessonGroups(lessonGroups);
+  } catch (err) {
+    console.error("[startup] Failed to embed:", err);
     return;
   }
 
   const lancedb = await connect(getEnv().LANCEDB_PATH);
-  const tableData: ChunkData[] = [];
+  console.log("[startup] Writing to LanceDB...");
+  const table = await lancedb.createTable("chunks", tableData);
 
+  console.log("[startup] Creating FTS index for BM25...");
+  await table.createIndex("text", { config: Index.fts() });
+
+  const rowCount = await table.countRows();
+  console.log(`[startup] Done. ${rowCount} chunks indexed.`);
+
+  return true;
+}
+
+async function embedLessonGroups(groups: LessonGroup[]): Promise<ChunkData[]> {
+  const apiKey = getEnv().VOYAGE_API_KEY;
+  if (!apiKey) throw new Error("VOYAGE_API_KEY required");
+
+  const chunks: ChunkData[] = [];
   let embeddedCount = 0;
+  const totalChunks = groups.reduce((sum, g) => sum + g.texts.length, 0);
 
-  for (let gi = 0; gi < lessonGroups.length; gi += RAG_BATCH_SIZE) {
-    const batch = lessonGroups.slice(gi, gi + RAG_BATCH_SIZE);
+  for (let gi = 0; gi < groups.length; gi += RAG_BATCH_SIZE) {
+    const batch = groups.slice(gi, gi + RAG_BATCH_SIZE);
     const inputs = batch.map((g) => g.texts);
 
     const response = await fetch(
@@ -254,11 +270,11 @@ async function buildVectorIndex() {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error(
-        `[startup] Voyage API error (batch ${gi}): ${response.status} ${errText}`,
+      throw new Error(
+        `Voyage API error (batch ${gi}): ${response.status} ${errText}`,
       );
-      return;
     }
+
     const { data } = (await response.json()) as {
       data: { data: { embedding: number[] }[] }[];
     };
@@ -266,7 +282,7 @@ async function buildVectorIndex() {
     batch.forEach((group, idx) => {
       const returnBatch: { embedding: number[] }[] = data[idx].data;
       returnBatch.forEach((embeddingGroup, ci) => {
-        tableData.push({
+        chunks.push({
           id: `${group.courseSlug}/${group.categorySlug}/${group.sectionSlug}/${group.lessonSlug}-chunk-${ci}`,
           vector: embeddingGroup.embedding,
           text: group.texts[ci],
@@ -286,16 +302,7 @@ async function buildVectorIndex() {
     );
   }
 
-  console.log("[startup] Writing to LanceDB...");
-  const table = await lancedb.createTable("chunks", tableData);
-
-  console.log("[startup] Creating FTS index for BM25...");
-  await table.createIndex("text", { config: Index.fts() });
-
-  const rowCount = await table.countRows();
-  console.log(`[startup] Done. ${rowCount} chunks indexed.`);
-
-  return true;
+  return chunks;
 }
 
 async function getReadmeLessonGroup(
@@ -334,55 +341,11 @@ async function updateReadmeChunks(): Promise<void> {
     const group = await getReadmeLessonGroup(splitter);
     if (!group) return;
 
-    const apiKey = getEnv().VOYAGE_API_KEY;
-    if (!apiKey) {
-      console.error("[startup] VOYAGE_API_KEY required, cannot update README");
-      return;
-    }
-
     console.log(
       `[startup] Re-embedding README (${group.texts.length} chunks)...`,
     );
 
-    const response = await fetch(
-      "https://api.voyageai.com/v1/contextualizedembeddings",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: [group.texts],
-          model: RAG_EMBEDDING_MODEL,
-          input_type: "document",
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error(
-        `[startup] Voyage API error: ${response.status} ${errText}`,
-      );
-      return;
-    }
-
-    const { data } = (await response.json()) as {
-      data: { data: { embedding: number[] }[] }[];
-    };
-
-    const newChunks: ChunkData[] = data[0].data.map((item, ci) => ({
-      id: `${group.courseSlug}/${group.categorySlug}/${group.sectionSlug}/${group.lessonSlug}-chunk-${ci}`,
-      vector: item.embedding,
-      text: group.texts[ci],
-      lessonTitle: group.lessonTitle,
-      lessonUrl: group.lessonUrl,
-      categoryTitle: group.categoryTitle,
-      sectionTitle: group.sectionTitle,
-      courseTitle: group.courseTitle,
-      chunkIndex: ci,
-    }));
+    const newChunks = await embedLessonGroups([group]);
 
     const lancedb = await connect(getEnv().LANCEDB_PATH);
     const table = await lancedb.openTable("chunks");
