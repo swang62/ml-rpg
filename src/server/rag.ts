@@ -104,11 +104,9 @@ export async function queryRAG({
     { role: "user", content: sanitized },
   ];
 
-  const llmUrl = getEnv().LLAMA_API_URL;
-
-  let answer: string;
-  if (llmUrl) {
-    const response = await fetch(`${llmUrl}/v1/chat/completions`, {
+  const llmResponse = await fetch(
+    `${getEnv().LLAMA_API_URL}/v1/chat/completions`,
+    {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -117,23 +115,15 @@ export async function queryRAG({
         temperature: 0.3,
         max_tokens: 512,
       }),
-    });
-    if (!response.ok) {
-      throw new Error(`llama API error: ${response.status}`);
-    }
-    const llmData = (await response.json()) as {
-      choices: { message: { content: string } }[];
-    };
-    answer = (llmData.choices[0]?.message?.content ?? "").trim();
-  } else {
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages,
-      temperature: 0.3,
-      max_completion_tokens: 512,
-    });
-    answer = completion.choices[0]?.message?.content ?? "";
+    },
+  );
+  if (!llmResponse.ok) {
+    throw new Error(`llama API error: ${llmResponse.status}`);
   }
+  const llmData = (await llmResponse.json()) as {
+    choices: { message: { content: string } }[];
+  };
+  const answer = (llmData.choices[0]?.message?.content ?? "").trim();
 
   // Filter out sources
   const isShortReply = answer.length <= 60;
