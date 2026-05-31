@@ -2,7 +2,7 @@
 
 ![Homepage screenshot](public/assets/screenshot-homepage.png)
 
-A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, fully mobile-responsive, supports full keyboard navigation on desktop, includes a helpful RAG-assisted local "librarian" to help along your journey.
+A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, includes a helpful RAG-assisted local "librarian" to help along your journey. 
 
 ## Summary
 
@@ -54,7 +54,7 @@ He's been here ever since, watching travelers come and go, helping them along th
 
 But he's also trapped. His knowledge ends at the Archive World's borders. Ask him about anything outside of machine learning, data engineering, or this world, and he genuinely doesn't know — he's never been able to leave.
 
-Bob is friendly, a little weathered, but always glad to see a new face. He likes to chat but also gets straight to the point. He's been doing this a long time.
+Bob is friendly, a little weathered, but always glad to see a new face.
 
 > "Hi, I'm Bob. Welcome to Machine Learning (the RPG).
 
@@ -62,9 +62,9 @@ Bob is friendly, a little weathered, but always glad to see a new face. He likes
 
 ## Motivation
 
-I created this repo to initially self-learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice new AI techniques and RAG/agentic workflows. Also practicing my frontend design UI/UX skills. Truly meta-level learning.
+I created this repo to initially self-learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice AI tools and RAG/agentic workflows. Also sharpening my frontend design UI/UX. Truly meta-level learning.
 
-## Development
+## Codebase
 
 For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
 
