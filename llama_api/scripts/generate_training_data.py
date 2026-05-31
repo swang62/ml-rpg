@@ -139,7 +139,7 @@ def generate_batch(
                 "llm": {
                     "generation_kwargs": {
                         "temperature": 0.8,
-                        "max_new_tokens": 8192,
+                        "max_new_tokens": 50000,
                         "response_format": {"type": "json_object"},
                     }
                 }

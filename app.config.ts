@@ -7,5 +7,12 @@ export default defineConfig({
     experimental: {
       asyncContext: true,
     },
+    minify: false,
+    sourceMap: false,
+  },
+  vite: {
+    build: {
+      sourcemap: false,
+    },
   },
 });
