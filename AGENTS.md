@@ -8,7 +8,7 @@
 - **Sqlc** — Type-safe generator: raw `.sql` → typed TS query functions
 - **LanceDB** — Vector store for hybrid semantic/keyword RAG search
 - **MiniSearch** — In-memory full-text search for lesson pages
-- **Groq + Voyage AI** — LLM answers and embeddings for the "Ask Bob" chat
+- **LLama3.2 + Voyage AI** — Fine-tuned LLM and embeddings for the "Ask Bob" chat
 
 ## Commands
 
@@ -23,49 +23,41 @@ pnpm seed             # tsx ./scripts/seed-db.ts — re-seeds course.db from scr
 pnpm build:docker     # docker compose up --build --force-recreate -d
 ```
 
-> Always use `uv sync --inexact` (never plain `uv sync`). spaCy models are installed as pip packages that aren't tracked by uv.lock, so plain `uv sync` would remove them.
+> Always use `uv sync --inexact` (never plain `uv sync`). spaCy models are installed as pip packages that aren't tracked by uv.lock, so a plain `uv sync` would remove them
 
-> Never touch `pnpm dev` — the user controls it. HMR reflects edits instantly. Run `pnpm lint` before pushing.
+> Never touch `pnpm dev` — the user controls dev server. HMR reflects edits instantly.
 
 ## Folder Structure
 
 ```
-.data/            Persistent SQLite DB + LanceDB vector store (gitignored)
-.github/          CI pipeline (lint, test, build)
-.husky/           Pre-commit hooks (lint-staged)
-scripts/          One-off utilities for scraping/migrating data
-public/assets/    Static assets (SVG avatars, background images)
+.data/            Persistent databases
+.github/          CI pipeline
+.husky/           Pre-commit hooks
+scripts/          Scripts
+public/           Static assets
 src/
-  components/     Reusable UI components + co-located __tests__/
-  middleware/     SolidStart middleware (rate limiting, schema migrations, graceful shutdown)
+  components/     Reusable UI components
+  middleware/     SolidStart middleware
   db/
-    raw/          Source .sql files (schema + queries) — edit these, then pnpm generate:types
-    *_sql.ts      Auto-generated typed query functions — DO NOT EDIT
+    raw/          Source .sql files (schema + queries)
+    *_sql.ts      Auto-generated typed query functions
     empty.db      Pre-seeded course DB template, copied on first run
   routes/         File-system routing (SolidStart convention)
-  server/         SSR functions organized by domain (auth, course, mutations, rag, search, session, storage, etc.)
-  utils/          Pure helpers (env validation, XP math, search utils, keyboard, animation, localStorage)
+  server/         SSR functions organized by domain ('use server')
+  utils/          Pure helpers
 ```
 
-## Code Style
+## Code Style Preferences
 
-- Biome for linting + formatting (no ESLint/Prettier). Double quotes, 2-space indent.
-- Husky pre-commit runs `lint-staged` + `vitest related` automatically. No need to lint manually before `git commit`.
-- **All DB queries go through sqlc.** Write SQL in `src/db/raw/*.sql`, run `pnpm generate:types`.
-- **sqlc snake_case workaround:** Alias all snake_case columns to all-lowercase no-underscore (e.g., `user_password AS userpassword`, NOT `userPassword`). The TS plugin mangles underscores.
-- **SolidJS reactivity:** Never destructure signals/props. Access via `props.signal`. Pass with `<Child prop={signal()} />`.
-- Path alias: `~/*` → `./src/*`.
+- Biome for linting + formatting (no ESLint/Prettier).
+- Husky pre-commit runs `lint-staged` automatically. No need to lint manually before `git commit`.
+- All DB queries go through sqlc. Write ALL raw SQL in `src/db/raw/*.sql`, run `pnpm generate:types` and use generated functions only.
+- sqlc snake_case workaround: sqlc does not support better-sqlite with TS plugin. Alias all snake_case columns to all-lowercase no-underscore (e.g., `user_password AS userpassword`, NOT `userPassword`). The TS plugin mangles underscores and is broken currently.
+- SolidJS reactivity: Never destructure signals/props. Access via `props.signal`. Pass with `<Child prop={signal()} />`.
 
 ## Architecture
 
-### Data hierarchy
-
-```
-Course → Category → Section → Lesson
-```
-Rendered via dynamic routes at `/[course]/[category]/[section]/[lesson]`.
-
-### UI ↔ Internal naming
+### UI ↔ Custom internal naming
 
 | UI Label  | Internal |
 |-----------|----------|
@@ -76,44 +68,25 @@ Rendered via dynamic routes at `/[course]/[category]/[section]/[lesson]`.
 
 ### Persistence
 
-- **Signed-in users:** Progress in SQLite via `COURSE_DB_PATH`. Login is optional (cross-device saving only).
-- **Anonymous users:** Progress in `localStorage` under `read:{course}:{category}:{section}:{lesson}` keys, managed by a reactive `version` signal in `local-storage.ts`.
+- **Signed-in users:** Progress in SQLite via `COURSE_DB_PATH`. Login is optional.
+- **Anonymous users:** Progress in `localStorage`, reactivity is maintained through `version` bump signals in `local-storage.ts`.
 
-### Environment variables
-
-| Variable           | Required | Default               | Purpose                            |
-|--------------------|----------|-----------------------|------------------------------------|
-| `COURSE_DB_PATH`   | Yes      | —                     | SQLite database path               |
-| `LANCEDB_PATH`     | Yes      | —                     | LanceDB vector store directory     |
-| `SESSION_SECRET`   | Yes      | —                     | Session encryption key (min 32ch)  |
-| `VOYAGE_API_KEY`   | No*      | —                     | Embedding API for vector store     |
-| `GROQ_API_KEY`     | No*      | —                     | LLM API for RAG chat               |
-| `PORT`             | No       | `3333`                | Server port                        |
-| `HOST`             | No       | `0.0.0.0`             | Server host                        |
-
-*Optional — RAG and login simply disable if missing. Validated via zod on startup.
-
-### Startup
+### Startup / Warmup
 
 - **Database:** Lazy init in `getDb()` — copies `empty.db` to `COURSE_DB_PATH` if missing, runs schema migrations.
-- **Vector store:** Lazy init on first RAG query — builds LanceDB index from all lessons via Voyage AI embeddings. Both are self-healing.
+- **Vector store:** Lazy init — builds LanceDB index from all lessons via Voyage AI embeddings. Both are self-healing.
 
 ### Key features
 
-- **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), 70k XP max. Avatar border glows at higher tiers.
-- **Keyword Search:** MiniSearch index (title + extracted text) built on first query. Prefix + fuzzy matching (0.2), capped at 5 results.
-- **RAG (Ask Bob):** Hybrid search (vector + BM25) across LanceDB → top chunks sent to Groq (`llama-3.1-8b-instant`) with jailbreak detection via `llama-prompt-guard`. Max 3 chat history turns.
-- **Rate limiting:** Per-IP sliding window middleware. 200 req/60s general, 10 req/60s login. Returns 429 with standard headers.
-- **Graceful shutdown:** SIGTERM/SIGINT handlers flush WAL checkpoint, close DB, stop cleanup intervals.
+- **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), 70k XP max.
+- **Keyword Search:** MiniSearch index (title + extracted text) built on first query in-memory. 
+- **RAG (Ask Bob):** Hybrid search (vector + BM25) using LanceDB → top chunks sent to custom fine-tuned llama3.2 model, rate-limting, input sanitizing, jailbreak detection via `llama-prompt-guard`.
+- **Rate limiting:** Per-IP sliding window middleware, most strict on auth, AI chat, API calls
 
 ### Testing
 
 Tests in `__tests__/` co-located with source. Run with `pnpm test` (`vitest run`). **Required for all new code.** Cover happy path, edge cases, and invalid/malicious inputs.
 
-### Docker
-
-Two-stage Alpine build: `pnpm build` in stage 1, minimal runtime in stage 2. Non-root `www` user. Volume at `/app/.data` persists DB + vector store across restarts. `STOPSIGNAL SIGTERM` for graceful shutdown.
-
 ## Commits
 
-After each task (or logical group), commit before moving on. Semantic messages (`fix:`, `feat:`, `refactor:`).
+After each task or logical step, commit before moving on. Semantic messages (`fix:`, `feat:`, `refactor:`).
