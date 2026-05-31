@@ -137,8 +137,13 @@ interface LessonGroup {
 
 export async function ensureVectorStore(): Promise<void> {
   "use server";
-  if (_vectorStoreExists || existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`))
+  if (
+    _vectorStoreExists ||
+    existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`)
+  ) {
+    await updateReadmeChunks();
     return;
+  }
 
   _vectorStoreExists = await buildVectorIndex();
   return;
@@ -198,26 +203,10 @@ async function buildVectorIndex() {
     totalChunks += chunks.length;
   }
 
-  try {
-    const readmeText = readFileSync(COURSE_INFO_PATH, "utf-8");
-    const readmeChunks = await splitter.splitText(readmeText);
-    if (readmeChunks.length > 0) {
-      lessonGroups.push({
-        lessonTitle: "Site Information",
-        lessonUrl: GITHUB_REPO_URL,
-        categoryTitle: "About",
-        sectionTitle: "README",
-        courseTitle: "Machine Learning (the RPG)",
-        courseSlug: "ml-rpg",
-        categorySlug: "about",
-        sectionSlug: "readme",
-        lessonSlug: "site-information",
-        texts: readmeChunks,
-      });
-      totalChunks += readmeChunks.length;
-    }
-  } catch {
-    console.warn("[startup] Could not read README.md, skipping");
+  const readmeGroup = await getReadmeLessonGroup(splitter);
+  if (readmeGroup) {
+    lessonGroups.push(readmeGroup);
+    totalChunks += readmeGroup.texts.length;
   }
 
   console.log(
@@ -307,4 +296,108 @@ async function buildVectorIndex() {
   console.log(`[startup] Done. ${rowCount} chunks indexed.`);
 
   return true;
+}
+
+async function getReadmeLessonGroup(
+  splitter: RecursiveCharacterTextSplitter,
+): Promise<LessonGroup | null> {
+  try {
+    const readmeText = readFileSync(COURSE_INFO_PATH, "utf-8");
+    const readmeChunks = await splitter.splitText(readmeText);
+    if (readmeChunks.length === 0) return null;
+
+    return {
+      lessonTitle: "Site Information",
+      lessonUrl: GITHUB_REPO_URL,
+      categoryTitle: "About",
+      sectionTitle: "README",
+      courseTitle: "Machine Learning (the RPG)",
+      courseSlug: "ml-rpg",
+      categorySlug: "about",
+      sectionSlug: "readme",
+      lessonSlug: "site-information",
+      texts: readmeChunks,
+    };
+  } catch {
+    console.warn("[startup] Could not read README.md, skipping");
+    return null;
+  }
+}
+
+async function updateReadmeChunks(): Promise<void> {
+  try {
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: RAG_CHUNK_SIZE,
+      chunkOverlap: RAG_CHUNK_OVERLAP,
+    });
+
+    const group = await getReadmeLessonGroup(splitter);
+    if (!group) return;
+
+    const apiKey = getEnv().VOYAGE_API_KEY;
+    if (!apiKey) {
+      console.error("[startup] VOYAGE_API_KEY required, cannot update README");
+      return;
+    }
+
+    console.log(
+      `[startup] Re-embedding README (${group.texts.length} chunks)...`,
+    );
+
+    const response = await fetch(
+      "https://api.voyageai.com/v1/contextualizedembeddings",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: [group.texts],
+          model: RAG_EMBEDDING_MODEL,
+          input_type: "document",
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(
+        `[startup] Voyage API error: ${response.status} ${errText}`,
+      );
+      return;
+    }
+
+    const { data } = (await response.json()) as {
+      data: { data: { embedding: number[] }[] }[];
+    };
+
+    const newChunks: ChunkData[] = data[0].data.map((item, ci) => ({
+      id: `${group.courseSlug}/${group.categorySlug}/${group.sectionSlug}/${group.lessonSlug}-chunk-${ci}`,
+      vector: item.embedding,
+      text: group.texts[ci],
+      lessonTitle: group.lessonTitle,
+      lessonUrl: group.lessonUrl,
+      categoryTitle: group.categoryTitle,
+      sectionTitle: group.sectionTitle,
+      courseTitle: group.courseTitle,
+      chunkIndex: ci,
+    }));
+
+    const lancedb = await connect(getEnv().LANCEDB_PATH);
+    const table = await lancedb.openTable("chunks");
+
+    console.log("[startup] Removing old README chunks...");
+    await table.delete(`lessonUrl = '${GITHUB_REPO_URL}'`);
+
+    console.log(`[startup] Adding ${newChunks.length} new README chunks...`);
+    await table.add(newChunks);
+
+    console.log("[startup] Rebuilding FTS index...");
+    await table.createIndex("text", { config: Index.fts(), replace: true });
+
+    console.log("[startup] README chunks updated successfully");
+  } catch (err) {
+    console.error("[startup] Failed to update README chunks:", err);
+  }
 }
