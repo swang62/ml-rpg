@@ -1,5 +1,5 @@
 import { createMiddleware } from "@solidjs/start/middleware";
-import { checkRateLimit } from "~/server/rate-limiter";
+import { checkRateLimit } from "~/middleware/rate-limiter";
 import { RATE_LIMIT_LOGIN, RATE_LIMIT_REGULAR } from "~/utils/constants";
 
 if (!import.meta.env.VITE_SITE_URL) {

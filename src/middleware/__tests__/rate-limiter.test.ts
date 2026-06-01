@@ -3,7 +3,7 @@ import {
   checkRateLimit,
   getClientIP,
   resetRateLimitStore,
-} from "~/server/rate-limiter";
+} from "~/middleware/rate-limiter";
 
 const TEST_CONFIG = { maxAttempts: 3, windowMs: 60_000 };
 

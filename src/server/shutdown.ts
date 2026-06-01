@@ -10,7 +10,7 @@
  * (e.g., from middleware/index.ts) to register handlers on boot.
  */
 
-import { stopCleanupInterval } from "~/server/rate-limiter";
+import { stopCleanupInterval } from "~/middleware/rate-limiter";
 import { closeDb } from "~/server/storage";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
