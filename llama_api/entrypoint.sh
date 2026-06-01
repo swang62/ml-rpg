@@ -39,14 +39,14 @@ elif [ "$REMOTE_ETAG" = "$LOCAL_ETAG" ] && [ -f "$MODEL_LOCATION" ]; then
 elif [ -n "$LOCAL_ETAG" ] && [ -f "$MODEL_LOCATION" ]; then
     echo "[model] New version: $LOCAL_ETAG -> $REMOTE_ETAG"
     echo "[model] Downloading update ..."
-    curl -L -# -o "${MODEL_LOCATION}.new" \
+    curl -L -o "${MODEL_LOCATION}.new" \
         "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE" && \
         mv "${MODEL_LOCATION}.new" "$MODEL_LOCATION" && \
         echo "$REMOTE_ETAG" > "$MODEL_LOCATION.etag"
     echo "[model] Update complete ($REMOTE_ETAG)"
 else
     echo "[model] Downloading $HF_MODEL_FILE ..."
-    curl -L -# -o "${MODEL_LOCATION}.new" \
+    curl -L -o "${MODEL_LOCATION}.new" \
         "https://huggingface.co/$HF_MODEL_REPO/resolve/main/$HF_MODEL_FILE" && \
         mv "${MODEL_LOCATION}.new" "$MODEL_LOCATION" && \
         echo "$REMOTE_ETAG" > "$MODEL_LOCATION.etag"
