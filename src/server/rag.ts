@@ -3,7 +3,7 @@ import { GITHUB_REPO_URL, RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
 import type { ChunkResult, SourceResult } from "~/utils/types";
-import { checkRateLimit } from "./rate-limiter";
+import { checkRateLimit } from "../middleware/rate-limiter";
 import { getSession } from "./session";
 
 const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
