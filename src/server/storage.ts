@@ -27,18 +27,18 @@ export function getDb(): Database.Database {
 
   if (!_db) {
     ensureCourseDb();
+
     _db = new Database(env.COURSE_DB_PATH);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
+
+    ensureVectorStore();
   }
 
   // Run pending schema migrations on first access (idempotent)
   if (!_migrationsRun) {
-    _migrationsRun = true;
     runMigrations(_db);
-    ensureVectorStore().catch((err) =>
-      console.error("[storage] Vector store build failed:", err),
-    );
+    _migrationsRun = true;
   }
 
   return _db;
