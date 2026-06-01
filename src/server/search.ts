@@ -141,7 +141,7 @@ export async function ensureVectorStore(): Promise<void> {
     _vectorStoreExists ||
     existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`)
   ) {
-    await updateReadmeChunks();
+    updateReadmeChunks();
     return;
   }
 

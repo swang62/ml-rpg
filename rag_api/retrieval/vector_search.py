@@ -1,3 +1,5 @@
+import lancedb
+
 from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MAX_RAG_CHUNKS, MIN_RAG_SCORE
 from ..schemas import ChunkResult, SourceResult
 
@@ -8,8 +10,6 @@ def get_vectordb():
     global _table
     if _table is not None:
         return _table
-
-    import lancedb
 
     db = lancedb.connect(LANCEDB_PATH)
     _table = db.open_table("chunks")
