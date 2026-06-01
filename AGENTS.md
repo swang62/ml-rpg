@@ -78,6 +78,7 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 ### Middleware
 
 - **Middleware** (`src/middleware/`) runs in the Vinxi/h3 request pipeline, BEFORE SolidStart's request context is set up. It intercepts raw requests — rate limiting, header manipulation, asset filtering. `"use server"` functions CANNOT be called from middleware `onRequest` because `getRequestEvent()` (SolidStart's async context) isn't available there.
+- **Middleware is NOT Node.js.** It runs in Vinxi's h3 context, isolated from the SSR server. You cannot import Node.js native modules (`better-sqlite3`, `node:fs`, `crypto`, etc.) or `"use server"` functions from middleware. Any module that transitively imports native modules will break. This is not Express — frameworks like SolidStart/Nitro/Vinxi handle middleware differently.
 - **Rule of thumb:** Middleware for pre-request concerns (rate limiting, static assets, headers). Server functions for business logic that touches DB, ENVs, or protected resources.
 
 ### Startup / Warmup

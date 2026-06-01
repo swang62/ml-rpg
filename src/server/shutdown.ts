@@ -3,14 +3,9 @@
  *
  * Registers signal handlers for SIGTERM and SIGINT that:
  * 1. Close the SQLite database connection (WAL checkpoint)
- * 2. Stop the rate limiter cleanup interval
- * 3. Exit cleanly
- *
- * Import this module as a side-effect early in the server startup
- * (e.g., from middleware/index.ts) to register handlers on boot.
+ * 2. Exit cleanly
  */
 
-import { stopCleanupInterval } from "~/middleware/rate-limiter";
 import { closeDb } from "~/server/storage";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
@@ -32,10 +27,6 @@ async function handleShutdown(signal: string): Promise<void> {
   }, SHUTDOWN_TIMEOUT_MS);
 
   try {
-    // Stop periodic cleanup tasks first
-    stopCleanupInterval();
-    console.log("[shutdown] Cleanup interval stopped");
-
     // Close database connection (flushes WAL, releases file handles)
     closeDb();
 

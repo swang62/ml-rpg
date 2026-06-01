@@ -6,11 +6,11 @@
  * NOTE: No "use server" directive here — this module is only called from
  * server-side middleware, not from client code. The RPC wrapper would
  * fail outside a valid request context (e.g., API routes).
+ *
+ * IMPORTANT: This runs in Vinxi's h3 middleware context, NOT Node.js.
+ * Do NOT import any Node.js native modules (better-sqlite3, fs, etc.) or
+ * server modules (getDb, storage, etc.) from this file.
  */
-
-import { deleteStaleUsers } from "~/db/users_sql";
-import { getDb } from "~/server/storage";
-import { CLEANUP_INTERVAL_DAYS, SESSION_TIMEOUT_DAYS } from "~/utils/constants";
 
 interface RateLimitEntry {
   timestamps: number[];
@@ -18,40 +18,16 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-// Sweep stale entries and inactive users once a day
-const cleanupInterval = setInterval(
-  () => {
-    const now = Date.now();
-
-    // Clean rate limit store
-    for (const [key, entry] of store) {
-      entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
-      if (entry.timestamps.length === 0) {
-        store.delete(key);
-      }
+// Trim stale entries every 60 seconds
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of store) {
+    entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
+    if (entry.timestamps.length === 0) {
+      store.delete(key);
     }
-
-    // Sweep users inactive past MAX_SESSION_DAYS (ON DELETE CASCADE removes their progress)
-    try {
-      const db = getDb();
-      const staleUserCutoff = new Date(
-        Date.now() - SESSION_TIMEOUT_DAYS * 24 * 60 * 60 * 1000,
-      )
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
-      deleteStaleUsers(db, { lastVisitedAt: staleUserCutoff });
-    } catch (error) {
-      console.error("[cleanup] Failed to sweep stale users:", error);
-    }
-  },
-  60 * 60 * 24 * CLEANUP_INTERVAL_DAYS,
-).unref();
-
-/** Stop the cleanup interval timer (used during graceful shutdown). */
-export function stopCleanupInterval(): void {
-  clearInterval(cleanupInterval);
-}
+  }
+}, 60_000).unref();
 
 export interface RateLimitConfig {
   maxAttempts: number;

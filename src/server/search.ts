@@ -150,12 +150,12 @@ export async function ensureVectorStore(): Promise<void> {
 }
 
 async function buildVectorIndex() {
-  console.log("[startup] Vector store missing, rebuilding...");
-  console.log("[startup] Opening DB:", getEnv().COURSE_DB_PATH);
+  console.log("[lancedb] Vector store missing, rebuilding...");
+  console.log("[lancedb] Opening DB:", getEnv().COURSE_DB_PATH);
 
   const db = getDb();
 
-  console.log("[startup] Loading hierarchy data...");
+  console.log("[lancedb] Loading hierarchy data...");
   const courseRows = await getAllCourses(db);
   const courses = new Map(courseRows.map((r) => [r.id, r]));
   const categoryRows = await getAllCategories(db);
@@ -165,7 +165,7 @@ async function buildVectorIndex() {
 
   const lessonRows = await getSearchLessons(db);
 
-  console.log(`[startup] ${lessonRows.length} lessons found`);
+  console.log(`[lancedb] ${lessonRows.length} lessons found`);
 
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: RAG_CHUNK_SIZE,
@@ -210,32 +210,32 @@ async function buildVectorIndex() {
   }
 
   console.log(
-    `[startup] ${lessonGroups.length} lesson groups, ${totalChunks} total chunks`,
+    `[lancedb] ${lessonGroups.length} lesson groups, ${totalChunks} total chunks`,
   );
 
   if (lessonGroups.length === 0) {
-    console.log("[startup] No content to index. Skipping.");
+    console.log("[lancedb] No content to index. Skipping.");
     return;
   }
 
-  console.log("[startup] Generating embeddings via Voyage AI...");
+  console.log("[voyage] Generating embeddings via Voyage AI...");
   let tableData: ChunkData[];
   try {
     tableData = await embedLessonGroups(lessonGroups);
   } catch (err) {
-    console.error("[startup] Failed to embed:", err);
+    console.error("[lancedb] Failed to embed:", err);
     return;
   }
 
   const lancedb = await connect(getEnv().LANCEDB_PATH);
-  console.log("[startup] Writing to LanceDB...");
+  console.log("[lancedb] Writing to LanceDB...");
   const table = await lancedb.createTable("chunks", tableData);
 
-  console.log("[startup] Creating FTS index for BM25...");
+  console.log("[lancedb] Creating FTS index for BM25...");
   await table.createIndex("text", { config: Index.fts() });
 
   const rowCount = await table.countRows();
-  console.log(`[startup] Done. ${rowCount} chunks indexed.`);
+  console.log(`[lancedb] Done. ${rowCount} chunks indexed.`);
 
   return true;
 }
@@ -297,9 +297,7 @@ async function embedLessonGroups(groups: LessonGroup[]): Promise<ChunkData[]> {
     });
 
     embeddedCount += batch.reduce((sum, g) => sum + g.texts.length, 0);
-    console.log(
-      `[startup]   > embedded ${embeddedCount}/${totalChunks} chunks`,
-    );
+    console.log(`[voyage]   > embedded ${embeddedCount}/${totalChunks} chunks`);
   }
 
   return chunks;
@@ -326,7 +324,7 @@ async function getReadmeLessonGroup(
       texts: readmeChunks,
     };
   } catch {
-    console.warn("[startup] Could not read README.md, skipping");
+    console.warn("[lancedb] Could not read README.md, skipping");
     return null;
   }
 }
@@ -350,6 +348,6 @@ async function updateReadmeChunks(): Promise<void> {
     await table.add(newChunks);
     await table.createIndex("text", { config: Index.fts(), replace: true });
   } catch (err) {
-    console.error("[startup] Failed to update README chunks:", err);
+    console.error("[lancedb] Failed to update README chunks:", err);
   }
 }
