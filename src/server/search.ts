@@ -341,25 +341,18 @@ async function updateReadmeChunks(): Promise<void> {
     const group = await getReadmeLessonGroup(splitter);
     if (!group) return;
 
-    console.log(
-      `[startup] Re-embedding README (${group.texts.length} chunks)...`,
-    );
+    console.log(`[startup] Re-embedding README...`);
 
     const newChunks = await embedLessonGroups([group]);
 
     const lancedb = await connect(getEnv().LANCEDB_PATH);
     const table = await lancedb.openTable("chunks");
 
-    console.log("[startup] Removing old README chunks...");
     await table.delete(`lessonUrl = '${GITHUB_REPO_URL}'`);
-
-    console.log(`[startup] Adding ${newChunks.length} new README chunks...`);
     await table.add(newChunks);
-
-    console.log("[startup] Rebuilding FTS index...");
     await table.createIndex("text", { config: Index.fts(), replace: true });
 
-    console.log("[startup] README chunks updated successfully");
+    console.log("[startup] README updated.");
   } catch (err) {
     console.error("[startup] Failed to update README chunks:", err);
   }
