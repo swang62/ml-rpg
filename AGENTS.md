@@ -75,6 +75,11 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 - **Signed-in users:** Progress in SQLite via `COURSE_DB_PATH`. Login is optional.
 - **Anonymous users:** Progress in `localStorage`, reactivity is maintained through `version` bump signals in `local-storage.ts`.
 
+### Middleware
+
+- **Middleware** (`src/middleware/`) runs in the Vinxi/h3 request pipeline, BEFORE SolidStart's request context is set up. It intercepts raw requests — rate limiting, header manipulation, asset filtering. `"use server"` functions CANNOT be called from middleware `onRequest` because `getRequestEvent()` (SolidStart's async context) isn't available there.
+- **Rule of thumb:** Middleware for pre-request concerns (rate limiting, static assets, headers). Server functions for business logic that touches DB, ENVs, or protected resources.
+
 ### Startup / Warmup
 
 - **Database:** Lazy init in `getDb()` — copies `empty.db` to `COURSE_DB_PATH` if missing, runs schema migrations.

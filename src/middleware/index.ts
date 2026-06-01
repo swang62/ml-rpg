@@ -1,6 +1,6 @@
 import { createMiddleware } from "@solidjs/start/middleware";
 import { checkRateLimit } from "~/middleware/rate-limiter";
-import { RATE_LIMIT_LOGIN, RATE_LIMIT_REGULAR } from "~/utils/constants";
+import { RATE_LIMIT_REGULAR } from "~/utils/constants";
 
 if (!import.meta.env.VITE_SITE_URL) {
   throw new Error("VITE_SITE_URL is required.");
@@ -10,11 +10,6 @@ const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
 
 export function isStaticAsset(url: string): boolean {
   return STATIC_PREFIXES.some((prefix) => url.startsWith(prefix));
-}
-
-export function isAuthEndpoint(url: string): boolean {
-  const checkURL = url.toLowerCase();
-  return checkURL.includes("login") || checkURL.includes("signup");
 }
 
 export default createMiddleware({
@@ -33,11 +28,7 @@ export default createMiddleware({
       event.request.headers.get("x-real-ip") ??
       "unknown";
 
-    const config = isAuthEndpoint(pathname)
-      ? RATE_LIMIT_LOGIN
-      : RATE_LIMIT_REGULAR;
-
-    const result = checkRateLimit(`ratelimit:${ip}`, config);
+    const result = checkRateLimit(`ratelimit:${ip}`, RATE_LIMIT_REGULAR);
     if (!result.allowed) {
       const retryAfter = Math.ceil(result.resetMs / 1000);
       return new Response(
@@ -52,7 +43,7 @@ export default createMiddleware({
           headers: {
             "Content-Type": "application/json",
             "Retry-After": String(retryAfter),
-            "X-RateLimit-Limit": String(config.maxAttempts),
+            "X-RateLimit-Limit": String(RATE_LIMIT_REGULAR.maxAttempts),
             "X-RateLimit-Remaining": "0",
             "X-RateLimit-Reset": String(
               Math.ceil((Date.now() + result.resetMs) / 1000),
@@ -62,7 +53,10 @@ export default createMiddleware({
       );
     }
 
-    event.response.headers.set("X-RateLimit-Limit", String(config.maxAttempts));
+    event.response.headers.set(
+      "X-RateLimit-Limit",
+      String(RATE_LIMIT_REGULAR.maxAttempts),
+    );
     event.response.headers.set(
       "X-RateLimit-Remaining",
       String(result.remaining),

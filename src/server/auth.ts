@@ -1,4 +1,5 @@
 import { action, query, redirect } from "@solidjs/router";
+import { getRequestEvent } from "solid-js/web";
 import {
   getUserById,
   getUserByUserName,
@@ -6,8 +7,10 @@ import {
   updateLastVisitedAt,
   upsertUser,
 } from "~/db/users_sql";
+import { checkRateLimit } from "~/middleware/rate-limiter";
 import { checkPassword, createHash, getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
+import { RATE_LIMIT_LOGIN } from "~/utils/constants";
 import { validatePassword, validateUsername } from "~/utils/input-validation";
 
 export const querySession = query(async () => {
@@ -26,6 +29,13 @@ export const querySession = query(async () => {
 
 export const formLogin = action(async (formData: FormData) => {
   "use server";
+  const event = getRequestEvent();
+  const ip = event?.clientAddress ?? "unknown";
+  const rateResult = checkRateLimit(`ratelimit:auth:${ip}`, RATE_LIMIT_LOGIN);
+  if (!rateResult.allowed) {
+    throw new Error("Too many attempts. Try again later.");
+  }
+
   const rawUsername = formData.get("username");
   const rawPassword = formData.get("password");
 
@@ -52,6 +62,13 @@ export const formLogin = action(async (formData: FormData) => {
 
 export const formSignup = action(async (formData: FormData) => {
   "use server";
+  const event = getRequestEvent();
+  const ip = event?.clientAddress ?? "unknown";
+  const rateResult = checkRateLimit(`ratelimit:auth:${ip}`, RATE_LIMIT_LOGIN);
+  if (!rateResult.allowed) {
+    throw new Error("Too many attempts. Try again later.");
+  }
+
   const rawUsername = formData.get("username");
   const rawPassword = formData.get("password");
 
