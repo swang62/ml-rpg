@@ -1,9 +1,9 @@
 import { copyFileSync, existsSync, unlinkSync } from "node:fs";
 import Database from "better-sqlite3";
 import { runMigrations } from "~/middleware/migrations";
-import { ensureVectorStore } from "~/server/search";
 import { EMPTY_DB_PATH } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
+import { ensureVectorStore } from "./search";
 
 const env = getEnv();
 
