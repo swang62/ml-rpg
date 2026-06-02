@@ -1,14 +1,15 @@
 import asyncio
 import logging
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 
-from .config import LOG_LEVEL, MAX_TEXT_SIZE, MIN_TEXT_SIZE
+from .config import IDLE_TIMEOUT, LOG_LEVEL, MAX_TEXT_SIZE, MIN_TEXT_SIZE
 from .retrieval.embedding import close_client, embed_queries
-from .retrieval.keyword_extract import load_nlp_core
+from .retrieval.keyword_extract import unload_nlp_core
 from .retrieval.routes import retrieve
-from .retrieval.vector_search import hybrid_search
+from .retrieval.vector_search import close_vectordb, hybrid_search
 from .schemas import (
     BatchChunkResult,
     BatchQueryResult,
@@ -29,20 +30,43 @@ for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access"):
 
 logger = logging.getLogger("rag_api")
 
+_last_request_time = 0.0
+
+
+async def _idle_unloader():
+    global _last_request_time
+    while True:
+        await asyncio.sleep(IDLE_TIMEOUT)
+        idle = time.monotonic() - _last_request_time
+        if idle >= IDLE_TIMEOUT:
+            logger.info("idle for %.0fs — unloading resources...", idle)
+            unload_nlp_core()
+            close_vectordb()
+            await close_client()
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    logger.info("starting up — pre-warming spaCy")
-    try:
-        await asyncio.to_thread(load_nlp_core)
-    except Exception:
-        logger.exception("failed to load spaCy model — keyword extraction disabled")
-    logger.info("warm-up complete")
+    global _last_request_time
+    _last_request_time = time.monotonic()
+    unloader = asyncio.create_task(_idle_unloader())
+
     yield
+
+    unloader.cancel()
+    close_vectordb()
     await close_client()
 
 
 app = FastAPI(title="rag-api", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def track_request(request: Request, call_next):
+    if request.url.path != "/health":
+        global _last_request_time
+        _last_request_time = time.monotonic()
+    return await call_next(request)
 
 
 @app.get("/health")

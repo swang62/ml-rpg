@@ -1,7 +1,12 @@
 import csv
+import logging
 from pathlib import Path
 
+import spacy
+
 from ..config import MIN_TEXT_SIZE
+
+logger = logging.getLogger("rag_api")
 
 GREETINGS_PATH = Path(__file__).parent.parent / "data" / "greetings.csv"
 
@@ -13,8 +18,7 @@ def load_nlp_core():
     if _nlp is not None:
         return _nlp
 
-    import spacy
-
+    logger.info("initializing spaCy...")
     nlp = spacy.load("en_core_web_sm", disable=["parser", "lemmatizer", "ner"])
 
     greetings: list[str] = []
@@ -31,6 +35,11 @@ def load_nlp_core():
 
     _nlp = nlp
     return _nlp
+
+
+def unload_nlp_core():
+    global _nlp
+    _nlp = None
 
 
 def formatted(word: str) -> str:

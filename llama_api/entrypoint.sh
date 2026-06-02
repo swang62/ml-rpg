@@ -5,7 +5,8 @@ HF_MODEL_REPO="${HF_MODEL_REPO:-scubastevve/ml-rpg-bob}"
 HF_MODEL_FILE="${HF_MODEL_FILE:-bob.gguf}"
 MODEL_LOCATION="${MODEL_PATH:-/app/models}/$HF_MODEL_FILE"
 
-LLAMA_SERVER_ARGS="--host 0.0.0.0 --port 8080 --sleep-idle-seconds 300 --ctx-size 1024 --cache-ram 0 --parallel 1 --threads 4"
+IDLE_TIMEOUT="${IDLE_TIMEOUT:-300}"
+LLAMA_SERVER_ARGS="--host 0.0.0.0 --port 8080 --sleep-idle-seconds $IDLE_TIMEOUT --ctx-size 1024 --cache-ram 0 --parallel 1 --threads 4"
 
 # Map LOG_LEVEL to llama-server -lv (0=error, 1=warn, 3=info, 4=debug)
 LV=3

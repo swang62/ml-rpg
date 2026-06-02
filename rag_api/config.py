@@ -15,6 +15,7 @@ if not _lancedb_p.is_absolute():
 LANCEDB_PATH: str = str(_lancedb_p.resolve())
 VOYAGE_API_KEY: str = os.environ["VOYAGE_API_KEY"]
 LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "INFO").upper()
+IDLE_TIMEOUT: int = int(os.environ.get("IDLE_TIMEOUT", "300"))
 
 VOYAGE_MODEL = "voyage-context-3"
 VOYAGE_API_URL = "https://api.voyageai.com/v1/contextualizedembeddings"

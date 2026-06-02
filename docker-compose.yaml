@@ -43,6 +43,7 @@ services:
     volumes:
       - course-data:/app/.data
     environment:
+      - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
@@ -64,6 +65,7 @@ services:
     environment:
       - HF_MODEL_REPO=scubastevve/ml-rpg-bob
       - HF_MODEL_FILE=bob.gguf
+      - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     healthcheck:
       test: curl -f http://127.0.0.1:8080/health || exit 0

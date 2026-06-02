@@ -33,7 +33,7 @@ if [ -f "$MODEL_PATH" ]; then
     --parallel 1 \
     --threads 4 \
     --cache-ram 0 \
-    --sleep-idle-seconds 60 &
+    --sleep-idle-seconds "${IDLE_TIMEOUT:-60}" &
   PID_LLAMA=$!
 else
   echo "WARNING: Bob model not found at $MODEL_PATH — llama-server not started."

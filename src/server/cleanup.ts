@@ -5,9 +5,7 @@ import { deleteStaleUsers } from "~/db/users_sql";
 import { SESSION_TIMEOUT_DAYS } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 
-console.log(
-  "[cleanup] Registered daily stale user sweep (midnight, 90-day cutoff)",
-);
+console.log("[cleanup] Registered daily stale user sweep");
 
 // Guard: prevent double registration on HMR reloads
 const g = globalThis as { __sweepStarted?: boolean };
