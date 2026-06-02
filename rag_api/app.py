@@ -31,18 +31,20 @@ for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access"):
 logger = logging.getLogger("rag_api")
 
 _last_request_time = 0.0
+_unloaded = False
 
 
 async def _idle_unloader():
-    global _last_request_time
+    global _last_request_time, _unloaded
     while True:
         await asyncio.sleep(IDLE_TIMEOUT)
         idle = time.monotonic() - _last_request_time
-        if idle >= IDLE_TIMEOUT:
+        if idle >= IDLE_TIMEOUT and not _unloaded:
             logger.info("idle for %.0fs — unloading resources...", idle)
             unload_nlp_core()
             close_vectordb()
             await close_client()
+            _unloaded = True
 
 
 @asynccontextmanager
@@ -64,8 +66,9 @@ app = FastAPI(title="rag-api", lifespan=lifespan)
 @app.middleware("http")
 async def track_request(request: Request, call_next):
     if request.url.path != "/health":
-        global _last_request_time
+        global _last_request_time, _unloaded
         _last_request_time = time.monotonic()
+        _unloaded = False
     return await call_next(request)
 
 
