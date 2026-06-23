@@ -1,6 +1,13 @@
 import lancedb
+from lancedb.rerankers import VoyageAIReranker
 
-from ..config import GITHUB_REPO_URL, LANCEDB_PATH, MAX_RAG_CHUNKS, MIN_RAG_SCORE
+from ..config import (
+    GITHUB_REPO_URL,
+    INITIAL_RAG_CHUNKS,
+    LANCEDB_PATH,
+    MIN_RAG_SCORE,
+    RERANKED_CHUNKS,
+)
 from ..schemas import ChunkResult, SourceResult
 
 _table = None
@@ -23,11 +30,15 @@ def close_vectordb():
 
 def hybrid_search(embedding: list[float], query: str) -> list[dict]:
     vectordb = get_vectordb()
+
+    reranker = VoyageAIReranker(model_name="rerank-2")
+
     chunks = (
         vectordb.search(query_type="hybrid")
         .vector(embedding)
         .text(query)
-        .limit(MAX_RAG_CHUNKS)
+        .limit(INITIAL_RAG_CHUNKS)
+        .rerank(reranker=reranker)
         .to_list()
     )
 
@@ -35,7 +46,8 @@ def hybrid_search(embedding: list[float], query: str) -> list[dict]:
         if r.get("lessonUrl") == GITHUB_REPO_URL:
             return [r]
 
-    return [c for c in chunks if c.get("_relevance_score", 0.0) >= MIN_RAG_SCORE]
+    chunks = [c for c in chunks if c.get("_relevance_score", 0.0) >= MIN_RAG_SCORE]
+    return chunks[:RERANKED_CHUNKS]
 
 
 def to_chunk_result(raw: dict) -> ChunkResult:
