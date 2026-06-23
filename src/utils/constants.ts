@@ -1,8 +1,8 @@
 export const SITE_NAME = "Machine Learning (the RPG)";
 export const SITE_DESCRIPTION =
   "A gamified RPG-style learning platform for Machine Learning and Data Engineering. Level up, complete quests, and master ML concepts.";
-export const SITE_URL = import.meta.env.VITE_SITE_URL;
-export const SITE_ID = import.meta.env.VITE_SITE_ID;
+export const SITE_URL = import.meta.env?.VITE_SITE_URL;
+export const SITE_ID = import.meta.env?.VITE_SITE_ID;
 
 export const GITHUB_REPO_URL = "https://github.com/swang62/ml-rpg";
 export const EXTERNAL_URL = "https://www.systemoverflow.com/learn";
