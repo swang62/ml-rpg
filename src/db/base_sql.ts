@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS lesson (
   course_id INTEGER NOT NULL REFERENCES course(id),
   category_id INTEGER NOT NULL REFERENCES category(id),
   section_id INTEGER NOT NULL REFERENCES section(id),
+  keywords TEXT NOT NULL DEFAULT '[]',
   UNIQUE(course_id, category_id, section_id, slug)
 )`;
 

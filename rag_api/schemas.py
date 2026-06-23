@@ -42,3 +42,11 @@ class RetrieveResponse(BaseModel):
     chunks: list[ChunkResult]
     sources: list[SourceResult]
     keywords: list[str]
+
+
+class EnrichRequest(BaseModel):
+    texts: list[str]
+
+
+class EnrichResponse(BaseModel):
+    results: list[list[str]]

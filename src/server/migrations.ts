@@ -56,6 +56,11 @@ const MIGRATIONS: Migration[] = [
       ALTER TABLE progress_new RENAME TO progress;
     `,
   },
+  {
+    version: 2,
+    description: "add keywords column to lesson for TF-IDF enrichment",
+    sql: "ALTER TABLE lesson ADD COLUMN keywords TEXT NOT NULL DEFAULT '[]';",
+  },
 ];
 
 export async function runMigrations(db: Database): Promise<void> {

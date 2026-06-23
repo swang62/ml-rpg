@@ -147,6 +147,7 @@ describe("Course hierarchy CRUD", () => {
       courseId,
       categoryId,
       sectionId,
+      keywords: "[]",
     });
     expect(created).not.toBeNull();
     lessonId = created!.id;
@@ -193,6 +194,7 @@ describe("Course hierarchy CRUD", () => {
       courseId,
       categoryId: cat2!.id,
       sectionId: sec2!.id,
+      keywords: "[]",
     });
 
     const lessons = await getLessonsBySection(db, { sectionId: sec2!.id });

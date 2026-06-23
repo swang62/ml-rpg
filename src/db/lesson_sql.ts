@@ -95,7 +95,7 @@ export async function getAllLessons(database: Database): Promise<GetAllLessonsRo
 }
 
 export const createLessonQuery = `-- name: CreateLesson :one
-INSERT INTO lesson (slug, title, html, lesson_order, course_id, category_id, section_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`;
+INSERT INTO lesson (slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`;
 
 export interface CreateLessonArgs {
     slug: any;
@@ -105,6 +105,7 @@ export interface CreateLessonArgs {
     courseId: any;
     categoryId: any;
     sectionId: any;
+    keywords: any;
 }
 
 export interface CreateLessonRow {
@@ -113,7 +114,7 @@ export interface CreateLessonRow {
 
 export async function createLesson(database: Database, args: CreateLessonArgs): Promise<CreateLessonRow | null> {
     const stmt = database.prepare(createLessonQuery);
-    const result = await stmt.get(args.slug, args.title, args.html, args.lessonOrder, args.courseId, args.categoryId, args.sectionId);
+    const result = await stmt.get(args.slug, args.title, args.html, args.lessonOrder, args.courseId, args.categoryId, args.sectionId, args.keywords);
     if (result == undefined) {
         return null;
     }
@@ -178,12 +179,13 @@ export async function updateLessonHtml(database: Database, args: UpdateLessonHtm
 }
 
 export const getSearchLessonsQuery = `-- name: GetSearchLessons :many
-SELECT lesson.slug, lesson.title, lesson.html, lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.html != ''`;
+SELECT lesson.slug, lesson.title, lesson.html, lesson.keywords, lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson WHERE lesson.html != ''`;
 
 export interface GetSearchLessonsRow {
     slug: any;
     title: any;
     html: any;
+    keywords: any;
     sectionid: any;
     categoryid: any;
     courseid: any;
