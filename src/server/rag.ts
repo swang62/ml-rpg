@@ -104,26 +104,36 @@ export async function queryRAG({
     { role: "user", content: sanitized },
   ];
 
-  const llmResponse = await fetch(
-    `${getEnv().LLAMA_API_URL}/v1/chat/completions`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "bob",
-        messages,
-        temperature: 0.3,
-        max_tokens: 1024,
-      }),
-    },
-  );
-  if (!llmResponse.ok) {
-    throw new Error(`llama API error: ${llmResponse.status}`);
+  let answer: string;
+  try {
+    const llmResponse = await fetch(
+      `${getEnv().LLAMA_API_URL}/v1/chat/completions`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "bob",
+          messages,
+          temperature: 0.3,
+          max_tokens: 1024,
+        }),
+      },
+    );
+    if (!llmResponse.ok) {
+      throw new Error(`${llmResponse.status} ${llmResponse.statusText}`);
+    }
+    const llmData = (await llmResponse.json()) as {
+      choices: { message: { content: string } }[];
+    };
+    answer = (llmData.choices[0]?.message?.content ?? "").trim();
+  } catch (err) {
+    console.error("[rag] llama API failed:", err);
+    return {
+      answer: "Sorry, Bob is taking a nap right now.",
+      sources: [],
+      keywords,
+    };
   }
-  const llmData = (await llmResponse.json()) as {
-    choices: { message: { content: string } }[];
-  };
-  const answer = (llmData.choices[0]?.message?.content ?? "").trim();
 
   // Filter out sources
   const isShortReply = answer.length <= 60;

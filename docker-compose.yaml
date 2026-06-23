@@ -25,7 +25,7 @@ services:
       - PORT=${PORT:-3333}
       - SESSION_SECRET=${SESSION_SECRET}
       - RAG_API_URL=http://rag-api:8000
-      - LLAMA_API_URL=http://llama-api:8080
+      - LLAMA_API_URL=http://llama-api:9876
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-3333}/api/health || exit 1
@@ -68,7 +68,7 @@ services:
       - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     healthcheck:
-      test: curl -f http://127.0.0.1:8080/health || exit 0
+      test: curl -f http://127.0.0.1:9876/health || exit 0
       interval: 1m
       timeout: 5s
       start_period: 30s

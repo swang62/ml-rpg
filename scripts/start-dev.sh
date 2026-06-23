@@ -21,14 +21,14 @@ echo "Starting rag API on port 8000 (debugger on 5678)..."
 uv run python -m debugpy --listen 0.0.0.0:5678 -m uvicorn rag_api.app:app --host 0.0.0.0 --port 8000 &
 PID_RAG=$!
 
-# Start llama-server on port 8080
+# Start llama-server on port 9876
 MODEL_PATH="llama_api/models/bob.gguf"
 if [ -f "$MODEL_PATH" ]; then
-  echo "Starting llama-server on port 8080..."
+  echo "Starting llama-server on port 9876..."
   llama-server \
     -m "$MODEL_PATH" \
     --host 127.0.0.1 \
-    --port 8080 \
+    --port 9876 \
     --ctx-size 1024 \
     --parallel 1 \
     --threads 4 \

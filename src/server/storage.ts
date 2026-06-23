@@ -1,5 +1,15 @@
-import { copyFileSync, existsSync, unlinkSync } from "node:fs";
+import { copyFileSync, existsSync, rmSync, unlinkSync } from "node:fs";
 import Database from "better-sqlite3";
+import {
+  getCategorySyncRows,
+  getCourseSyncRows,
+  getLessonSyncRows,
+  getSectionSyncRows,
+  upsertCategory,
+  upsertCourse,
+  upsertLesson,
+  upsertSection,
+} from "~/db/sync_sql";
 import { runMigrations } from "~/server/migrations";
 import { EMPTY_DB_PATH } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
@@ -22,6 +32,81 @@ function ensureCourseDb(): void {
   );
 }
 
+async function syncCourseContent(): Promise<void> {
+  if (!existsSync(EMPTY_DB_PATH) || !_db) return;
+
+  const fresh = new Database(EMPTY_DB_PATH, { readonly: true });
+  try {
+    const freshCount = (
+      fresh.prepare("SELECT COUNT(*) AS c FROM lesson").get() as { c: number }
+    ).c;
+    const existingCount = (
+      _db.prepare("SELECT COUNT(*) AS c FROM lesson").get() as { c: number }
+    ).c;
+
+    if (freshCount === existingCount) {
+      // Column might not exist pre-V2 — safe check
+      try {
+        const row = _db
+          .prepare(
+            "SELECT COUNT(*) AS c FROM lesson WHERE keywords IS NOT NULL AND keywords != '[]'",
+          )
+          .get() as { c: number } | undefined;
+        if (row && row.c > 0) return;
+      } catch {
+        return;
+      }
+    }
+
+    console.log(`[storage] Syncing ${freshCount} lessons from source db...`);
+    // _db.pragma("foreign_keys = OFF");
+    // _db.exec("DELETE FROM lesson");
+    // _db.exec("DELETE FROM section");
+    // _db.exec("DELETE FROM category");
+    // _db.exec("DELETE FROM course");
+    // _db.pragma("foreign_keys = ON");
+
+    for (const row of await getCourseSyncRows(fresh))
+      await upsertCourse(_db, row);
+    for (const row of await getCategorySyncRows(fresh))
+      await upsertCategory(_db, {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        courseId: row.courseid,
+      });
+    for (const row of await getSectionSyncRows(fresh))
+      await upsertSection(_db, {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        courseId: row.courseid,
+        categoryId: row.categoryid,
+      });
+    for (const row of await getLessonSyncRows(fresh))
+      await upsertLesson(_db, {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        html: row.html,
+        lessonOrder: row.lessonorder,
+        courseId: row.courseid,
+        categoryId: row.categoryid,
+        sectionId: row.sectionid,
+        keywords: row.keywords,
+      });
+
+    // Teardown LanceDB — ensureVectorStore chained via .then() will rebuild
+    const lancedbPath = getEnv().LANCEDB_PATH;
+    if (existsSync(lancedbPath)) {
+      rmSync(lancedbPath, { recursive: true, force: true });
+      console.log("[storage] LanceDB deleted for rebuild");
+    }
+  } finally {
+    fresh.close();
+  }
+}
+
 export function getDb(): Database.Database {
   "use server";
 
@@ -32,12 +117,14 @@ export function getDb(): Database.Database {
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
 
-    ensureVectorStore();
-  }
+    if (!_migrationsRun) {
+      runMigrations(_db);
+      _migrationsRun = true;
+    }
 
-  if (!_migrationsRun) {
-    runMigrations(_db);
-    _migrationsRun = true;
+    // Chain sync → ensureVectorStore. If sync doesn't run (no staleness),
+    // the Promise resolves immediately and ensureVectorStore fires.
+    syncCourseContent().then(() => ensureVectorStore());
   }
 
   return _db;

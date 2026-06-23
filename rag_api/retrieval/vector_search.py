@@ -1,3 +1,5 @@
+import logging
+
 import lancedb
 from lancedb.rerankers import VoyageAIReranker
 
@@ -28,19 +30,31 @@ def close_vectordb():
     _table = None
 
 
+logger = logging.getLogger("rag_api")
+
+
 def hybrid_search(embedding: list[float], query: str) -> list[dict]:
     vectordb = get_vectordb()
 
-    reranker = VoyageAIReranker(model_name="rerank-2")
-
-    chunks = (
-        vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
-        .vector(embedding)
-        .text(query)
-        .limit(INITIAL_RAG_CHUNKS)
-        .rerank(reranker=reranker)
-        .to_list()
-    )
+    try:
+        reranker = VoyageAIReranker(model_name="rerank-2.5-lite")
+        chunks = (
+            vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
+            .vector(embedding)
+            .text(query)
+            .limit(INITIAL_RAG_CHUNKS)
+            .rerank(reranker=reranker)
+            .to_list()
+        )
+    except Exception:
+        logger.exception("VoyageAI reranker failed, falling back to hybrid results")
+        chunks = (
+            vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
+            .vector(embedding)
+            .text(query)
+            .limit(INITIAL_RAG_CHUNKS)
+            .to_list()
+        )
 
     query_lower = query.lower()
     for chunk in chunks:
