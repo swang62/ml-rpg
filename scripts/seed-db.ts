@@ -1,3 +1,4 @@
+import { type ChildProcess, spawn } from "node:child_process";
 import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import de from "../.data/scraped/courses/data-engineering";
@@ -17,6 +18,7 @@ import { deleteAllProgress } from "../src/db/progress_sql";
 import { createSection, deleteAllSections } from "../src/db/section_sql";
 import { deleteAllUsers } from "../src/db/users_sql";
 import { EMPTY_DB_PATH } from "../src/utils/constants";
+import { extractRelevantText } from "../src/utils/search-utils";
 
 const COURSES: Record<
   string,
@@ -59,7 +61,8 @@ async function main() {
   await deleteAllCourses(db);
   db.pragma("foreign_keys = ON");
 
-  await seedCourseData(db);
+  const keywordMap = await enrichKeywords();
+  await seedCourseData(db, keywordMap);
 
   // Validation, lesson files must match imported unique lessons
   const lessonFiles = countLessonFiles();
@@ -146,7 +149,10 @@ function extractHtmlFromTsx(filePath: string): string {
   return html;
 }
 
-async function seedCourseData(db: Database.Database) {
+async function seedCourseData(
+  db: Database.Database,
+  keywordMap: Map<string, string[]>,
+) {
   console.log("Extracting HTML from scraped files...");
   const rendered = extractAllLessonHtml();
 
@@ -179,6 +185,7 @@ async function seedCourseData(db: Database.Database) {
 
         for (const lesson of sub.lessons) {
           const html = rendered.get(lesson.lesson) ?? "";
+          const keywords = JSON.stringify(keywordMap.get(lesson.lesson) ?? []);
           await createLesson(db, {
             slug: lesson.lesson,
             title: lesson.title,
@@ -187,10 +194,88 @@ async function seedCourseData(db: Database.Database) {
             courseId: cid,
             categoryId: catid,
             sectionId: sid,
+            keywords,
           });
         }
       }
     }
+  }
+}
+
+async function enrichKeywords(): Promise<Map<string, string[]>> {
+  const port = process.env.RAG_ENRICH_PORT ?? "8001";
+
+  const rendered = extractAllLessonHtml();
+  const slugs = [...rendered.keys()];
+  const texts = slugs.map((slug) =>
+    extractRelevantText(rendered.get(slug) ?? ""),
+  );
+
+  console.log(`Enriching ${texts.length} lessons with TF-IDF keywords...`);
+  console.log("Starting RAG API on port", port);
+
+  const proc: ChildProcess = spawn(
+    "uv",
+    [
+      "run",
+      "uvicorn",
+      "rag_api.app:app",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      port,
+    ],
+    {
+      stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, LOG_LEVEL: "WARNING" },
+    },
+  );
+
+  proc.stderr?.on("data", () => {});
+
+  // Wait for health
+  const baseUrl = `http://127.0.0.1:${port}`;
+  let ready = false;
+  for (let i = 0; i < 30; i++) {
+    try {
+      const res = await fetch(`${baseUrl}/health`);
+      if (res.ok) {
+        ready = true;
+        break;
+      }
+    } catch {
+      // not ready yet
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  if (!ready) {
+    proc.kill();
+    console.warn("Keyword enrichment skipped: RAG API not available");
+    return new Map();
+  }
+
+  try {
+    const res = await fetch(`${baseUrl}/extract_keywords`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    if (!res.ok) {
+      throw new Error(`Status ${res.status}`);
+    }
+    const { results } = (await res.json()) as { results: string[][] };
+    const map = new Map<string, string[]>();
+    for (let i = 0; i < slugs.length; i++) {
+      map.set(slugs[i], results[i] ?? []);
+    }
+    console.log(`Enriched ${map.size} lessons with keywords`);
+    return map;
+  } catch (err) {
+    console.warn("Keyword enrichment skipped:", err);
+    return new Map();
+  } finally {
+    proc.kill();
   }
 }
 

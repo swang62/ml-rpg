@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 import time
 from contextlib import asynccontextmanager
 
@@ -13,6 +14,8 @@ from .retrieval.vector_search import close_vectordb, hybrid_search
 from .schemas import (
     BatchChunkResult,
     BatchQueryResult,
+    EnrichRequest,
+    EnrichResponse,
     RetrieveBatchRequest,
     RetrieveBatchResponse,
     RetrieveRequest,
@@ -130,3 +133,42 @@ async def retrieve_chunks_batch(req: RetrieveBatchRequest) -> RetrieveBatchRespo
 
     logger.info("  -> %d queries returned %d total chunks", len(results), total_chunks)
     return RetrieveBatchResponse(results=results)
+
+
+_vectorizer_cache: tuple | None = None
+
+
+@app.post("/extract_keywords", response_model=EnrichResponse)
+async def extract_keywords_batch(req: EnrichRequest):
+    global _vectorizer_cache
+
+    cleaned = []
+    for html in req.texts:
+        text = re.sub(r"<[^>]+>", " ", html)
+        text = re.sub(r"\s+", " ", text).strip()
+        cleaned.append(text)
+
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
+    if _vectorizer_cache is None:
+        vectorizer = TfidfVectorizer(
+            stop_words="english",
+            token_pattern=r"(?u)\b[a-zA-Z]{5,}\b",
+            max_df=0.85,
+            min_df=2,
+        )
+        tfidf = vectorizer.fit_transform(cleaned)
+        features = vectorizer.get_feature_names_out()
+        _vectorizer_cache = (vectorizer, features)
+    else:
+        vectorizer, features = _vectorizer_cache
+        tfidf = vectorizer.transform(cleaned)
+
+    results = []
+    for i in range(len(cleaned)):
+        row = tfidf[i].toarray().flatten()
+        top = row.argsort()[-5:][::-1]
+        keywords = [features[idx] for idx in top if row[idx] > 0]
+        results.append(keywords)
+
+    return EnrichResponse(results=results)
