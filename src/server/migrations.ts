@@ -85,7 +85,18 @@ export async function runMigrations(db: Database): Promise<void> {
     db.exec("PRAGMA foreign_keys = OFF");
 
     const runMigration = db.transaction(() => {
-      db.exec(migration.sql);
+      try {
+        db.exec(migration.sql);
+      } catch (err: unknown) {
+        const msg = String(err);
+        if (msg.includes("duplicate column")) {
+          console.log(
+            `[db] V${migration.version} column already exists, skipping`,
+          );
+        } else {
+          throw err;
+        }
+      }
       applyMigration(db, {
         version: migration.version,
         description: migration.description,

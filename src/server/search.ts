@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import fs from "node:fs/promises";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import MiniSearch, { type SearchResult } from "minisearch";
@@ -138,27 +139,65 @@ interface LessonGroup {
 
 export async function ensureVectorStore(): Promise<void> {
   "use server";
-  if (
-    _vectorStoreExists ||
-    existsSync(`${getEnv().LANCEDB_PATH}/chunks.lance`)
-  ) {
+  const lancedbPath = getEnv().LANCEDB_PATH;
+  const tablePath = `${lancedbPath}/chunks.lance`;
+
+  const needsRebuild = await checkNeedsRebuild(lancedbPath);
+  if (needsRebuild) {
+    console.log("[lancedb] Schema version mismatch, rebuilding...");
+    await fs.rm(lancedbPath, { recursive: true, force: true });
+    _vectorStoreExists = undefined;
+  }
+
+  if (_vectorStoreExists || existsSync(tablePath)) {
+    if (existsSync(tablePath)) {
+      await ensureFtsIndexes();
+    }
     updateReadmeChunks();
     return;
   }
 
   _vectorStoreExists = await buildVectorIndex();
   if (_vectorStoreExists) {
-    await addFtsIndexes();
+    await ensureFtsIndexes();
   }
   return;
 }
 
-async function addFtsIndexes(): Promise<void> {
+const LANCEDB_SCHEMA_VERSION = 2;
+
+async function checkNeedsRebuild(lancedbPath: string): Promise<boolean> {
+  try {
+    const tablePath = `${lancedbPath}/chunks.lance`;
+    if (!existsSync(tablePath)) return false;
+
+    const lancedb = await connect(lancedbPath);
+    const table = await lancedb.openTable("chunks");
+    const schema = await table.schema;
+
+    // Check if the schema has all expected columns
+    const fieldNames = schema.fields.map((f) => f.name);
+    const expected = ["id", "vector", "text", "lessonTitle", "tags"];
+    const missing = expected.filter((name) => !fieldNames.includes(name));
+    if (missing.length > 0) {
+      console.log(
+        `[lancedb] Missing columns (${missing.join(", ")}), needs rebuild`,
+      );
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+async function ensureFtsIndexes(): Promise<void> {
   try {
     const lancedb = await connect(getEnv().LANCEDB_PATH);
     const table = await lancedb.openTable("chunks");
     await table.createIndex("lessonTitle", { config: Index.fts() });
-    console.log("[lancedb] FTS index on lessonTitle created");
+    console.log("[lancedb] FTS index on lessonTitle ready");
   } catch (err) {
     console.warn("[lancedb] Could not create FTS index on lessonTitle:", err);
   }
