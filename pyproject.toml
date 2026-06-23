@@ -7,11 +7,12 @@ dependencies = [
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.30.0",
   "spacy>=3.8.0",
-  "lancedb>=0.18.0",
+  "lancedb>=0.29.0",
   "httpx>=0.28.0",
   "python-dotenv>=1.1.0",
   "pip>=26.1.1",
   "pydantic>=2.0.0",
+  "scikit-learn>=1.9.0",
 ]
 
 [dependency-groups]
