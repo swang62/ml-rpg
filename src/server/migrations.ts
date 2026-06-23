@@ -11,23 +11,17 @@
  * 3. Run `pnpm generate:types` if you added new named queries.
  */
 
-import { existsSync, rmSync } from "node:fs";
 import type { Database } from "better-sqlite3";
-import DatabaseConstructor from "better-sqlite3";
 import {
   applyMigration,
   ensureSchemaVersionTable,
   getCurrentSchemaVersion,
 } from "~/db/base_sql";
-import { EMPTY_DB_PATH } from "~/utils/constants";
-import { getEnv } from "~/utils/env";
-import { invalidateVectorStore } from "./search";
 
 interface Migration {
   version: number;
   description: string;
   sql: string;
-  run?: (db: Database) => void;
 }
 
 // Ordered list of schema migrations. Each must be idempotent (use IF NOT EXISTS / IF EXISTS).
@@ -64,54 +58,8 @@ const MIGRATIONS: Migration[] = [
   },
   {
     version: 2,
-    description:
-      "add keywords column to lesson, sync content from empty.db, rebuild LanceDB",
+    description: "add keywords column to lesson for TF-IDF enrichment",
     sql: "ALTER TABLE lesson ADD COLUMN keywords TEXT NOT NULL DEFAULT '[]';",
-    run(db: Database) {
-      // Upsert course content from fresh empty.db, preserving users + progress
-      if (!existsSync(EMPTY_DB_PATH)) return;
-
-      const fresh = new DatabaseConstructor(EMPTY_DB_PATH, { readonly: true });
-      try {
-        db.exec("PRAGMA foreign_keys = OFF");
-
-        for (const table of [
-          "course",
-          "category",
-          "section",
-          "lesson",
-        ] as const) {
-          const rows = fresh.prepare(`SELECT * FROM ${table}`).all() as Record<
-            string,
-            unknown
-          >[];
-          if (rows.length === 0) continue;
-
-          const columns = Object.keys(rows[0]);
-          const placeholders = columns.map(() => "?").join(", ");
-          const colList = columns.join(", ");
-          const upsert = db.prepare(
-            `INSERT OR REPLACE INTO ${table} (${colList}) VALUES (${placeholders})`,
-          );
-
-          for (const row of rows) {
-            upsert.run(...columns.map((c) => row[c]));
-          }
-        }
-
-        db.exec("PRAGMA foreign_keys = ON");
-      } finally {
-        fresh.close();
-      }
-
-      // Rebuild LanceDB to include tags column
-      const lancedbPath = getEnv().LANCEDB_PATH;
-      if (existsSync(lancedbPath)) {
-        rmSync(lancedbPath, { recursive: true, force: true });
-        console.log("[db] Deleted LanceDB for rebuild with tags");
-      }
-      invalidateVectorStore();
-    },
   },
 ];
 
@@ -136,7 +84,7 @@ export async function runMigrations(db: Database): Promise<void> {
     // FOREIGN KEY constraint errors during migration.
     db.exec("PRAGMA foreign_keys = OFF");
 
-    const sqlMigration = db.transaction(() => {
+    const runMigration = db.transaction(() => {
       db.exec(migration.sql);
       applyMigration(db, {
         version: migration.version,
@@ -144,14 +92,9 @@ export async function runMigrations(db: Database): Promise<void> {
       });
     });
 
-    sqlMigration();
+    runMigration();
+
     db.exec("PRAGMA foreign_keys = ON");
-
-    // Run post-sql hook (data sync, file operations, etc.)
-    if (migration.run) {
-      migration.run(db);
-    }
-
     console.log(`[db] V${migration.version} successfully applied`);
   }
 

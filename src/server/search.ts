@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import MiniSearch, { type SearchResult } from "minisearch";
@@ -136,14 +136,25 @@ interface LessonGroup {
   tags: string[];
 }
 
-export function invalidateVectorStore(): void {
-  _vectorStoreExists = undefined;
-}
+const LANCEDB_VERSION = 2;
+const VERSION_FILE = "lancedb.txt";
 
 export async function ensureVectorStore(): Promise<void> {
   "use server";
   const lancedbPath = getEnv().LANCEDB_PATH;
   const tablePath = `${lancedbPath}/chunks.lance`;
+  const versionPath = `${lancedbPath}/${VERSION_FILE}`;
+
+  // Check if existing LanceDB is outdated
+  if (!_vectorStoreExists && existsSync(tablePath)) {
+    const currentVersion = readVersionFile(versionPath);
+    if (currentVersion !== LANCEDB_VERSION) {
+      console.log(
+        `[lancedb] Version ${currentVersion} != ${LANCEDB_VERSION}, rebuilding...`,
+      );
+      rmSync(lancedbPath, { recursive: true, force: true });
+    }
+  }
 
   if (_vectorStoreExists || existsSync(tablePath)) {
     if (existsSync(tablePath)) {
@@ -155,9 +166,18 @@ export async function ensureVectorStore(): Promise<void> {
 
   _vectorStoreExists = await buildVectorIndex();
   if (_vectorStoreExists) {
+    writeFileSync(versionPath, String(LANCEDB_VERSION), "utf-8");
     await ensureFtsIndexes();
   }
   return;
+}
+
+function readVersionFile(path: string): number {
+  try {
+    return Number(readFileSync(path, "utf-8").trim());
+  } catch {
+    return 0;
+  }
 }
 
 async function ensureFtsIndexes(): Promise<void> {
