@@ -133,6 +133,7 @@ interface LessonGroup {
   sectionSlug: string;
   lessonSlug: string;
   texts: string[];
+  tags: string[];
 }
 
 export async function ensureVectorStore(): Promise<void> {
@@ -146,7 +147,21 @@ export async function ensureVectorStore(): Promise<void> {
   }
 
   _vectorStoreExists = await buildVectorIndex();
+  if (_vectorStoreExists) {
+    await addFtsIndexes();
+  }
   return;
+}
+
+async function addFtsIndexes(): Promise<void> {
+  try {
+    const lancedb = await connect(getEnv().LANCEDB_PATH);
+    const table = await lancedb.openTable("chunks");
+    await table.createIndex("lessonTitle", { config: Index.fts() });
+    console.log("[lancedb] FTS index on lessonTitle created");
+  } catch (err) {
+    console.warn("[lancedb] Could not create FTS index on lessonTitle:", err);
+  }
 }
 
 async function buildVectorIndex() {
@@ -188,6 +203,14 @@ async function buildVectorIndex() {
     const chunks = await splitter.splitText(plainText);
     if (chunks.length === 0) continue;
 
+    const tags: string[] = (() => {
+      try {
+        return JSON.parse(lesson.keywords ?? "[]");
+      } catch {
+        return [];
+      }
+    })();
+
     lessonGroups.push({
       lessonTitle: lesson.title,
       lessonUrl,
@@ -199,6 +222,7 @@ async function buildVectorIndex() {
       sectionSlug: section.slug,
       lessonSlug: lesson.slug,
       texts: chunks,
+      tags,
     });
     totalChunks += chunks.length;
   }
@@ -292,6 +316,7 @@ async function embedLessonGroups(groups: LessonGroup[]): Promise<ChunkData[]> {
           sectionTitle: group.sectionTitle,
           courseTitle: group.courseTitle,
           chunkIndex: ci,
+          tags: group.tags,
         });
       });
     });
@@ -322,6 +347,7 @@ async function getReadmeLessonGroup(
       sectionSlug: "readme",
       lessonSlug: "site-information",
       texts: readmeChunks,
+      tags: [],
     };
   } catch {
     console.warn("[lancedb] Could not read README.md, skipping");

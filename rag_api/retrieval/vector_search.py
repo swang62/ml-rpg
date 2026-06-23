@@ -34,13 +34,19 @@ def hybrid_search(embedding: list[float], query: str) -> list[dict]:
     reranker = VoyageAIReranker(model_name="rerank-2")
 
     chunks = (
-        vectordb.search(query_type="hybrid")
+        vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
         .vector(embedding)
         .text(query)
         .limit(INITIAL_RAG_CHUNKS)
         .rerank(reranker=reranker)
         .to_list()
     )
+
+    query_lower = query.lower()
+    for chunk in chunks:
+        tags = chunk.get("tags") or []
+        if any(tag.lower() in query_lower for tag in tags):
+            chunk["_relevance_score"] = chunk.get("_relevance_score", 0.0) * 1.15
 
     for r in chunks:
         if r.get("lessonUrl") == GITHUB_REPO_URL:

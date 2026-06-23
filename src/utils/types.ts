@@ -8,6 +8,7 @@ export type ChunkData = {
   sectionTitle: string;
   courseTitle: string;
   chunkIndex: number;
+  tags: string[];
 };
 
 export type ChunkResult = {
