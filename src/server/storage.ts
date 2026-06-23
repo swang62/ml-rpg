@@ -32,14 +32,12 @@ export function getDb(): Database.Database {
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
 
-    // Run pending schema migrations before vector store init
-    // so migrations can invalidate/rebuild LanceDB if needed
-    if (!_migrationsRun) {
-      runMigrations(_db);
-      _migrationsRun = true;
-    }
-
     ensureVectorStore();
+  }
+
+  if (!_migrationsRun) {
+    runMigrations(_db);
+    _migrationsRun = true;
   }
 
   return _db;
