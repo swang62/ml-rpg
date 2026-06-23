@@ -1,5 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import MiniSearch, { type SearchResult } from "minisearch";
@@ -137,19 +136,14 @@ interface LessonGroup {
   tags: string[];
 }
 
-const LANCEDB_VERSION_FILE = "lancedb.version";
-const LANCEDB_SCHEMA_VERSION = "2";
+export function invalidateVectorStore(): void {
+  _vectorStoreExists = undefined;
+}
 
 export async function ensureVectorStore(): Promise<void> {
   "use server";
   const lancedbPath = getEnv().LANCEDB_PATH;
   const tablePath = `${lancedbPath}/chunks.lance`;
-
-  if (needsRebuild(lancedbPath)) {
-    console.log("[lancedb] Schema version mismatch, rebuilding...");
-    await rm(lancedbPath, { recursive: true, force: true });
-    _vectorStoreExists = undefined;
-  }
 
   if (_vectorStoreExists || existsSync(tablePath)) {
     if (existsSync(tablePath)) {
@@ -161,37 +155,9 @@ export async function ensureVectorStore(): Promise<void> {
 
   _vectorStoreExists = await buildVectorIndex();
   if (_vectorStoreExists) {
-    writeVersionFile(lancedbPath);
     await ensureFtsIndexes();
   }
   return;
-}
-
-function needsRebuild(lancedbPath: string): boolean {
-  const versionPath = `${lancedbPath}/${LANCEDB_VERSION_FILE}`;
-  if (!existsSync(versionPath)) {
-    // No version file means pre-keyword era
-    const tableExists = existsSync(`${lancedbPath}/chunks.lance`);
-    if (tableExists) {
-      console.log("[lancedb] Old schema detected, needs rebuild");
-      return true;
-    }
-    return false;
-  }
-  const storedVersion = readFileSync(versionPath, "utf-8").trim();
-  return storedVersion !== LANCEDB_SCHEMA_VERSION;
-}
-
-function writeVersionFile(lancedbPath: string): void {
-  try {
-    writeFileSync(
-      `${lancedbPath}/${LANCEDB_VERSION_FILE}`,
-      LANCEDB_SCHEMA_VERSION,
-      "utf-8",
-    );
-  } catch {
-    // non-critical
-  }
 }
 
 async function ensureFtsIndexes(): Promise<void> {
