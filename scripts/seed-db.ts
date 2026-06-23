@@ -59,6 +59,8 @@ async function main() {
   await deleteAllSections(db);
   await deleteAllCategories(db);
   await deleteAllCourses(db);
+  // Reset auto-increment so IDs start from 1 — keeps INSERT OR REPLACE matching in sync
+  db.exec("DELETE FROM sqlite_sequence");
   db.pragma("foreign_keys = ON");
 
   const keywordMap = await enrichKeywords();

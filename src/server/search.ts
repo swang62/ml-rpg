@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import MiniSearch, { type SearchResult } from "minisearch";
@@ -49,6 +49,8 @@ export async function searchLessons(searchQuery: string) {
     fuzzy: 0.2,
     boost: {
       lessonTitle: 1.2,
+      categoryTitle: 1.1,
+      sectionTitle: 1.05,
     },
   });
 
@@ -98,7 +100,7 @@ async function buildIndex() {
   }
 
   const engine = new MiniSearch<SearchDocument>({
-    fields: ["lessonTitle", "lessonContent"],
+    fields: ["lessonTitle", "lessonContent", "categoryTitle", "sectionTitle"],
     storeFields: [
       "lessonTitle",
       "lessonContent",
@@ -136,47 +138,22 @@ interface LessonGroup {
   tags: string[];
 }
 
-const LANCEDB_VERSION = 2;
-const VERSION_FILE = "lancedb.txt";
-
 export async function ensureVectorStore(): Promise<void> {
   "use server";
-  const lancedbPath = getEnv().LANCEDB_PATH;
-  const tablePath = `${lancedbPath}/chunks.lance`;
-  const versionPath = `${lancedbPath}/${VERSION_FILE}`;
-
-  // Check if existing LanceDB is outdated
-  if (!_vectorStoreExists && existsSync(tablePath)) {
-    const currentVersion = readVersionFile(versionPath);
-    if (currentVersion !== LANCEDB_VERSION) {
-      console.log(
-        `[lancedb] Version ${currentVersion} != ${LANCEDB_VERSION}, rebuilding...`,
-      );
-      rmSync(lancedbPath, { recursive: true, force: true });
-    }
-  }
+  const tablePath = `${getEnv().LANCEDB_PATH}/chunks.lance`;
 
   if (_vectorStoreExists || existsSync(tablePath)) {
+    await updateReadmeChunks();
     if (existsSync(tablePath)) {
       await ensureFtsIndexes();
+      _vectorStoreExists = true;
     }
-    updateReadmeChunks();
     return;
   }
 
-  _vectorStoreExists = await buildVectorIndex();
+  _vectorStoreExists = await buildVectorDB();
   if (_vectorStoreExists) {
-    writeFileSync(versionPath, String(LANCEDB_VERSION), "utf-8");
     await ensureFtsIndexes();
-  }
-  return;
-}
-
-function readVersionFile(path: string): number {
-  try {
-    return Number(readFileSync(path, "utf-8").trim());
-  } catch {
-    return 0;
   }
 }
 
@@ -185,19 +162,18 @@ async function ensureFtsIndexes(): Promise<void> {
     const lancedb = await connect(getEnv().LANCEDB_PATH);
     const table = await lancedb.openTable("chunks");
     await table.createIndex("lessonTitle", { config: Index.fts() });
-    console.log("[lancedb] FTS index on lessonTitle ready");
   } catch (err) {
     console.warn("[lancedb] Could not create FTS index on lessonTitle:", err);
   }
 }
 
-async function buildVectorIndex() {
+async function buildVectorDB() {
   console.log("[lancedb] Vector store missing, rebuilding...");
   console.log("[lancedb] Opening DB:", getEnv().COURSE_DB_PATH);
 
   const db = getDb();
 
-  console.log("[lancedb] Loading hierarchy data...");
+  console.log("[lancedb] Loading course data...");
   const courseRows = await getAllCourses(db);
   const courses = new Map(courseRows.map((r) => [r.id, r]));
   const categoryRows = await getAllCategories(db);
@@ -238,6 +214,14 @@ async function buildVectorIndex() {
       }
     })();
 
+    for (const token of extractWordTokens(
+      `${category.title} ${section.title}`,
+    )) {
+      if (!STOP_WORDS.has(token) && !tags.includes(token)) {
+        tags.push(token);
+      }
+    }
+
     lessonGroups.push({
       lessonTitle: lesson.title,
       lessonUrl,
@@ -265,7 +249,7 @@ async function buildVectorIndex() {
   );
 
   if (lessonGroups.length === 0) {
-    console.log("[lancedb] No content to index. Skipping.");
+    console.log("[lancedb] No content to index, error!");
     return;
   }
 
@@ -353,6 +337,11 @@ async function embedLessonGroups(groups: LessonGroup[]): Promise<ChunkData[]> {
   }
 
   return chunks;
+}
+
+function extractWordTokens(text: string): string[] {
+  const matches = text.toLowerCase().match(/\b[a-z]{5,}\b/g);
+  return [...new Set(matches ?? [])];
 }
 
 async function getReadmeLessonGroup(

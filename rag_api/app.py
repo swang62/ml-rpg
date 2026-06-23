@@ -28,7 +28,7 @@ logging.basicConfig(
 )
 
 # Silence noisy libraries — only show their WARNING+ messages
-for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access"):
+for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access", "voyageai"):
     logging.getLogger(lib).setLevel(logging.WARNING)
 
 logger = logging.getLogger("rag_api")
@@ -88,6 +88,7 @@ async def retrieve_endpoint(req: RetrieveRequest) -> RetrieveResponse:
 
         return await retrieve(req.query)
     except Exception:
+        logger.exception("retrieve failed for query: %r", req.query[:MAX_TEXT_SIZE])
         raise HTTPException(status_code=500, detail="internal error")
 
 
