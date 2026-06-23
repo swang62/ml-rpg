@@ -56,11 +56,6 @@ const MIGRATIONS: Migration[] = [
       ALTER TABLE progress_new RENAME TO progress;
     `,
   },
-  {
-    version: 2,
-    description: "add keywords column to lesson for TF-IDF enrichment",
-    sql: "ALTER TABLE lesson ADD COLUMN keywords TEXT NOT NULL DEFAULT '[]';",
-  },
 ];
 
 export async function runMigrations(db: Database): Promise<void> {
@@ -85,18 +80,7 @@ export async function runMigrations(db: Database): Promise<void> {
     db.exec("PRAGMA foreign_keys = OFF");
 
     const runMigration = db.transaction(() => {
-      try {
-        db.exec(migration.sql);
-      } catch (err: unknown) {
-        const msg = String(err);
-        if (msg.includes("duplicate column")) {
-          console.log(
-            `[db] V${migration.version} column already exists, skipping`,
-          );
-        } else {
-          throw err;
-        }
-      }
+      db.exec(migration.sql);
       applyMigration(db, {
         version: migration.version,
         description: migration.description,
