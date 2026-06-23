@@ -10,16 +10,105 @@ const env = getEnv();
 let _db: Database.Database | null = null;
 let _migrationsRun: boolean;
 
+const COURSE_TABLES = ["course", "category", "section", "lesson"] as const;
+
 function ensureCourseDb(): void {
-  if (existsSync(env.COURSE_DB_PATH)) return;
-  if (existsSync(EMPTY_DB_PATH)) {
-    copyFileSync(EMPTY_DB_PATH, env.COURSE_DB_PATH);
-    console.log(`[storage] Initialized ${env.COURSE_DB_PATH}`);
+  if (!existsSync(env.COURSE_DB_PATH)) {
+    if (existsSync(EMPTY_DB_PATH)) {
+      copyFileSync(EMPTY_DB_PATH, env.COURSE_DB_PATH);
+      console.log(`[storage] Initialized ${env.COURSE_DB_PATH}`);
+    } else {
+      throw new Error(
+        `[storage] Neither ${env.COURSE_DB_PATH} nor ${EMPTY_DB_PATH} found, critical error`,
+      );
+    }
     return;
   }
-  throw new Error(
-    `[storage] Neither ${env.COURSE_DB_PATH} nor ${EMPTY_DB_PATH} found, critical error`,
-  );
+
+  // Course DB exists: sync course tables from fresh empty.db, preserve users + progress
+  if (!existsSync(EMPTY_DB_PATH)) return;
+
+  const fresh = new Database(EMPTY_DB_PATH, { readonly: true });
+  try {
+    const existing = new Database(env.COURSE_DB_PATH);
+    try {
+      existing.exec("PRAGMA foreign_keys = OFF");
+
+      // Check if course tables in existing DB need updating (compare last-modified)
+      // by checking if lesson count differs between fresh and existing
+      const freshLessonCount = (
+        fresh.prepare("SELECT COUNT(*) AS c FROM lesson").get() as { c: number }
+      ).c;
+      const existingLessonCount = (
+        existing.prepare("SELECT COUNT(*) AS c FROM lesson").get() as {
+          c: number;
+        }
+      ).c;
+
+      if (freshLessonCount !== existingLessonCount) {
+        console.log(
+          `[storage] Syncing course tables (${freshLessonCount} lessons vs ${existingLessonCount})...`,
+        );
+
+        existing.exec("PRAGMA foreign_keys = OFF");
+
+        // Sync schemas first: add any columns present in fresh but missing in existing
+        for (const table of COURSE_TABLES) {
+          const freshCols = fresh
+            .prepare(`PRAGMA table_info(${table})`)
+            .all() as {
+            name: string;
+            type: string;
+            notnull: number;
+            dflt_value: string | null;
+          }[];
+          const existingCols = existing
+            .prepare(`PRAGMA table_info(${table})`)
+            .all() as { name: string }[];
+          const existingNames = new Set(existingCols.map((c) => c.name));
+
+          for (const col of freshCols) {
+            if (existingNames.has(col.name)) continue;
+            const def =
+              col.dflt_value !== null ? ` DEFAULT ${col.dflt_value}` : "";
+            const nn = col.notnull ? " NOT NULL" : "";
+            existing.exec(
+              `ALTER TABLE ${table} ADD COLUMN ${col.name} ${col.type}${nn}${def}`,
+            );
+            console.log(`[storage] Added column ${table}.${col.name}`);
+          }
+        }
+
+        // Replace course content rows using INSERT OR REPLACE with same IDs.
+        // Lesson IDs are deterministic across seeds, so progress FK refs stay valid.
+        for (const table of COURSE_TABLES) {
+          const rows = fresh.prepare(`SELECT * FROM ${table}`).all() as Record<
+            string,
+            unknown
+          >[];
+          if (rows.length === 0) continue;
+
+          const columns = Object.keys(rows[0]);
+          const placeholders = columns.map(() => "?").join(", ");
+          const colList = columns.join(", ");
+          const upsert = existing.prepare(
+            `INSERT OR REPLACE INTO ${table} (${colList}) VALUES (${placeholders})`,
+          );
+
+          for (const row of rows) {
+            upsert.run(...columns.map((c) => row[c]));
+          }
+        }
+
+        existing.exec("PRAGMA foreign_keys = ON");
+        console.log(`[storage] Synced course content, progress preserved`);
+      }
+    } finally {
+      existing.close();
+    }
+  } finally {
+    fresh.close();
+  }
 }
 
 export function getDb(): Database.Database {
@@ -36,6 +125,7 @@ export function getDb(): Database.Database {
   }
 
   // Run pending schema migrations on first access (idempotent)
+  // (only needed for users/progress table changes now)
   if (!_migrationsRun) {
     runMigrations(_db);
     _migrationsRun = true;

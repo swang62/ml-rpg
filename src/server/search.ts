@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import fs from "node:fs/promises";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import MiniSearch, { type SearchResult } from "minisearch";
@@ -137,15 +137,17 @@ interface LessonGroup {
   tags: string[];
 }
 
+const LANCEDB_VERSION_FILE = "lancedb.version";
+const LANCEDB_SCHEMA_VERSION = "2";
+
 export async function ensureVectorStore(): Promise<void> {
   "use server";
   const lancedbPath = getEnv().LANCEDB_PATH;
   const tablePath = `${lancedbPath}/chunks.lance`;
 
-  const needsRebuild = await checkNeedsRebuild(lancedbPath);
-  if (needsRebuild) {
+  if (needsRebuild(lancedbPath)) {
     console.log("[lancedb] Schema version mismatch, rebuilding...");
-    await fs.rm(lancedbPath, { recursive: true, force: true });
+    await rm(lancedbPath, { recursive: true, force: true });
     _vectorStoreExists = undefined;
   }
 
@@ -159,36 +161,36 @@ export async function ensureVectorStore(): Promise<void> {
 
   _vectorStoreExists = await buildVectorIndex();
   if (_vectorStoreExists) {
+    writeVersionFile(lancedbPath);
     await ensureFtsIndexes();
   }
   return;
 }
 
-const LANCEDB_SCHEMA_VERSION = 2;
-
-async function checkNeedsRebuild(lancedbPath: string): Promise<boolean> {
-  try {
-    const tablePath = `${lancedbPath}/chunks.lance`;
-    if (!existsSync(tablePath)) return false;
-
-    const lancedb = await connect(lancedbPath);
-    const table = await lancedb.openTable("chunks");
-    const schema = await table.schema;
-
-    // Check if the schema has all expected columns
-    const fieldNames = schema.fields.map((f) => f.name);
-    const expected = ["id", "vector", "text", "lessonTitle", "tags"];
-    const missing = expected.filter((name) => !fieldNames.includes(name));
-    if (missing.length > 0) {
-      console.log(
-        `[lancedb] Missing columns (${missing.join(", ")}), needs rebuild`,
-      );
+function needsRebuild(lancedbPath: string): boolean {
+  const versionPath = `${lancedbPath}/${LANCEDB_VERSION_FILE}`;
+  if (!existsSync(versionPath)) {
+    // No version file means pre-keyword era
+    const tableExists = existsSync(`${lancedbPath}/chunks.lance`);
+    if (tableExists) {
+      console.log("[lancedb] Old schema detected, needs rebuild");
       return true;
     }
+    return false;
+  }
+  const storedVersion = readFileSync(versionPath, "utf-8").trim();
+  return storedVersion !== LANCEDB_SCHEMA_VERSION;
+}
 
-    return false;
+function writeVersionFile(lancedbPath: string): void {
+  try {
+    writeFileSync(
+      `${lancedbPath}/${LANCEDB_VERSION_FILE}`,
+      LANCEDB_SCHEMA_VERSION,
+      "utf-8",
+    );
   } catch {
-    return false;
+    // non-critical
   }
 }
 
