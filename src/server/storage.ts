@@ -59,42 +59,99 @@ async function syncCourseContent(): Promise<void> {
     }
 
     console.log(`[storage] Syncing ${freshCount} lessons from source db...`);
-    // _db.pragma("foreign_keys = OFF");
-    // _db.exec("DELETE FROM lesson");
-    // _db.exec("DELETE FROM section");
-    // _db.exec("DELETE FROM category");
-    // _db.exec("DELETE FROM course");
-    // _db.pragma("foreign_keys = ON");
 
-    for (const row of await getCourseSyncRows(fresh))
-      await upsertCourse(_db, row);
-    for (const row of await getCategorySyncRows(fresh))
-      await upsertCategory(_db, {
-        id: row.id,
-        slug: row.slug,
-        title: row.title,
-        courseId: row.courseid,
-      });
-    for (const row of await getSectionSyncRows(fresh))
-      await upsertSection(_db, {
-        id: row.id,
-        slug: row.slug,
-        title: row.title,
-        courseId: row.courseid,
-        categoryId: row.categoryid,
-      });
-    for (const row of await getLessonSyncRows(fresh))
-      await upsertLesson(_db, {
-        id: row.id,
-        slug: row.slug,
-        title: row.title,
-        html: row.html,
-        lessonOrder: row.lessonorder,
-        courseId: row.courseid,
-        categoryId: row.categoryid,
-        sectionId: row.sectionid,
-        keywords: row.keywords,
-      });
+    try {
+      // First attempt: upsert using ON CONFLICT(id). This works when the
+      // production DB is clean. If constraints are violated (e.g. messy
+      // production data with conflicting slugs), we fall back to a full
+      // delete-and-reinsert of all content rows (preserving user/progress).
+      for (const row of await getCourseSyncRows(fresh))
+        await upsertCourse(_db, row);
+      for (const row of await getCategorySyncRows(fresh))
+        await upsertCategory(_db, {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          courseId: row.courseid,
+        });
+      for (const row of await getSectionSyncRows(fresh))
+        await upsertSection(_db, {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          courseId: row.courseid,
+          categoryId: row.categoryid,
+        });
+      for (const row of await getLessonSyncRows(fresh))
+        await upsertLesson(_db, {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          html: row.html,
+          lessonOrder: row.lessonorder,
+          courseId: row.courseid,
+          categoryId: row.categoryid,
+          sectionId: row.sectionid,
+          keywords: row.keywords,
+        });
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes("failed")) {
+        console.log(
+          "[storage] Constraint violation during upsert, falling back to full content refresh...",
+        );
+        _db.pragma("foreign_keys = OFF");
+        _db.exec("DELETE FROM lesson");
+        _db.exec("DELETE FROM section");
+        _db.exec("DELETE FROM category");
+        _db.exec("DELETE FROM course");
+        _db.pragma("foreign_keys = ON");
+
+        // Tables are empty now — plain INSERT works, upsert functions are fine too
+        for (const row of await getCourseSyncRows(fresh))
+          await upsertCourse(_db, row);
+        for (const row of await getCategorySyncRows(fresh))
+          await upsertCategory(_db, {
+            id: row.id,
+            slug: row.slug,
+            title: row.title,
+            courseId: row.courseid,
+          });
+        for (const row of await getSectionSyncRows(fresh))
+          await upsertSection(_db, {
+            id: row.id,
+            slug: row.slug,
+            title: row.title,
+            courseId: row.courseid,
+            categoryId: row.categoryid,
+          });
+        for (const row of await getLessonSyncRows(fresh))
+          await upsertLesson(_db, {
+            id: row.id,
+            slug: row.slug,
+            title: row.title,
+            html: row.html,
+            lessonOrder: row.lessonorder,
+            courseId: row.courseid,
+            categoryId: row.categoryid,
+            sectionId: row.sectionid,
+            keywords: row.keywords,
+          });
+
+        // Reset autoincrement sequences so future inserts start fresh
+        try {
+          _db.exec(
+            "DELETE FROM sqlite_sequence WHERE name IN ('lesson', 'section', 'category', 'course')",
+          );
+        } catch {
+          // sqlite_sequence may not exist on first insert — fine
+        }
+
+        console.log("[storage] Full content refresh complete");
+      } else {
+        throw err;
+      }
+    }
 
     // Teardown LanceDB — ensureVectorStore chained via .then() will rebuild
     const lancedbPath = getEnv().LANCEDB_PATH;
