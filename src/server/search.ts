@@ -144,10 +144,10 @@ export async function ensureVectorStore(): Promise<void> {
   const tablePath = `${getEnv().LANCEDB_PATH}/chunks.lance`;
 
   if (_vectorStoreExists || existsSync(tablePath)) {
-    await updateReadmeChunks();
     if (existsSync(tablePath)) {
-      await ensureFtsIndexes();
       _vectorStoreExists = true;
+      await updateReadmeChunks();
+      await ensureFtsIndexes();
     }
     return;
   }
@@ -405,6 +405,9 @@ async function updateReadmeChunks(): Promise<void> {
     await table.add(newChunks);
     await table.createIndex("text", { config: Index.fts(), replace: true });
   } catch (err) {
-    console.error("[lancedb] Failed to update README chunks:", err);
+    console.warn(
+      "[lancedb] Could not update README chunks (schema mismatch, skipping):",
+      err,
+    );
   }
 }

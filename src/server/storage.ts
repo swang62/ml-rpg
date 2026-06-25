@@ -156,8 +156,12 @@ async function syncCourseContent(): Promise<void> {
     // Teardown LanceDB — ensureVectorStore chained via .then() will rebuild
     const lancedbPath = getEnv().LANCEDB_PATH;
     if (existsSync(lancedbPath)) {
-      rmSync(lancedbPath, { recursive: true, force: true });
-      console.log("[storage] LanceDB deleted for rebuild");
+      try {
+        rmSync(lancedbPath, { recursive: true, force: true });
+        console.log("[storage] LanceDB deleted for rebuild");
+      } catch {
+        console.log("[storage] LanceDB rmSync blocked (stale lock?), skipping");
+      }
     }
   } finally {
     fresh.close();
@@ -179,8 +183,6 @@ export function getDb(): Database.Database {
       _migrationsRun = true;
     }
 
-    // Chain sync → ensureVectorStore. If sync doesn't run (no staleness),
-    // the Promise resolves immediately and ensureVectorStore fires.
     syncCourseContent().then(() => ensureVectorStore());
   }
 
