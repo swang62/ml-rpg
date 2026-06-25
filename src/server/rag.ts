@@ -136,7 +136,7 @@ export async function queryRAG({
   }
 
   // Filter out sources
-  const isShortReply = answer.length <= 60;
+  const isShortReply = answer.length < 40;
   const isCourseInfo = sources.some((s) => s.url === GITHUB_REPO_URL);
   const isInvalidReply =
     answer.includes("Bob") ||

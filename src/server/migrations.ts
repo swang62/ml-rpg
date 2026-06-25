@@ -92,7 +92,31 @@ export async function runMigrations(db: Database): Promise<void> {
       });
     });
 
-    runMigration();
+    try {
+      runMigration();
+    } catch (err) {
+      // Re-enable FK enforcement before deciding how to handle the error
+      db.exec("PRAGMA foreign_keys = ON");
+
+      if (
+        err instanceof Object &&
+        "code" in (err as object) &&
+        (err as { code: string }).code === "SQLITE_ERROR" &&
+        (err as { message: string }).message?.includes("duplicate column name")
+      ) {
+        console.log(
+          `[db] V${migration.version}: column already exists, skipping`,
+        );
+        // Record the migration version since the schema is already up-to-date
+        applyMigration(db, {
+          version: migration.version,
+          description: migration.description,
+        });
+        continue;
+      }
+
+      throw err;
+    }
 
     db.exec("PRAGMA foreign_keys = ON");
     console.log(`[db] V${migration.version} successfully applied`);
