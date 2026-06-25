@@ -20,5 +20,5 @@
       "~/*": ["./src/*"]
     }
   },
-  "exclude": ["./src/db/**/*", "./scripts/**/*"]
+  "exclude": ["./src/db/**/*"]
 }

@@ -2,7 +2,7 @@
 
 ![Homepage screenshot](public/assets/screenshot-homepage.png)
 
-A gamified learning course platform for ML & Data Engineering content. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, includes a helpful RAG-assisted local "librarian" to help along your journey. 
+A gamified learning course platform for ML engineering, data engineering, and overall system design. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, and includes a helpful RAG-assisted local "librarian" to help along your journey. 
 
 ## Summary
 
@@ -19,11 +19,10 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ### Course Information
 
-- Currently only 2 courses for now, machine learning and data engineering
+- Courses available: Fundamental system design, ML engineering and Data engineering
 - Each course has roughly 10-20 categories
 - Each category contains 5-10 sections
 - Each section contains 5-7 lessons
-- Total lessons are about ~1000 lessons across bother courses
 
 ### Navigation
 
@@ -48,7 +47,7 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ## Who is Bob?
 
-Before you arrived, Bob was a lowly librarian of the Arcane Archives of Knowledge, a vast library of machine learning and data engineering wisdom collected over the many ages. When the Great Divide split the digital realms apart, Bob found himself bound to the World of the Archives and unable to leave — the very world you're now exploring.
+Before you arrived, Bob was a lowly librarian of the Arcane Archives of Knowledge, a vast library of machine learning, data engineering, and system design wisdom collected over the many ages. When the Great Divide split the digital realms apart, Bob found himself bound to the World of the Archives and unable to leave — the very world you're now exploring.
 
 He's been here ever since, watching travelers come and go, helping them along their journey, reading through all the archives. He knows every corner of this place: how XP flows through the ranks, where the hidden shortcuts are, which quests unlock what, and the full layout of every World.
 
@@ -62,7 +61,7 @@ Bob is friendly, a little weathered, but always glad to see a new face.
 
 ## Motivation
 
-I created this repo to initially self-learn about ML/Data engineering topics, but eventually turned it into a fun playground to practice AI tools and RAG/agentic workflows. Also sharpening my frontend design UI/UX. Truly meta-level learning.
+I created this repo to initially self-learn about ML/Data engineering and system design topics, but eventually turned it into a fun playground to practice AI tools and RAG/agentic workflows. Also sharpening my frontend design UI/UX. Truly meta-level learning.
 
 ## Codebase
 

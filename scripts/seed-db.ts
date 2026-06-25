@@ -1,7 +1,9 @@
 import { type ChildProcess, spawn } from "node:child_process";
+
 import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import de from "../.data/scraped/courses/data-engineering";
+import fundamentals from "../.data/scraped/courses/fundamentals";
 import mlSysDesign from "../.data/scraped/courses/ml-system-design";
 import {
   ensureCategoryTable,
@@ -20,23 +22,23 @@ import { deleteAllUsers } from "../src/db/users_sql";
 import { EMPTY_DB_PATH } from "../src/utils/constants";
 import { extractRelevantText } from "../src/utils/search-utils";
 
-const COURSES: Record<
-  string,
-  {
+type Course = {
+  title: string;
+  categories: {
+    category: string;
     title: string;
-    categories: {
-      category: string;
+    sections: {
+      section: string;
       title: string;
-      sections: {
-        section: string;
-        title: string;
-        lessons: { lesson: string; title: string; order: number }[];
-      }[];
+      lessons: { lesson: string; title: string; order: number }[];
     }[];
-  }
-> = {
+  }[];
+};
+
+const COURSES: Record<string, Course> = {
   "data-engineering": de,
   "ml-system-design": mlSysDesign,
+  fundamentals: fundamentals,
 };
 
 // ENTRY POINT

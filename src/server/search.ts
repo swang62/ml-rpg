@@ -24,6 +24,7 @@ import type { ChunkData } from "~/utils/types";
 
 let _engine: MiniSearch<SearchDocument> | null = null;
 let _vectorStoreExists: boolean | undefined;
+let _rebuildPromise: Promise<void> | null = null;
 
 interface SearchDocument {
   id: string;
@@ -151,10 +152,24 @@ export async function ensureVectorStore(): Promise<void> {
     return;
   }
 
-  _vectorStoreExists = await buildVectorDB();
-  if (_vectorStoreExists) {
-    await ensureFtsIndexes();
+  // Deduplicate concurrent rebuilds — only one build at a time.
+  // Without this guard, concurrent calls (e.g. from CSR + SSR) both see
+  // _vectorStoreExists=false + table missing, and both start expensive
+  // Voyage AI embedding + LanceDB writes, causing double cost and a
+  // "Table 'chunks' already exists" crash from whichever finishes second.
+  if (!_rebuildPromise) {
+    _rebuildPromise = (async () => {
+      try {
+        _vectorStoreExists = await buildVectorDB();
+        if (_vectorStoreExists) {
+          await ensureFtsIndexes();
+        }
+      } finally {
+        _rebuildPromise = null;
+      }
+    })();
   }
+  await _rebuildPromise;
 }
 
 async function ensureFtsIndexes(): Promise<void> {
