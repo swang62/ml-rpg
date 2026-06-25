@@ -24,7 +24,14 @@ import type { ChunkData } from "~/utils/types";
 
 let _engine: MiniSearch<SearchDocument> | null = null;
 let _vectorStoreExists: boolean | undefined;
-let _rebuildPromise: Promise<void> | null = null;
+
+// globalThis key for the rebuild promise — Nitro may split "use server"
+// module state across chunks, so a module-level let isn't shared between
+// SSR and CSR calls. globalThis is guaranteed to be the same object.
+const REBUILD_KEY = "__lancedbRebuild";
+const _g = globalThis as {
+  [REBUILD_KEY]: Promise<void> | null;
+} & typeof globalThis;
 
 interface SearchDocument {
   id: string;
@@ -152,24 +159,25 @@ export async function ensureVectorStore(): Promise<void> {
     return;
   }
 
-  // Deduplicate concurrent rebuilds — only one build at a time.
-  // Without this guard, concurrent calls (e.g. from CSR + SSR) both see
-  // _vectorStoreExists=false + table missing, and both start expensive
-  // Voyage AI embedding + LanceDB writes, causing double cost and a
-  // "Table 'chunks' already exists" crash from whichever finishes second.
-  if (!_rebuildPromise) {
-    _rebuildPromise = (async () => {
+  // Uses globalThis because Nitro may split "use server" module state
+  // across chunks, making a module-level let unreliable.
+  const existing = _g[REBUILD_KEY];
+  if (!existing) {
+    const promise = (async () => {
       try {
         _vectorStoreExists = await buildVectorDB();
         if (_vectorStoreExists) {
           await ensureFtsIndexes();
         }
       } finally {
-        _rebuildPromise = null;
+        _g[REBUILD_KEY] = null;
       }
     })();
+    _g[REBUILD_KEY] = promise;
+    await promise;
+  } else {
+    await existing;
   }
-  await _rebuildPromise;
 }
 
 async function ensureFtsIndexes(): Promise<void> {
@@ -278,16 +286,21 @@ async function buildVectorDB() {
   }
 
   const lancedb = await connect(getEnv().LANCEDB_PATH);
-  console.log("[lancedb] Writing to LanceDB...");
-  const table = await lancedb.createTable("chunks", tableData);
+  try {
+    console.log("[lancedb] Writing to LanceDB...");
+    const table = await lancedb.createTable("chunks", tableData);
 
-  console.log("[lancedb] Creating FTS index for BM25...");
-  await table.createIndex("text", { config: Index.fts() });
+    console.log("[lancedb] Creating FTS index for BM25...");
+    await table.createIndex("text", { config: Index.fts() });
 
-  const rowCount = await table.countRows();
-  console.log(`[lancedb] Done. ${rowCount} chunks indexed.`);
+    const rowCount = await table.countRows();
+    console.log(`[lancedb] Done. ${rowCount} chunks indexed.`);
 
-  return true;
+    return true;
+  } catch (err) {
+    console.warn("[lancedb] Table write failed (concurrent rebuild?):", err);
+    return false;
+  }
 }
 
 async function embedLessonGroups(groups: LessonGroup[]): Promise<ChunkData[]> {
