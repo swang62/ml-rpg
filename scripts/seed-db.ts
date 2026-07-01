@@ -21,6 +21,7 @@ import { createSection, deleteAllSections } from "../src/db/section_sql";
 import { deleteAllUsers } from "../src/db/users_sql";
 import { EMPTY_DB_PATH } from "../src/utils/constants";
 import { extractRelevantText } from "../src/utils/search-utils";
+import { cleanTitle } from "./acronyms";
 
 type Course = {
   title: string;
@@ -164,7 +165,7 @@ async function seedCourseData(
     const cid = (
       await createCourse(db, {
         slug: courseSlug,
-        title: course.title,
+        title: cleanTitle(course.title),
       })
     )?.id as string;
 
@@ -172,7 +173,7 @@ async function seedCourseData(
       const catid = (
         await createCategory(db, {
           slug: cat.category,
-          title: cat.title,
+          title: cleanTitle(cat.title),
           courseId: cid,
         })
       )?.id as string;
@@ -181,7 +182,7 @@ async function seedCourseData(
         const sid = (
           await createSection(db, {
             slug: sub.section,
-            title: sub.title,
+            title: cleanTitle(sub.title),
             courseId: cid,
             categoryId: catid,
           })
@@ -192,7 +193,7 @@ async function seedCourseData(
           const keywords = JSON.stringify(keywordMap.get(lesson.lesson) ?? []);
           await createLesson(db, {
             slug: lesson.lesson,
-            title: lesson.title,
+            title: cleanTitle(lesson.title),
             html,
             lessonOrder: lesson.order,
             courseId: cid,
