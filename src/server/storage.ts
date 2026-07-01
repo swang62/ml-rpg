@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, rmSync, unlinkSync } from "node:fs";
+import { copyFileSync, existsSync, unlinkSync } from "node:fs";
 import Database from "better-sqlite3";
 import {
   getCategorySyncRows,
@@ -13,7 +13,7 @@ import {
 import { runMigrations } from "~/server/migrations";
 import { EMPTY_DB_PATH } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
-import { ensureVectorStore } from "./search";
+import { ensureVectorStore, markVectorStoreStale } from "./search";
 
 const env = getEnv();
 
@@ -153,16 +153,8 @@ async function syncCourseContent(): Promise<void> {
       }
     }
 
-    // Teardown LanceDB — ensureVectorStore chained via .then() will rebuild
-    const lancedbPath = getEnv().LANCEDB_PATH;
-    if (existsSync(lancedbPath)) {
-      try {
-        rmSync(lancedbPath, { recursive: true, force: true });
-        console.log("[storage] LanceDB deleted for rebuild");
-      } catch {
-        console.log("[storage] LanceDB rmSync blocked (stale lock?), skipping");
-      }
-    }
+    // Teardown LanceDB — next ensureVectorStore() call will rebuild
+    await markVectorStoreStale();
   } finally {
     fresh.close();
   }

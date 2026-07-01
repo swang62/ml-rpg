@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { connect, Index } from "@lancedb/lancedb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import MiniSearch, { type SearchResult } from "minisearch";
@@ -25,12 +25,14 @@ import type { ChunkData } from "~/utils/types";
 let _engine: MiniSearch<SearchDocument> | null = null;
 let _vectorStoreExists: boolean | undefined;
 
-// globalThis key for the rebuild promise — Nitro may split "use server"
-// module state across chunks, so a module-level let isn't shared between
-// SSR and CSR calls. globalThis is guaranteed to be the same object.
+// globalThis keys — Nitro may split "use server" module state across chunks,
+// so module-level lets aren't shared between SSR and CSR calls.
+// globalThis is guaranteed to be the same object across the runtime.
 const REBUILD_KEY = "__lancedbRebuild";
+const STALE_KEY = "__lancedbStale";
 const _g = globalThis as {
   [REBUILD_KEY]: Promise<void> | null;
+  [STALE_KEY]: boolean;
 } & typeof globalThis;
 
 interface SearchDocument {
@@ -146,11 +148,100 @@ interface LessonGroup {
   tags: string[];
 }
 
+/**
+ * Tries to drop the LanceDB chunks table via API. This is the cleanest path
+ * because LanceDB properly removes catalog metadata and data files. Works
+ * when the database is healthy (no stale locks).
+ *
+ * Returns true if the table was successfully dropped or didn't exist.
+ * Returns false on any failure (stale lock, permissions, etc.).
+ */
+async function dropTableViaApi(): Promise<boolean> {
+  const tablePath = `${getEnv().LANCEDB_PATH}/chunks.lance`;
+  if (!existsSync(tablePath)) return true;
+
+  try {
+    const lancedb = await connect(getEnv().LANCEDB_PATH);
+    await lancedb.dropTable("chunks");
+
+    console.log("[search] LanceDB table dropped via API");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Filesystem-only scrub of the LanceDB database directory: removes stale
+ * lock files and the chunks table directory. Used as a fallback when the
+ * API-based drop fails (e.g. stale lock from a crashed process prevents
+ * connect).
+ *
+ * Best-effort — if the OS still holds the lock, rmSync will fail and
+ * the stale flag ensures a retry on the next call cycle.
+ */
+function deleteLanceDb(): void {
+  const lancedbPath = getEnv().LANCEDB_PATH;
+  if (!existsSync(lancedbPath)) return;
+
+  // Stale lock directory — remove so future connects succeed
+  const lockDir = `${lancedbPath}/_lock`;
+  if (existsSync(lockDir)) {
+    try {
+      rmSync(lockDir, { recursive: true, force: true });
+    } catch {
+      // Best-effort
+    }
+  }
+
+  // Old table directory — remove so createTable has a clean slate
+  const tablePath = `${lancedbPath}/chunks.lance`;
+  if (existsSync(tablePath)) {
+    try {
+      rmSync(tablePath, { recursive: true, force: true });
+    } catch {
+      // Best-effort
+    }
+  }
+}
+
+/**
+ * Marks the vector store stale so the next ensureVectorStore call rebuilds
+ * from scratch.
+ *
+ * Tries API dropTable first (clean catalog removal, works when LanceDB is
+ * healthy). Falls back to filesystem rmSync if the API is unavailable
+ * (stale lock from crashed process). If both fail, the stale flag persists
+ * so rebuild retries on the next call cycle.
+ */
+export async function markVectorStoreStale(): Promise<void> {
+  "use server";
+  _vectorStoreExists = false;
+
+  const ok = await dropTableViaApi();
+  if (!ok) {
+    deleteLanceDb();
+  }
+
+  _g[STALE_KEY] = true;
+}
+
 export async function ensureVectorStore(): Promise<void> {
   "use server";
   const tablePath = `${getEnv().LANCEDB_PATH}/chunks.lance`;
 
-  if (_vectorStoreExists || existsSync(tablePath)) {
+  // If the stale flag is set, we MUST rebuild — content may have changed
+  // while the old chunks.lance directory still exists on disk.
+  // The flag only clears when buildVectorDB returns true below. If the
+  // rebuild fails (stale lock, Voyage API down, etc.), the flag survives
+  // for the next call cycle — no silent skip.
+  const stale = _g[STALE_KEY];
+
+  if (stale) {
+    _vectorStoreExists = false;
+  }
+
+  if (!stale && (_vectorStoreExists || existsSync(tablePath))) {
     if (existsSync(tablePath)) {
       _vectorStoreExists = true;
       await updateReadmeChunks();
@@ -159,14 +250,15 @@ export async function ensureVectorStore(): Promise<void> {
     return;
   }
 
-  // Uses globalThis because Nitro may split "use server" module state
-  // across chunks, making a module-level let unreliable.
+  // Coalsce concurrent calls to ensureVectorStore into a single rebuild promise.
+  // Rebuild key is always reset so promises always return, only stale flag remains if rebuild fails.
   const existing = _g[REBUILD_KEY];
   if (!existing) {
     const promise = (async () => {
       try {
         _vectorStoreExists = await buildVectorDB();
         if (_vectorStoreExists) {
+          _g[STALE_KEY] = false;
           await ensureFtsIndexes();
         }
       } finally {
