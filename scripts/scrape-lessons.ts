@@ -368,10 +368,11 @@ function buildCourseStructure(
     Map<string, { lesson: string; title: string; order: number }[]>
   >();
   for (const s of scraped) {
-    if (!catMap.has(s.category)) {
-      catMap.set(s.category, new Map());
+    let secMap = catMap.get(s.category);
+    if (!secMap) {
+      secMap = new Map();
+      catMap.set(s.category, secMap);
     }
-    const secMap = catMap.get(s.category)!;
     if (!secMap.has(s.section)) {
       secMap.set(s.section, []);
     }

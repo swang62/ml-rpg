@@ -20,5 +20,5 @@
       "~/*": ["./src/*"]
     }
   },
-  "exclude": ["./src/db/**/*"]
+  "exclude": ["./src/db/**/*", ".data", "./scripts/seed-db.ts"]
 }
