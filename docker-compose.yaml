@@ -20,7 +20,6 @@ services:
       - course-data:/app/.data
     environment:
       - COURSE_DB_PATH=${COURSE_DB_PATH:-/app/.data/course.db}
-      - GROQ_API_KEY=${GROQ_API_KEY}
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - PORT=${PORT:-3333}
       - SESSION_SECRET=${SESSION_SECRET}
@@ -48,7 +47,13 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     healthcheck:
-      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" ]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
       interval: 1m
       timeout: 10s
       start_period: 15s

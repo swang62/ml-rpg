@@ -8,10 +8,10 @@ describe("extractRelevantText", () => {
     expect(result).toContain("What is Machine Learning?");
   });
 
-  it("extracts strong tag content", () => {
+  it("ignores strong tag content", () => {
     const html = "<p><strong>Key insight:</strong> models learn from data.</p>";
     const result = extractRelevantText(html);
-    expect(result).toContain("Key insight:");
+    expect(result).toBe("");
   });
 
   it("extracts key takeaways card content", () => {
@@ -34,8 +34,9 @@ describe("extractRelevantText", () => {
     `;
     const result = extractRelevantText(html);
     expect(result).toContain("Title Here");
-    expect(result).toContain("Bold word");
     expect(result).toContain("Side note");
+    // Bold text is no longer included
+    expect(result).not.toContain("Bold word");
     // No HTML tags remain
     expect(result).not.toMatch(/<[^>]+>/);
   });
@@ -48,11 +49,10 @@ describe("extractRelevantText", () => {
     expect(extractRelevantText("<div>just text</div>")).toBe("");
   });
 
-  it("handles multiple strong tags", () => {
+  it("handles multiple strong tags (no longer extracted)", () => {
     const html = "<p><strong>First</strong> and <strong>Second</strong></p>";
     const result = extractRelevantText(html);
-    expect(result).toContain("First");
-    expect(result).toContain("Second");
+    expect(result).toBe("");
   });
 
   it("collapses whitespace", () => {

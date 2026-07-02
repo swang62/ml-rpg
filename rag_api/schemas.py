@@ -50,3 +50,12 @@ class EnrichRequest(BaseModel):
 
 class EnrichResponse(BaseModel):
     results: list[list[str]]
+
+
+class GuardRequest(BaseModel):
+    query: str
+
+
+class GuardResponse(BaseModel):
+    jailbreak: bool
+    score: float

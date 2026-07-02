@@ -13,7 +13,6 @@ export default defineConfig({
       SESSION_SECRET: "test-secret-that-is-long-enough-for-testing",
       COURSE_DB_PATH: "./.data/course.db",
       LANCEDB_PATH: "./.data/search",
-      GROQ_API_KEY: "fake_api_key",
       VOYAGE_API_KEY: "fake_api_key",
       VITE_SITE_URL: "http://localhost:3000",
       RAG_API_URL: "http://localhost:8000",

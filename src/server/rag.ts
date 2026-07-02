@@ -1,4 +1,3 @@
-import Groq from "groq-sdk";
 import { createStreamToken } from "~/server/stream-tokens";
 import { RAG_MAX_HISTORY, RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
@@ -6,8 +5,6 @@ import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
 import type { ChunkResult, SourceResult } from "~/utils/types";
 import { checkRateLimit } from "../middleware/rate-limiter";
 import { getSession } from "./session";
-
-const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
 export interface PrepareChatInput {
   query: string;
@@ -25,13 +22,19 @@ export interface PrepareChatResult {
 
 async function detectJailbreak(query: string): Promise<boolean> {
   try {
-    const completion = await groq.chat.completions.create({
-      model: "meta-llama/llama-prompt-guard-2-22m",
-      messages: [{ role: "user", content: query }],
+    const ragUrl = getEnv().RAG_API_URL;
+    const response = await fetch(`${ragUrl}/guard`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      signal: AbortSignal.timeout(5000),
     });
-    const raw = completion.choices[0]?.message?.content?.trim() ?? "0";
-    const score = Number.parseFloat(raw);
-    return !Number.isNaN(score) && score > 0.5;
+    if (!response.ok) return false;
+    const data = (await response.json()) as {
+      jailbreak: boolean;
+      score: number;
+    };
+    return data.jailbreak;
   } catch {
     return false;
   }
