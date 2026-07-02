@@ -1,14 +1,13 @@
 import logging
 
 import lancedb
-from lancedb.rerankers import VoyageAIReranker
 
 from ..config import (
     GITHUB_REPO_URL,
     INITIAL_RAG_CHUNKS,
     LANCEDB_PATH,
     MIN_RAG_SCORE,
-    RERANKED_CHUNKS,
+    TOP_K_CHUNKS,
 )
 from ..schemas import ChunkResult, SourceResult
 
@@ -36,25 +35,13 @@ logger = logging.getLogger("rag_api")
 def hybrid_search(embedding: list[float], query: str) -> list[dict]:
     vectordb = get_vectordb()
 
-    try:
-        reranker = VoyageAIReranker(model_name="rerank-2.5-lite")
-        chunks = (
-            vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
-            .vector(embedding)
-            .text(query)
-            .limit(INITIAL_RAG_CHUNKS)
-            .rerank(reranker=reranker)
-            .to_list()
-        )
-    except Exception:
-        logger.exception("VoyageAI reranker failed, falling back to hybrid results")
-        chunks = (
-            vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
-            .vector(embedding)
-            .text(query)
-            .limit(INITIAL_RAG_CHUNKS)
-            .to_list()
-        )
+    chunks = (
+        vectordb.search(query_type="hybrid", fts_columns=["text", "lessonTitle"])
+        .vector(embedding)
+        .text(query)
+        .limit(INITIAL_RAG_CHUNKS)
+        .to_list()
+    )
 
     query_lower = query.lower()
     for chunk in chunks:
@@ -67,7 +54,7 @@ def hybrid_search(embedding: list[float], query: str) -> list[dict]:
             return [r]
 
     chunks = [c for c in chunks if c.get("_relevance_score", 0.0) >= MIN_RAG_SCORE]
-    return chunks[:RERANKED_CHUNKS]
+    return chunks[:TOP_K_CHUNKS]
 
 
 def to_chunk_result(raw: dict) -> ChunkResult:
@@ -80,6 +67,24 @@ def to_chunk_result(raw: dict) -> ChunkResult:
         courseTitle=raw["courseTitle"],
         relevance=raw.get("_relevance_score", 0.0),
     )
+
+
+import re
+
+
+def filter_by_keywords(chunks: list[dict], keywords: list[str]) -> list[dict]:
+    """Keep only chunks where at least one keyword appears in the text or title (word boundary match).
+    Site info chunks (lessonUrl == GITHUB_REPO_URL) always pass regardless.
+    """
+    if not keywords:
+        return []
+    patterns = [re.compile(rf"\b{re.escape(kw)}\b", re.IGNORECASE) for kw in keywords]
+    return [
+        c
+        for c in chunks
+        if c.get("lessonUrl") == GITHUB_REPO_URL
+        or any(p.search(c.get("text", "") + " " + c.get("lessonTitle", "")) for p in patterns)
+    ]
 
 
 def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:

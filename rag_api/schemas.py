@@ -22,6 +22,14 @@ class RetrieveBatchResponse(BaseModel):
     results: list[BatchQueryResult]
 
 
+class EmbedRequest(BaseModel):
+    texts: list[str]
+
+
+class EmbedResponse(BaseModel):
+    embeddings: list[list[float]]
+
+
 class SourceResult(BaseModel):
     title: str
     url: str

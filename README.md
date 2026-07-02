@@ -53,7 +53,7 @@ He's been here ever since, watching travelers come and go, helping them along th
 
 But he's also trapped. His knowledge ends at the Archive World's borders. Ask him about anything outside of machine learning, data engineering, or this world, and he genuinely doesn't know — he's never been able to leave.
 
-Bob is friendly, a little weathered, but always glad to see a new face.
+Bob is friendly, chill, and always glad to see a new face.
 
 > "Hi, I'm Bob. Welcome to Machine Learning (the RPG).
 
@@ -65,8 +65,8 @@ I created this repo to initially self-learn about ML/Data engineering and system
 
 ## Codebase
 
-For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
+I tried to avoid any external dependencies for this small project, so trading a little bit of accuracy in exchange for full privacy and offline processing is worth it IMO. All LLM models and embeddings are created locally with a backend FastAPI server. For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
 
 ## License
 
-MIT. Do what you will. [LICENSE.md](LICENSE.md). 
+MIT. Do what you will. [LICENSE.md](LICENSE.md).

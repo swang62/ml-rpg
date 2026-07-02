@@ -13,7 +13,6 @@ import {
   RAG_BATCH_SIZE,
   RAG_CHUNK_OVERLAP,
   RAG_CHUNK_SIZE,
-  RAG_EMBEDDING_MODEL,
   SEARCH_MAX_RESULTS,
   STOP_WORDS,
 } from "~/utils/constants";
@@ -25,9 +24,6 @@ import type { ChunkData } from "~/utils/types";
 let _engine: MiniSearch<SearchDocument> | null = null;
 let _vectorStoreExists: boolean | undefined;
 
-// globalThis keys — Nitro may split "use server" module state across chunks,
-// so module-level lets aren't shared between SSR and CSR calls.
-// globalThis is guaranteed to be the same object across the runtime.
 const REBUILD_KEY = "__lancedbRebuild";
 const STALE_KEY = "__lancedbStale";
 const _g = globalThis as {
@@ -148,14 +144,6 @@ interface LessonGroup {
   tags: string[];
 }
 
-/**
- * Tries to drop the LanceDB chunks table via API. This is the cleanest path
- * because LanceDB properly removes catalog metadata and data files. Works
- * when the database is healthy (no stale locks).
- *
- * Returns true if the table was successfully dropped or didn't exist.
- * Returns false on any failure (stale lock, permissions, etc.).
- */
 async function dropTableViaApi(): Promise<boolean> {
   const tablePath = `${getEnv().LANCEDB_PATH}/chunks.lance`;
   if (!existsSync(tablePath)) return true;
@@ -171,20 +159,10 @@ async function dropTableViaApi(): Promise<boolean> {
   }
 }
 
-/**
- * Filesystem-only scrub of the LanceDB database directory: removes stale
- * lock files and the chunks table directory. Used as a fallback when the
- * API-based drop fails (e.g. stale lock from a crashed process prevents
- * connect).
- *
- * Best-effort — if the OS still holds the lock, rmSync will fail and
- * the stale flag ensures a retry on the next call cycle.
- */
 function deleteLanceDb(): void {
   const lancedbPath = getEnv().LANCEDB_PATH;
   if (!existsSync(lancedbPath)) return;
 
-  // Stale lock directory — remove so future connects succeed
   const lockDir = `${lancedbPath}/_lock`;
   if (existsSync(lockDir)) {
     try {
@@ -194,7 +172,6 @@ function deleteLanceDb(): void {
     }
   }
 
-  // Old table directory — remove so createTable has a clean slate
   const tablePath = `${lancedbPath}/chunks.lance`;
   if (existsSync(tablePath)) {
     try {
@@ -205,15 +182,6 @@ function deleteLanceDb(): void {
   }
 }
 
-/**
- * Marks the vector store stale so the next ensureVectorStore call rebuilds
- * from scratch.
- *
- * Tries API dropTable first (clean catalog removal, works when LanceDB is
- * healthy). Falls back to filesystem rmSync if the API is unavailable
- * (stale lock from crashed process). If both fail, the stale flag persists
- * so rebuild retries on the next call cycle.
- */
 export async function markVectorStoreStale(): Promise<void> {
   "use server";
   _vectorStoreExists = false;
@@ -230,11 +198,6 @@ export async function ensureVectorStore(): Promise<void> {
   "use server";
   const tablePath = `${getEnv().LANCEDB_PATH}/chunks.lance`;
 
-  // If the stale flag is set, we MUST rebuild — content may have changed
-  // while the old chunks.lance directory still exists on disk.
-  // The flag only clears when buildVectorDB returns true below. If the
-  // rebuild fails (stale lock, Voyage API down, etc.), the flag survives
-  // for the next call cycle — no silent skip.
   const stale = _g[STALE_KEY];
 
   if (stale) {
@@ -250,8 +213,6 @@ export async function ensureVectorStore(): Promise<void> {
     return;
   }
 
-  // Coalsce concurrent calls to ensureVectorStore into a single rebuild promise.
-  // Rebuild key is always reset so promises always return, only stale flag remains if rebuild fails.
   const existing = _g[REBUILD_KEY];
   if (!existing) {
     const promise = (async () => {
@@ -368,7 +329,7 @@ async function buildVectorDB() {
     return;
   }
 
-  console.log("[voyage] Generating embeddings via Voyage AI...");
+  console.log("[lancedb] Generating embeddings via fastembed (rag-api)...");
   let tableData: ChunkData[];
   try {
     tableData = await embedLessonGroups(lessonGroups);
@@ -396,64 +357,61 @@ async function buildVectorDB() {
 }
 
 async function embedLessonGroups(groups: LessonGroup[]): Promise<ChunkData[]> {
-  const apiKey = getEnv().VOYAGE_API_KEY;
-  if (!apiKey) throw new Error("VOYAGE_API_KEY required");
-
+  const ragApiUrl = getEnv().RAG_API_URL;
   const chunks: ChunkData[] = [];
   let embeddedCount = 0;
   const totalChunks = groups.reduce((sum, g) => sum + g.texts.length, 0);
 
-  for (let gi = 0; gi < groups.length; gi += RAG_BATCH_SIZE) {
-    const batch = groups.slice(gi, gi + RAG_BATCH_SIZE);
-    const inputs = batch.map((g) => g.texts);
+  const allTexts: string[] = [];
+  const textToGroup: { groupIdx: number; chunkIdx: number }[] = [];
 
-    const response = await fetch(
-      "https://api.voyageai.com/v1/contextualizedembeddings",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs,
-          model: RAG_EMBEDDING_MODEL,
-          input_type: "document",
-        }),
-      },
-    );
+  for (let gi = 0; gi < groups.length; gi++) {
+    for (let ci = 0; ci < groups[gi].texts.length; ci++) {
+      allTexts.push(groups[gi].texts[ci]);
+      textToGroup.push({ groupIdx: gi, chunkIdx: ci });
+    }
+  }
+
+  for (let i = 0; i < allTexts.length; i += RAG_BATCH_SIZE) {
+    const batch = allTexts.slice(i, i + RAG_BATCH_SIZE);
+    const batchMeta = textToGroup.slice(i, i + RAG_BATCH_SIZE);
+
+    const response = await fetch(`${ragApiUrl}/embed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: batch }),
+    });
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(
-        `Voyage API error (batch ${gi}): ${response.status} ${errText}`,
-      );
+      throw new Error(`RAG API /embed error: ${response.status} ${errText}`);
     }
 
-    const { data } = (await response.json()) as {
-      data: { data: { embedding: number[] }[] }[];
+    const { embeddings } = (await response.json()) as {
+      embeddings: number[][];
     };
 
-    batch.forEach((group, idx) => {
-      const returnBatch: { embedding: number[] }[] = data[idx].data;
-      returnBatch.forEach((embeddingGroup, ci) => {
-        chunks.push({
-          id: `${group.courseSlug}/${group.categorySlug}/${group.sectionSlug}/${group.lessonSlug}-chunk-${ci}`,
-          vector: embeddingGroup.embedding,
-          text: group.texts[ci],
-          lessonTitle: group.lessonTitle,
-          lessonUrl: group.lessonUrl,
-          categoryTitle: group.categoryTitle,
-          sectionTitle: group.sectionTitle,
-          courseTitle: group.courseTitle,
-          chunkIndex: ci,
-          tags: group.tags,
-        });
+    for (let j = 0; j < embeddings.length; j++) {
+      const meta = batchMeta[j];
+      const group = groups[meta.groupIdx];
+      chunks.push({
+        id: `${group.courseSlug}/${group.categorySlug}/${group.sectionSlug}/${group.lessonSlug}-chunk-${meta.chunkIdx}`,
+        vector: embeddings[j],
+        text: group.texts[meta.chunkIdx],
+        lessonTitle: group.lessonTitle,
+        lessonUrl: group.lessonUrl,
+        categoryTitle: group.categoryTitle,
+        sectionTitle: group.sectionTitle,
+        courseTitle: group.courseTitle,
+        chunkIndex: meta.chunkIdx,
+        tags: group.tags,
       });
-    });
+    }
 
-    embeddedCount += batch.reduce((sum, g) => sum + g.texts.length, 0);
-    console.log(`[voyage]   > embedded ${embeddedCount}/${totalChunks} chunks`);
+    embeddedCount += batch.length;
+    console.log(
+      `[lancedb]   > embedded ${embeddedCount}/${totalChunks} chunks`,
+    );
   }
 
   return chunks;

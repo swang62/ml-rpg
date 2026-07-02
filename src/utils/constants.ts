@@ -18,8 +18,7 @@ export const SEARCH_MAX_RESULTS = 5;
 export const SEARCH_MIN_QUERY_LENGTH = 3;
 
 export const RAG_BOT_NAME = "Bob";
-export const RAG_EMBEDDING_MODEL = "voyage-context-3";
-export const RAG_BATCH_SIZE = 100;
+export const RAG_BATCH_SIZE = 256;
 export const RAG_CHUNK_OVERLAP = 0;
 export const RAG_CHUNK_SIZE = 512;
 export const RAG_MAX_HISTORY = 2;

@@ -8,7 +8,7 @@
 - **Sqlc** — Type-safe generator: raw `.sql` → typed TS query functions
 - **LanceDB** — Vector store for hybrid semantic/keyword RAG search
 - **MiniSearch** — In-memory full-text search for lesson pages
-- **LLama3.2 + Voyage AI** — Fine-tuned LLM and embeddings for the "Ask Bob" chat
+- **LLama3.2 + FastEmbed** — Fine-tuned LLM and embeddings for the "Ask Bob" chat
 - **MLX**, **Ollama**, **llama.cpp** — Custom fine-tuning pipeline for Bob
 
 ## Commands
@@ -84,7 +84,7 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 ### Startup / Warmup
 
 - **Database:** Lazy init in `getDb()` — copies `empty.db` to `COURSE_DB_PATH` if missing, runs schema migrations.
-- **Vector store:** Lazy init — builds LanceDB index from all lessons via Voyage AI embeddings. Both are self-healing.
+- **Vector store:** Lazy init — builds LanceDB index from all lessons. Both are self-healing.
 
 ### Fine-tuning Pipeline
 
