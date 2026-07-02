@@ -55,16 +55,14 @@ describe("getEnv", () => {
     expect(env.PORT).toBe(8080);
   });
 
-  it("accepts optional VOYAGE_API_KEY and GROQ_API_KEY", () => {
+  it("accepts optional VOYAGE_API_KEY", () => {
     process.env.COURSE_DB_PATH = "/tmp/test.db";
     process.env.LANCEDB_PATH = "/tmp/search";
     process.env.SESSION_SECRET = "a".repeat(32);
     process.env.VOYAGE_API_KEY = "voy-key-123";
-    process.env.GROQ_API_KEY = "groq-key-456";
 
     const env = getEnv();
     expect(env.VOYAGE_API_KEY).toBe("voy-key-123");
-    expect(env.GROQ_API_KEY).toBe("groq-key-456");
   });
 
   it("defaults NODE_ENV to development when not set", () => {

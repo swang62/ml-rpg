@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 
 from .config import IDLE_TIMEOUT, LOG_LEVEL, MAX_TEXT_SIZE, MIN_TEXT_SIZE
+from .jailbreak.detect import check
 from .retrieval.embedding import close_client, embed_queries
 from .retrieval.keyword_extract import unload_nlp_core
 from .retrieval.routes import retrieve
@@ -16,6 +17,8 @@ from .schemas import (
     BatchQueryResult,
     EnrichRequest,
     EnrichResponse,
+    GuardRequest,
+    GuardResponse,
     RetrieveBatchRequest,
     RetrieveBatchResponse,
     RetrieveRequest,
@@ -28,7 +31,15 @@ logging.basicConfig(
 )
 
 # Silence noisy libraries — only show their WARNING+ messages
-for lib in ("asyncio", "httpx", "httpcore", "lancedb", "uvicorn.access", "voyage", "voyageai"):
+for lib in (
+    "asyncio",
+    "httpx",
+    "httpcore",
+    "lancedb",
+    "uvicorn.access",
+    "voyage",
+    "voyageai",
+):
     logging.getLogger(lib).setLevel(logging.WARNING)
 
 logger = logging.getLogger("rag_api")
@@ -83,6 +94,12 @@ async def health():
 @app.get("/status")
 async def service_status():
     return {"idle": _unloaded}
+
+
+@app.post("/guard", response_model=GuardResponse)
+async def guard_endpoint(req: GuardRequest) -> GuardResponse:
+    score, jailbreak = check(req.query)
+    return GuardResponse(jailbreak=jailbreak, score=score)
 
 
 @app.post("/retrieve", response_model=RetrieveResponse)

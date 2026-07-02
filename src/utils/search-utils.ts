@@ -78,19 +78,13 @@ export function stripHtmlTags(html: string): string {
 
 /**
  * Extract search-relevant text from a lesson's HTML.
- * Builds content step by step: h1 → key takeaways → strong tags → border-left blocks.
+ * Builds content step by step: h1 → key takeaway cards → callout blocks.
  */
 export function extractRelevantText(html: string): string {
   const parts: string[] = [];
 
   const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
   if (h1Match) parts.push(h1Match[1]);
-
-  const strongPattern = /<strong[^>]*>([\s\S]*?)<\/strong>/gis;
-  const strongMatches = [...html.matchAll(strongPattern)];
-  for (const match of strongMatches) {
-    if (match[1].trim()) parts.push(match[1]);
-  }
 
   const cardContentPattern =
     /<span[^>]*class="[^"]*Learn_keyTakeaways[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
