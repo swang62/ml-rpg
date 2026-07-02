@@ -48,3 +48,4 @@ sqlc-gen-typescript.wasm
 # agent
 DESIGN.md
 PRODUCT.md
+.worktrees/
