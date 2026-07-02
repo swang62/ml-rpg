@@ -1488,6 +1488,32 @@ a {
   }
 }
 
+.askai-loading__wave {
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    #a78bfa,
+    #60a5fa,
+    #34d399,
+    var(--accent)
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  opacity: 85%;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: askai-wave 3s linear infinite;
+}
+
+@keyframes askai-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
 .askai-inputbar {
   display: flex;
   align-items: center;

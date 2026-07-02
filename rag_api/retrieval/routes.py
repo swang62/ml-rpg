@@ -15,6 +15,9 @@ async def retrieve(query: str) -> RetrieveResponse:
     keywords = extract_keywords(query)
     logger.debug("extracted keywords: %s", keywords)
 
+    if not keywords:
+        return RetrieveResponse(chunks=[], sources=[], keywords=[])
+
     embedding = await embed_query(query)
     logger.debug("generated voyage embedding dims=%d", len(embedding))
 

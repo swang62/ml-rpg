@@ -49,7 +49,7 @@ def build_prompt(
     existing_section = ""
     if existing_pairs:
         lines = "\n".join(
-            f'  - Q: {p["question"]}\n    A: {p["answer"]}' for p in existing_pairs
+            f"  - Q: {p['question']}\n    A: {p['answer']}" for p in existing_pairs
         )
         existing_section = f"""
 ## Already Generated Pairs
@@ -125,7 +125,7 @@ def generate_batch(
             llm=OpenAILLM(
                 base_url=base_url,
                 model=model,
-                api_key="ollama",  # type: ignore
+                api_key=None,
             ),
         )
         LoadDataFromDicts(data=data, output_mappings={"prompt": "instruction"}).connect(
