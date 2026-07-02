@@ -17,7 +17,7 @@
 pnpm dev              # dev server (HMR enabled)
 pnpm build            # production build
 pnpm preview          # serve built app
-pnpm lint             # biome check --write . && pnpm typecheck
+pnpm lint             # biome check --write --unsafe . && pnpm typecheck
 pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
 pnpm seed             # tsx ./scripts/seed-db.ts — re-seeds course.db from scraped lesson files
