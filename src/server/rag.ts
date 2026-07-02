@@ -3,6 +3,7 @@ import { RAG_MAX_HISTORY, RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
 import type { ChunkResult, SourceResult } from "~/utils/types";
+import sharedBobSystemPrompt from "../../shared/prompts/bob-system.json";
 import { checkRateLimit } from "../middleware/rate-limiter";
 import { getSession } from "./session";
 
@@ -62,17 +63,10 @@ async function fetchSystemPrompt(query: string): Promise<{
   };
 
   const context = chunks.map((c) => `[${c.title}]: ${c.text}`).join("\n\n");
-  const systemPrompt = [
-    "You are a helpful local guide named Bob in a gamified learning platform called 'Machine Learning (the RPG)'. ",
-    "Relevant context will be provided below when available. Use it to answer questions about machine learning and data engineering. ",
-    "For questions about you or the world/course/platform itself (course structure, XP, ranks, navigation), answer from your knowledge and any available context. ",
-    "If the question is outside machine learning, data engineering, system design, this course/platform, or who you are and your backstory, politely decline. ",
-    "Keep answers friendly, warm, descriptive, and fun. You are in a mythical guide in a video game world, answer in character. ",
-    "When the topic is about machine learning or data engineering or system design, be brief and summarize the core concepts. ",
-    "Answer in plain text without markdown.\n",
-    "Additional Context:\n",
+  const systemPrompt = sharedBobSystemPrompt.template.replace(
+    "{context}",
     context,
-  ].join("");
+  );
 
   return { systemPrompt, sources, keywords };
 }

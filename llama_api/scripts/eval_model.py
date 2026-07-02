@@ -146,8 +146,8 @@ def main() -> None:
             body = json.dumps(
                 {
                     "prompt": prompt,
-                    "n_predict": 512,
-                    "temperature": 0.7,
+                    "n_predict": 1024,
+                    "temperature": 1.0,
                 }
             ).encode()
 

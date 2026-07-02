@@ -56,7 +56,6 @@ exclude = [
   "**/__pycache__",
   "**/.venv",
   "**/node_modules",
-  "llama_api/scripts",
   "scripts",
 ]
 venvPath = "."

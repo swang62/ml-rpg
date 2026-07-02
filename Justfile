@@ -1,17 +1,19 @@
-set dotenv-load := true
+set dotenv-load
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 # Model settings
 finetuning_model := "unsloth/Llama-3.2-3B-Instruct"
-ollama_model := env_var_or_default("OLLAMA_MODEL", "gpt-oss:20b")
+# teaching_model := "openai/gpt-oss-20b"
+teaching_model := "gemma-4-26b-a4b-it-heretic"
 
 # Preprocessing
 examples_per_category := "100"
+batch_size := "20"
 test_set_pct := "0.1"
 
 # HF upload
-hf_model_repo := env_var_or_default("HF_MODEL_REPO", "scubastevve/ml-rpg-bob")
-hf_model_file := env_var_or_default("HF_MODEL_FILE", "bob.gguf")
+hf_model_repo := env("HF_MODEL_REPO", "scubastevve/ml-rpg-bob")
+hf_model_file := env("HF_MODEL_FILE", "bob.gguf")
 
 # Timing format (bash TIMEFORMAT — shows elapsed real time only)
 elapsed := "\n[elapsed]: %lR\n"
@@ -25,11 +27,11 @@ llama_scripts_dir := "scripts/llama_cpp"
 
 # Run the full pipeline with timestamped log, no upload
 default:
-    @mkdir -p "{{log_dir}}" && \
-    LOG="{{log_dir}}/train-$(date +%Y%m%d-%H%M%S).log" && \
+    @mkdir -p "{{ log_dir }}" && \
+    LOG="{{ log_dir }}/train-$(date +%Y%m%d-%H%M%S).log" && \
     START=$(date +%s) && \
     echo "=== Pipeline started at $(date) ===" | tee -a "$LOG" && \
-    just check generate preprocess train fuse convert test upload 2>&1 | tee -a "$LOG" && \
+    just check generate preprocess train fuse convert test 2>&1 | tee -a "$LOG" && \
     ELAPSED=$(($(date +%s) - START)) && \
     MIN=$((ELAPSED / 60)) && \
     SEC=$((ELAPSED % 60)) && \
@@ -49,21 +51,20 @@ default:
     echo "  Total elapsed:    $ELAPSED_STR" && \
     echo "  Final train loss: ${TRAIN_LOSS:-N/A}" && \
     echo "  Final val loss:   ${VAL_LOSS:-N/A}" && \
-    echo "  GGUF:             $(du -h "{{models_dir}}/{{hf_model_file}}" 2>/dev/null | cut -f1)" && \
+    echo "  GGUF:             $(du -h "{{ models_dir }}/{{ hf_model_file }}" 2>/dev/null | cut -f1)" && \
     echo "  Log:              ${LOG}" && \
     echo "=== Pipeline finished at $(date) ===" \
-
 
 # Step 1: Ensure dependencies
 check:
     @echo "--- Step 1: Ensuring dependencies ---"
-    @TIMEFORMAT="{{elapsed}}"; time uv sync --group train --inexact
+    @TIMEFORMAT="{{ elapsed }}"; time uv sync --group train --inexact
     @bash -c '\
         echo "[check] llama.cpp scripts ..."; \
-        mkdir -p "{{llama_scripts_dir}}"; \
+        mkdir -p "{{ llama_scripts_dir }}"; \
         _TAG=$(brew info llama.cpp --json=v2 2>/dev/null | python3 -c "import sys,json; v=json.load(sys.stdin)[\"formulae\"][0][\"versions\"][\"stable\"]; print(f\"b{v}\" if not v.startswith(\"b\") else v)" 2>/dev/null || echo "master"); \
-        _SCRIPT="{{llama_scripts_dir}}/convert_hf_to_gguf.py"; \
-        _TAGFILE="{{llama_scripts_dir}}/convert_hf_to_gguf.py.tag"; \
+        _SCRIPT="{{ llama_scripts_dir }}/convert_hf_to_gguf.py"; \
+        _TAGFILE="{{ llama_scripts_dir }}/convert_hf_to_gguf.py.tag"; \
         _STORED_TAG="$(cat "$_TAGFILE" 2>/dev/null || echo "")"; \
         if [ ! -f "$_SCRIPT" ] || [ "$_STORED_TAG" != "$_TAG" ]; then \
             echo "[check] Downloading convert_hf_to_gguf.py (tag: $_TAG) ..."; \
@@ -78,19 +79,25 @@ check:
     @command -v llama-quantize >/dev/null || { echo "ERROR: llama-quantize not found (install via: brew install llama.cpp)"; exit 1; }
     @command -v llama-server >/dev/null || { echo "ERROR: llama-server not found (install via: brew install llama.cpp)"; exit 1; }
 
-
 # Step 2: Generate training data
 generate: check
     @echo "--- Step 2: Generating training data ---"
-    @TIMEFORMAT="{{elapsed}}"; time uv run python -m llama_api.scripts.generate_training_data \
-        --model "{{ollama_model}}" \
-        --examples-per-category "{{examples_per_category}}" \
-        --output "{{data_dir}}/training_raw.jsonl"
-
+    @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.generate_training_data \
+        --model "{{ teaching_model }}" \
+        --examples-per-category "{{ examples_per_category }}" \
+        --batch-size "{{ batch_size }}" \
+        --output "{{ data_dir }}/training_raw.jsonl"
 
 # Step 3: Format and split for MLX
-preprocess: check
-    @echo "--- Step 3: Formatting for MLX ---"
+clean: check
+    @echo "--- Step 3: Cleaning raw training data ---"
+    @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.clean_raw_data \
+        --examples-per-category "{{ examples_per_category }}" \
+        --output "{{ data_dir }}/training_raw.jsonl"
+
+# Step 4: Format and split for MLX
+preprocess: clean
+    @echo "--- Step 4: Formatting for MLX ---"
     -@bash -c '\
         kill_rag() { kill -9 $(lsof -ti:8001) 2>/dev/null || true; }; \
         trap kill_rag EXIT; \
@@ -104,83 +111,79 @@ preprocess: check
             fi; \
             sleep 1; \
         done; \
-        TIMEFORMAT="{{elapsed}}"; time uv run python -m llama_api.scripts.preprocessing \
-            --input "{{data_dir}}/training_raw.jsonl" \
-            --output-dir "{{data_dir}}" \
+        TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.preprocessing \
+            --input "{{ data_dir }}/training_raw.jsonl" \
+            --output-dir "{{ data_dir }}" \
             --rag-api-url "http://localhost:8001" \
-            --val-pct "{{test_set_pct}}" \
+            --val-pct "{{ test_set_pct }}" \
             --model-family llama \
     '
 
-
-# Step 4: Train LoRA adapters
+# Step 5: Train LoRA adapters
 train: check
     @echo "--- Step 4: Training LoRA adapters ---"
-    @mkdir -p "{{models_dir}}/adapters"
-    @TIMEFORMAT="{{elapsed}}"; time uv run mlx_lm.lora \
-        --model "{{finetuning_model}}" \
+    @mkdir -p "{{ models_dir }}/adapters"
+    @TIMEFORMAT="{{ elapsed }}"; time uv run mlx_lm.lora \
+        --model "{{ finetuning_model }}" \
         --train \
-        --data "{{data_dir}}" \
-        --adapter-path "{{models_dir}}/adapters" \
+        --data "{{ data_dir }}" \
+        --adapter-path "{{ models_dir }}/adapters" \
         --config "lora_config.yaml" \
         --max-seq-len 1024 \
         --save-every 999999
 
-
-# Step 5: Fuse LoRA into base model
+# Step 6: Fuse LoRA into base model
 fuse:
     @echo "--- Step 5: Fusing LoRA into base model ---"
-    @mkdir -p "{{models_dir}}/fused"
-    @TIMEFORMAT="{{elapsed}}"; time uv run mlx_lm.fuse \
-        --model "{{finetuning_model}}" \
-        --adapter-path "{{models_dir}}/adapters" \
-        --save-path "{{models_dir}}/fused"
+    @mkdir -p "{{ models_dir }}/fused"
+    @TIMEFORMAT="{{ elapsed }}"; time uv run mlx_lm.fuse \
+        --model "{{ finetuning_model }}" \
+        --adapter-path "{{ models_dir }}/adapters" \
+        --save-path "{{ models_dir }}/fused"
 
-# Step 6: Convert to GGUF
+# Step 7: Convert to GGUF
 convert: check
     @echo "--- Step 6: Converting to GGUF ---"
-    @TIMEFORMAT="{{elapsed}}"; time bash -c '\
+    @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
         echo "[convert] Running convert_hf_to_gguf.py ..."; \
-        uv run python "{{llama_scripts_dir}}/convert_hf_to_gguf.py" \
-            "{{models_dir}}/fused" \
-            --outfile "{{models_dir}}/fused-f16.gguf" \
+        uv run python "{{ llama_scripts_dir }}/convert_hf_to_gguf.py" \
+            "{{ models_dir }}/fused" \
+            --outfile "{{ models_dir }}/fused-f16.gguf" \
             --outtype f16 > /tmp/convert.log 2>&1; \
         echo "[convert] Done — f16 GGUF ready"; \
         echo "[convert] Quantizing to Q4_K_M ..."; \
         llama-quantize \
-            "{{models_dir}}/fused-f16.gguf" \
-            "{{models_dir}}/{{hf_model_file}}" \
+            "{{ models_dir }}/fused-f16.gguf" \
+            "{{ models_dir }}/{{ hf_model_file }}" \
             q4_k_m > /tmp/quantize.log 2>&1; \
-        echo "[convert] Done — {{hf_model_file}} ready" \
+        echo "[convert] Done — {{ hf_model_file }} ready" \
     '
 
-
-# Step 7: Test the GGUF with random questions from training data
+# Step 8: Test the GGUF with random questions from training data
 test:
     @echo "--- Testing GGUF model ---"
-    @TIMEFORMAT="{{elapsed}}"; time uv run python -m llama_api.scripts.eval_model \
-        "{{models_dir}}/{{hf_model_file}}" \
-        "{{data_dir}}/valid.jsonl" \
+    @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.eval_model \
+        "{{ models_dir }}/{{ hf_model_file }}" \
+        "{{ data_dir }}/valid.jsonl" \
         8082 \
         "llama-server" \
         10
 
-
-# Step 8: Upload to HuggingFace
+# Upload to HuggingFace (MANUAL)
 upload:
     @echo "--- Step 8: Uploading to HuggingFace ---"
-    @TIMEFORMAT="{{elapsed}}"; time bash -c '\
+    @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
         if [ -n "$HF_TOKEN" ]; then \
-            echo "Uploading {{hf_model_file}} to {{hf_model_repo}} ..."; \
-            hf upload "{{hf_model_repo}}" "{{models_dir}}/{{hf_model_file}}" "{{hf_model_file}}" --repo-type model; \
-            echo "Upload complete: https://huggingface.co/{{hf_model_repo}}"; \
+            echo "Uploading {{ hf_model_file }} to {{ hf_model_repo }} ..."; \
+            hf upload "{{ hf_model_repo }}" "{{ models_dir }}/{{ hf_model_file }}" "{{ hf_model_file }}" --repo-type model; \
+            echo "Upload complete: https://huggingface.co/{{ hf_model_repo }}"; \
         else \
             echo "HF_TOKEN not set -- skipping upload."; \
-            echo "Set HF_TOKEN in .env to auto-upload to {{hf_model_repo}}"; \
+            echo "Set HF_TOKEN in .env to auto-upload to {{ hf_model_repo }}"; \
         fi \
     '
 
 # Preload the finetuning model
 download:
-    @echo "--- Downloading {{finetuning_model}} ---"
-    @hf download "{{finetuning_model}}"
+    @echo "--- Downloading {{ finetuning_model }} ---"
+    @hf download "{{ finetuning_model }}"

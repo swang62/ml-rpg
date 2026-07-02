@@ -1,5 +1,6 @@
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -53,6 +54,11 @@ FORMATTERS = {
     "llama": format_llama,
 }
 
+REPEATED_PUNCTUATION_PATTERN = re.compile(r"([.,!?;:\-])\1{2,}")
+LONG_PUNCTUATION_RUN_PATTERN = re.compile(r"[.,!?;:\-]{4,}")
+NORMALIZED_PUNCTUATION_RUN_PATTERN = re.compile(r"([.,!?;:])\1{2,}|-{3,}|[.,!?;:\-]{4,}")
+SUSPICIOUS_UNICODE_PUNCTUATION = {"…"}
+
 
 def strip_control_chars(text: str) -> str:
     return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
@@ -88,6 +94,46 @@ def strip_code_fences(raw: str) -> str:
     return raw.strip()
 
 
+def maybe_unescape_json_string(raw: str) -> str:
+    stripped_raw = raw.strip()
+    if not stripped_raw:
+        return stripped_raw
+
+    if '\\"' not in stripped_raw and '\\#' not in stripped_raw:
+        return stripped_raw
+
+    try:
+        decoded = json.loads(stripped_raw)
+    except json.JSONDecodeError:
+        return stripped_raw
+
+    if isinstance(decoded, str):
+        return decoded.strip()
+
+    return stripped_raw
+
+
+def extract_openai_message_text(message: object) -> str:
+    if isinstance(message, dict):
+        message_content = message.get("content")
+        reasoning_content = message.get("reasoning_content")
+    else:
+        message_content = getattr(message, "content", None)
+        reasoning_content = getattr(message, "reasoning_content", None)
+        if reasoning_content is None:
+            model_extra = getattr(message, "model_extra", None)
+            if isinstance(model_extra, dict):
+                reasoning_content = model_extra.get("reasoning_content")
+
+    if isinstance(message_content, str) and message_content.strip():
+        return maybe_unescape_json_string(message_content)
+
+    if isinstance(reasoning_content, str) and reasoning_content.strip():
+        return maybe_unescape_json_string(reasoning_content)
+
+    return ""
+
+
 def extract_qas(data: object) -> list[dict]:
     """Pull QA pairs from whatever shape the model returns."""
     if isinstance(data, list):
@@ -113,6 +159,43 @@ def extract_qas(data: object) -> list[dict]:
     raise ValueError(f"Unexpected data type: {type(data)}")
 
 
+def recover_truncated_pairs_payload(raw: str) -> dict | None:
+    pairs_key_index = raw.find('"pairs"')
+    if pairs_key_index == -1:
+        return None
+
+    array_start_index = raw.find("[", pairs_key_index)
+    if array_start_index == -1:
+        return None
+
+    decoder = json.JSONDecoder()
+    recovered_pairs: list[dict] = []
+    current_index = array_start_index + 1
+    raw_length = len(raw)
+
+    while current_index < raw_length:
+        while current_index < raw_length and raw[current_index] in " \t\r\n,":
+            current_index += 1
+
+        if current_index >= raw_length or raw[current_index] == "]":
+            break
+
+        try:
+            parsed_item, next_index = decoder.raw_decode(raw, current_index)
+        except json.JSONDecodeError:
+            break
+
+        if isinstance(parsed_item, dict):
+            recovered_pairs.append(parsed_item)
+
+        current_index = next_index
+
+    if not recovered_pairs:
+        return None
+
+    return {"pairs": recovered_pairs}
+
+
 def normalize_pair(item: object) -> dict | None:
     if not isinstance(item, dict):
         return None
@@ -129,9 +212,75 @@ def normalize_pair(item: object) -> dict | None:
     return {"question": aliased["question"], "answer": aliased["answer"]}
 
 
+def has_weird_punctuation(text: str) -> bool:
+    cleaned_text = clean_text(text)
+    return bool(
+        REPEATED_PUNCTUATION_PATTERN.search(cleaned_text)
+        or LONG_PUNCTUATION_RUN_PATTERN.search(cleaned_text)
+    )
+
+
+def normalize_punctuation(text: str) -> str:
+    return (
+        text.replace("…", "...")
+    )
+
+
+def has_invisible_spacing_or_control(text: str) -> bool:
+    for char in text:
+        category = unicodedata.category(char)
+        if char in {"\n", "\r", "\t", " "}:
+            continue
+        if category.startswith("C") or category == "Zs":
+            return True
+    return False
+
+
+def has_suspicious_unicode_symbols(text: str) -> bool:
+    for char in text:
+        if char in SUSPICIOUS_UNICODE_PUNCTUATION:
+            return True
+        if ord(char) > 127 and unicodedata.category(char).startswith("S"):
+            return True
+    return False
+
+
+def has_garbled_text(text: str) -> bool:
+    cleaned_text = clean_text(text)
+    normalized_text = normalize_punctuation(cleaned_text)
+    return bool(
+        has_invisible_spacing_or_control(text)
+        or has_suspicious_unicode_symbols(text)
+        or NORMALIZED_PUNCTUATION_RUN_PATTERN.search(normalized_text)
+    )
+
+
+def is_acceptable_generated_pair(pair: dict) -> bool:
+    return not has_garbled_text(pair["question"]) and not has_garbled_text(
+        pair["answer"]
+    )
+
+
 def parse_pairs(raw: str) -> list[dict]:
-    raw = strip_control_chars(strip_code_fences(raw))
-    data = json.loads(raw)
+    raw = maybe_unescape_json_string(strip_control_chars(strip_code_fences(raw)))
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        recovered_data = recover_truncated_pairs_payload(raw)
+        if recovered_data is None:
+            raise
+        data = recovered_data
+
+    if isinstance(data, dict) and "choices" in data:
+        choices = data.get("choices")
+        if isinstance(choices, list) and choices:
+            first_choice = choices[0]
+            if isinstance(first_choice, dict):
+                message = first_choice.get("message")
+                extracted_text = extract_openai_message_text(message)
+                if extracted_text:
+                    return parse_pairs(extracted_text)
+
     items = extract_qas(data)
     pairs = []
     for it in items:

@@ -14,7 +14,12 @@ from .config import (
     MIN_TEXT_SIZE,
 )
 from .jailbreak.detect import check
-from .retrieval.embedding import embed_queries, unload_embedder
+from .retrieval.embedding import (
+    embed_queries,
+    is_embedder_loading,
+    preload_embedder,
+    unload_embedder,
+)
 from .retrieval.keyword_extract import unload_nlp_core
 from .retrieval.routes import retrieve
 from .retrieval.vector_search import close_vectordb, hybrid_search
@@ -71,6 +76,7 @@ async def _idle_unloader():
 async def lifespan(_app: FastAPI):
     global _last_request_time
     _last_request_time = time.monotonic()
+    preload_embedder()
     unloader = asyncio.create_task(_idle_unloader())
 
     yield
@@ -99,7 +105,7 @@ async def health():
 
 @app.get("/status")
 async def service_status():
-    return {"idle": _unloaded}
+    return {"idle": _unloaded, "model_loading": is_embedder_loading()}
 
 
 @app.post("/embed", response_model=EmbedResponse)

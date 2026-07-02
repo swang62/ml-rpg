@@ -1,33 +1,25 @@
-# Suppress noisy warnings from pydantic/instructor BEFORE importing them
-import warnings
-
-warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
-warnings.filterwarnings("ignore", category=UserWarning, module="instructor")
-
-# ruff: isort: off
 import argparse
 import json
 import logging
 from collections import defaultdict
+from pathlib import Path
+
+from openai import OpenAI
+from openai.types.shared_params.response_format_json_schema import (
+    ResponseFormatJSONSchema,
+)
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
-from pathlib import Path
-from distilabel.models import OpenAILLM
-from distilabel.pipeline import Pipeline
-from distilabel.steps import LoadDataFromDicts
-from distilabel.steps.tasks import TextGeneration
 
 from .prompts import BOB_PERSONA, CATEGORY_PROMPTS, PLATFORM_FACTS
-from .utils import clean_text, get_project_root, parse_pairs
-# ruff: isort: on
-
-
-def suppress_distilabel():
-    for name in list(logging.root.manager.loggerDict):
-        if name.startswith("distilabel"):
-            logging.getLogger(name).setLevel(logging.WARNING)
-            logging.getLogger(name).propagate = False
-
+from .utils import (
+    clean_text,
+    extract_openai_message_text,
+    get_project_root,
+    is_acceptable_generated_pair,
+    parse_pairs,
+    QAPairs,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,28 +28,17 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-suppress_distilabel()
-
-MAX_BATCH_ATTEMPTS = 3
+MAX_RETRIES = 3
+MAX_COMPLETION_TOKENS = 5000
+MAX_RECENT_QUESTIONS_IN_PROMPT = 100
+GENERATION_TEMPERATURE = 1.0
+GENERATION_FREQUENCY_PENALTY = 0.2
+GENERATION_PRESENCE_PENALTY = 0.2
 
 
 def build_prompt(
-    category: str, count: int, existing_pairs: list[dict] | None = None
+    category: str, count: int, previous_questions: list[str] | None = None
 ) -> str:
-    prompt = CATEGORY_PROMPTS[category].format(count=count)
-
-    existing_section = ""
-    if existing_pairs:
-        lines = "\n".join(
-            f"  - Q: {p['question']}\n    A: {p['answer']}" for p in existing_pairs
-        )
-        existing_section = f"""
-## Already Generated Pairs
-The following {len(existing_pairs)} pairs have already been created. Do NOT repeat any of these questions or answers — generate completely new ones.
-
-{lines}
-"""
-
     return f"""
 {BOB_PERSONA}
 
@@ -65,13 +46,40 @@ The following {len(existing_pairs)} pairs have already been created. Do NOT repe
 {PLATFORM_FACTS}
 
 ## Task
-{prompt}{existing_section}
+{build_user_prompt(category, count, previous_questions)}
 
 ## Output Format
 Return ONLY valid JSON. Use this exact structure:
 {{"pairs": [{{"question": "Example question here?", "answer": "Example answer here."}}]}}
 
-Replace the example with {count} actual question-answer pairs. Use "question" and "answer" as the field names (not "q", "a", "Q", or anything else). Wrap all pairs in a single array under the "pairs" key.
+Use "question" and "answer" as the field names (not "q", "a", "Q", or anything else). Wrap all pairs in a single array under the "pairs" key.
+
+Use plain ASCII punctuation only. Do not use unicode ellipses, unusual whitespace, decorative characters, or corrupted symbols.
+"""
+
+
+def build_user_prompt(
+    category: str, count: int, previous_questions: list[str] | None = None
+) -> str:
+    prompt = CATEGORY_PROMPTS[category].format(count=count)
+
+    existing_section = ""
+    if previous_questions:
+        lines = "\n".join(f"  - {question}" for question in previous_questions)
+        existing_section = f"""
+## Previously Generated Questions
+The following {len(previous_questions)} questions already exist. Do NOT repeat the exact same question wording again. Rephrasings are allowed if they ask from a meaningfully different angle.
+
+{lines}
+"""
+
+    return f"""
+## Task
+{prompt}{existing_section}
+
+Return exactly {count} question-answer pairs and no more. Do not return extra pairs.
+Never return more than {count} pairs.
+If you cannot produce all {count} pairs cleanly, return fewer valid pairs instead of malformed text.
 """
 
 
@@ -113,56 +121,90 @@ def append_pairs(path: Path, pairs: list[dict]) -> None:
             f.write(json.dumps(pair, ensure_ascii=False) + "\n")
 
 
+def normalize_question(question: str) -> str:
+    cleaned_question = clean_text(question).strip()
+    return "".join(
+        character
+        for character in cleaned_question
+        if character.isalnum() or character.isspace()
+    ).rstrip()
+
+
+QA_SCHEMA: ResponseFormatJSONSchema = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "qa_pairs",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "pairs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "question": {"type": "string"},
+                            "answer": {"type": "string"},
+                        },
+                        "required": ["question", "answer"],
+                        "additionalProperties": False,
+                    },
+                }
+            },
+            "required": ["pairs"],
+            "additionalProperties": False,
+        },
+    },
+}
+
+
 def generate_batch(
     category: str, count: int, existing_pairs: list[dict], model: str, base_url: str
 ) -> tuple[list[dict], int]:
-    prompt = build_prompt(category, count, existing_pairs)
-    data = [{"category": category, "prompt": prompt}]
+    recent_questions = [
+        pair["question"] for pair in existing_pairs[-MAX_RECENT_QUESTIONS_IN_PROMPT:]
+    ]
+    prompt = build_prompt(category, count, recent_questions)
 
-    with Pipeline(name="generate-bob-data") as pipeline:
-        text_generation = TextGeneration(
-            name="generate",
-            llm=OpenAILLM(
-                base_url=base_url,
-                model=model,
-                api_key=None,
-            ),
+    try:
+        client = OpenAI(base_url=base_url, api_key="lm-studio")
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            response_format=QA_SCHEMA,
+            max_completion_tokens=MAX_COMPLETION_TOKENS,
+            temperature=GENERATION_TEMPERATURE,
+            frequency_penalty=GENERATION_FREQUENCY_PENALTY,
+            presence_penalty=GENERATION_PRESENCE_PENALTY,
         )
-        LoadDataFromDicts(data=data, output_mappings={"prompt": "instruction"}).connect(
-            text_generation
-        )
 
-    suppress_distilabel()
-    distiset = pipeline.run(
-        parameters={
-            "generate": {
-                "llm": {
-                    "generation_kwargs": {
-                        "temperature": 0.8,
-                        "max_new_tokens": 50000,
-                        "response_format": {"type": "json_object"},
-                    }
-                }
-            }
-        },
-        use_cache=False,
-    )
-
-    row = list(distiset["default"]["train"])[0]
-    generation = row["generation"]
-    if generation is None:
+        raw = extract_openai_message_text(response.choices[0].message)
+        if not raw:
+            return [], 0
+    except Exception:
+        log.exception("API call failed for %s (batch %d)", category, count)
         return [], 0
 
-    pairs = parse_pairs(generation)
+    try:
+        pairs = parse_pairs(raw)
+        pairs = [pair for pair in pairs if is_acceptable_generated_pair(pair)]
+        QAPairs.model_validate({"pairs": pairs})
+    except Exception:
+        log.exception("Failed to parse response for %s (batch %d)", category, count)
+        return [], 0
 
     existing_questions = {
-        clean_text(p["question"]).lower().strip() for p in existing_pairs
+        normalize_question(pair["question"]) for pair in existing_pairs
     }
-    new_pairs = [
-        p
-        for p in pairs
-        if clean_text(p["question"]).lower().strip() not in existing_questions
-    ]
+    new_pairs = []
+    seen_questions = set(existing_questions)
+    for pair in pairs:
+        normalized_question = normalize_question(pair["question"])
+        if normalized_question in seen_questions:
+            continue
+        seen_questions.add(normalized_question)
+        new_pairs.append(pair)
+
     duplicates = len(pairs) - len(new_pairs)
 
     return new_pairs, duplicates
@@ -220,7 +262,6 @@ def main():
 
     categories = sorted(CATEGORY_PROMPTS.keys())
     batch_size = min(args.batch_size, args.examples_per_category)
-    num_batches = (args.examples_per_category + batch_size - 1) // batch_size
     log.info(
         "Generating %d examples per category in batches of %d for: %s",
         args.examples_per_category,
@@ -232,7 +273,6 @@ def main():
     raw_dir.mkdir(parents=True, exist_ok=True)
 
     with logging_redirect_tqdm():
-        suppress_distilabel()
         for category in categories:
             category_file = raw_dir / f"{category}.jsonl"
             existing_pairs = load_category_pairs(category_file)
@@ -252,39 +292,27 @@ def main():
                 ncols=80,
             )
 
-            batch_num = 0
-            while (
-                len(existing_pairs) < args.examples_per_category
-                and batch_num < num_batches + MAX_BATCH_ATTEMPTS
-            ):
-                batch_num += 1
+            failed_retry_count = 0
+            while len(existing_pairs) < args.examples_per_category:
                 remaining = args.examples_per_category - len(existing_pairs)
-                batch_request = min(batch_size, remaining)
+                batch_request = min(batch_size, remaining) + 5
 
-                bar.write(f"  Batch {batch_num}: requesting {batch_request} pairs")
-                print("\n")
                 new_pairs, duplicates = generate_batch(
                     category, batch_request, existing_pairs, args.model, args.base_url
                 )
 
-                if duplicates:
-                    bar.write(f"  Removed {duplicates} duplicates")
-
                 if not new_pairs:
-                    bar.write("  Batch returned 0 new pairs — stopping early")
-                    break
+                    failed_retry_count += 1
+                    if failed_retry_count > MAX_RETRIES:
+                        break
+                    log.warning(f"({failed_retry_count}/{MAX_RETRIES}) Retrying...")
+                    continue
+
+                failed_retry_count = 0
 
                 append_pairs(category_file, new_pairs)
                 existing_pairs.extend(new_pairs)
                 bar.update(len(new_pairs))
-
-                if (
-                    len(existing_pairs) < args.examples_per_category
-                    and len(new_pairs) < batch_request
-                ):
-                    bar.write(
-                        f"  Model returned fewer than requested ({len(new_pairs)} < {batch_request}) — will retry"
-                    )
 
             bar.close()
 
@@ -315,11 +343,6 @@ def main():
     with open(args.output, "w", encoding="utf-8") as f:
         for example in all_examples:
             f.write(json.dumps(example, ensure_ascii=False) + "\n")
-
-    # Write markdown
-    md_path = raw_dir / "formatted.md"
-    write_markdown(per_category, md_path)
-    tqdm.write(f"Wrote markdown -> {md_path}")
 
     total = len(all_examples)
     tqdm.write(f"\nDone! {total} generated examples -> {args.output}")

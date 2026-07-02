@@ -7,8 +7,14 @@ import urllib.request
 from collections import defaultdict
 from pathlib import Path
 
-from .prompts import SYSTEM_PROMPT
 from .utils import FORMATTERS, get_project_root
+
+
+SHARED_SYSTEM_PROMPT_PATH = (
+    Path(__file__).resolve().parent.parent.parent / "shared" / "prompts" / "bob-system.json"
+)
+with SHARED_SYSTEM_PROMPT_PATH.open(encoding="utf-8") as shared_prompt_file:
+    SHARED_SYSTEM_PROMPT_TEMPLATE = json.load(shared_prompt_file)["template"]
 
 MODEL_NAME_BY_FAMILY = {
     "llama": "unsloth/Llama-3.2-3B-Instruct",
@@ -201,7 +207,7 @@ def main():
                 messages = [
                     {
                         "role": "system",
-                        "content": SYSTEM_PROMPT.format(
+                        "content": SHARED_SYSTEM_PROMPT_TEMPLATE.format(
                             context=example.get("context", "")
                         ),
                     },
