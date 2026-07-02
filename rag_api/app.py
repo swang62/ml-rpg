@@ -68,7 +68,7 @@ app = FastAPI(title="rag-api", lifespan=lifespan)
 
 @app.middleware("http")
 async def track_request(request: Request, call_next):
-    if request.url.path != "/health":
+    if request.url.path not in ("/health", "/status"):
         global _last_request_time, _unloaded
         _last_request_time = time.monotonic()
         _unloaded = False
@@ -78,6 +78,11 @@ async def track_request(request: Request, call_next):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/status")
+async def service_status():
+    return {"idle": _unloaded}
 
 
 @app.post("/retrieve", response_model=RetrieveResponse)
@@ -167,7 +172,7 @@ async def extract_keywords_batch(req: EnrichRequest):
 
     results = []
     for i in range(len(cleaned)):
-        row = tfidf[i].toarray().flatten()
+        row = tfidf[i].toarray().flatten()  # type: ignore[index]
         top = row.argsort()[-5:][::-1]
         keywords = [features[idx] for idx in top if row[idx] > 0]
         results.append(keywords)

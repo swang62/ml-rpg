@@ -56,8 +56,8 @@ def extract_keywords(query: str) -> list[str]:
 
     for token in doc:
         if (
-            token.pos_ in ("NUM", "NOUN", "PROPN", "ADJ")
-            and not token.is_stop
+            (token.pos_ in ("NUM", "NOUN", "PROPN", "ADJ", "VERB") or token.tag_ == "CD")
+            and (not token.is_stop or token.tag_ == "CD")
             and len(formatted(token.text)) >= MIN_TEXT_SIZE
         ):
             keywords.add(formatted(token.text))

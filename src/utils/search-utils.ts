@@ -1,4 +1,6 @@
 import DOMPurify from "isomorphic-dompurify";
+import { GITHUB_REPO_URL } from "~/utils/constants";
+import type { SourceResult } from "~/utils/types";
 
 /** Escape HTML special characters for safe innerHTML usage. */
 export function escapeHtml(text: string): string {
@@ -46,6 +48,23 @@ export function boldTerms(text: string, terms: string[]): string {
 // ---------------------------------------------------------------------------
 // MiniSearch (full-text search)
 // ---------------------------------------------------------------------------
+
+export function shouldHideSources(
+  answer: string,
+  sources: SourceResult[],
+): boolean {
+  const isShortReply = answer.length < 40;
+  const isCourseInfo = sources.some((s) => s.url === GITHUB_REPO_URL);
+  const isInvalidReply =
+    answer.includes("Bob") ||
+    answer.includes("can't answer") ||
+    answer.includes("can't help") ||
+    answer.includes("here to help") ||
+    answer.includes("happy to chat") ||
+    answer.includes("not enough info") ||
+    answer.includes("not enough context");
+  return isInvalidReply || isShortReply || isCourseInfo;
+}
 
 export function stripHtmlTags(html: string): string {
   return html

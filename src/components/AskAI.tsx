@@ -10,9 +10,10 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
-import { queryRAG } from "~/server/rag";
+import { prepareChat, warmupCheck } from "~/server/rag";
 import { RAG_BOT_NAME, SHORTCUTS } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
+import { escapeHtml, shouldHideSources } from "~/utils/search-utils";
 import type { SourceResult } from "~/utils/types";
 
 interface ChatMessage {
@@ -32,6 +33,11 @@ export default function AskAI() {
   const [messages, setMessages] = createSignal<ChatMessage[]>([GREETING]);
   const [inputValue, setInputValue] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
+  const [loadingText, setLoadingText] = createSignal("...");
+  const [streamingContent, setStreamingContent] = createSignal<string | null>(
+    null,
+  );
+  const [hasStartedStreaming, setHasStartedStreaming] = createSignal(false);
   let panelRef: HTMLDivElement | undefined;
   let messagesRef: HTMLDivElement | undefined;
   let inputRef: HTMLInputElement | undefined;
@@ -39,6 +45,7 @@ export default function AskAI() {
   createEffect(() => {
     messages();
     isLoading();
+    streamingContent();
     requestAnimationFrame(() => {
       if (messagesRef) {
         messagesRef.scrollTop = messagesRef.scrollHeight;
@@ -49,7 +56,6 @@ export default function AskAI() {
   createEffect(() => {
     if (isOpen()) {
       requestAnimationFrame(() => inputRef?.focus());
-      // Focus trap — Tab/Shift+Tab cycles within the AI panel
       if (!panelRef) return;
       const trapCleanup = setupFocusTrap(panelRef);
       onCleanup(() => trapCleanup());
@@ -96,35 +102,123 @@ export default function AskAI() {
 
     setInputValue("");
     setMessages((prev) => [...prev, { role: "user", content: query }]);
-    setIsLoading(true);
 
     try {
-      // const history = messages()
-      //   .slice(-RAG_MAX_HISTORY)
-      //   .map((m) => ({ role: m.role, content: m.content }));
+      // Phase 1: Idle check (lightweight) — decide loading text before any real work
+      const needsWarmup = await warmupCheck();
+      setLoadingText(needsWarmup ? "Warping in portal..." : "...");
+      setIsLoading(true);
+      setHasStartedStreaming(false);
+      setStreamingContent(null);
 
-      const result = await queryRAG({ query });
+      // Phase 2: RAG retrieval + validation (rate limit, sanitize, jailbreak)
+      const prepared = await prepareChat({ query });
+
+      const skipMsg = prepared.skipResponse;
+      if (skipMsg) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: skipMsg },
+        ]);
+        return;
+      }
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: prepared.messages,
+          streamToken: prepared.streamToken,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Chat API error: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error("Chat API returned no body");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulatedContent = "";
+      let streamStarted = false;
+      let done = false;
+
+      while (!done) {
+        const { done: readerDone, value } = await reader.read();
+        if (readerDone) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+
+          const data = line.slice(6);
+          if (data === "[DONE]") {
+            done = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(data);
+
+            if (parsed.type === "error") {
+              accumulatedContent = parsed.content;
+              setStreamingContent(accumulatedContent);
+              done = true;
+              break;
+            }
+
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              accumulatedContent += delta;
+              setStreamingContent(accumulatedContent);
+              if (!streamStarted) {
+                streamStarted = true;
+                setHasStartedStreaming(true);
+              }
+            }
+          } catch {
+            // skip unparseable events
+          }
+        }
+      }
+
+      const finalSources = shouldHideSources(
+        accumulatedContent,
+        prepared.sources,
+      )
+        ? []
+        : prepared.sources;
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: result.answer,
-          sources: result.sources,
-          keywords: result.keywords,
+          content: accumulatedContent,
+          sources: finalSources,
+          keywords: prepared.keywords,
         },
       ]);
     } catch (err) {
-      const error = err as Error;
-      console.error(JSON.stringify(error));
+      console.error(err instanceof Error ? err.message : String(err));
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `Oops! Something ain't right, come back later...}`,
+          content: "Oops! Something ain't right, come back later...",
         },
       ]);
     } finally {
       setIsLoading(false);
+      setLoadingText("...");
+      setStreamingContent(null);
+      setHasStartedStreaming(false);
       requestAnimationFrame(() => inputRef?.focus());
     }
   };
@@ -195,13 +289,28 @@ export default function AskAI() {
                 )}
               </For>
 
-              <Show when={isLoading()}>
+              <Show when={isLoading() && !hasStartedStreaming()}>
                 <div class="askai-message askai-message--assistant">
                   <div class="askai-message__label">{RAG_BOT_NAME}</div>
                   <div class="askai-loading">
-                    <span class="askai-loading__dot">.</span>
-                    <span class="askai-loading__dot">.</span>
-                    <span class="askai-loading__dot">.</span>
+                    {loadingText() === "..." ? (
+                      <>
+                        <span class="askai-loading__dot">.</span>
+                        <span class="askai-loading__dot">.</span>
+                        <span class="askai-loading__dot">.</span>
+                      </>
+                    ) : (
+                      <span class="askai-loading__wave">{loadingText()}</span>
+                    )}
+                  </div>
+                </div>
+              </Show>
+
+              <Show when={hasStartedStreaming()}>
+                <div class="askai-message askai-message--assistant">
+                  <div class="askai-message__label">{RAG_BOT_NAME}</div>
+                  <div class="askai-message__content">
+                    {escapeHtml(streamingContent() ?? "")}
                   </div>
                 </div>
               </Show>
