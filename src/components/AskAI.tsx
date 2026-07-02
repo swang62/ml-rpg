@@ -11,7 +11,7 @@ import {
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
 import { prepareChat, warmupCheck } from "~/server/rag";
-import { RAG_BOT_NAME, SHORTCUTS } from "~/utils/constants";
+import { RAG_BOT_NAME, RAG_MAX_HISTORY, SHORTCUTS } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import { escapeHtml, shouldHideSources } from "~/utils/search-utils";
 import type { SourceResult } from "~/utils/types";
@@ -112,7 +112,12 @@ export default function AskAI() {
       setStreamingContent(null);
 
       // Phase 2: RAG retrieval + validation (rate limit, sanitize, jailbreak)
-      const prepared = await prepareChat({ query });
+      const history = messages()
+        .slice(1, -1)
+        .slice(-RAG_MAX_HISTORY)
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      const prepared = await prepareChat({ query, history });
 
       const skipMsg = prepared.skipResponse;
       if (skipMsg) {

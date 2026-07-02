@@ -1,8 +1,8 @@
 import Groq from "groq-sdk";
 import { createStreamToken } from "~/server/stream-tokens";
-import { RATE_LIMIT_CHAT } from "~/utils/constants";
+import { RAG_MAX_HISTORY, RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
-import { sanitizeSearchQuery } from "~/utils/input-validation";
+import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
 import type { ChunkResult, SourceResult } from "~/utils/types";
 import { checkRateLimit } from "../middleware/rate-limiter";
 import { getSession } from "./session";
@@ -11,7 +11,7 @@ const groq = new Groq({ apiKey: getEnv().GROQ_API_KEY });
 
 export interface PrepareChatInput {
   query: string;
-  history?: { role: "user" | "assistant"; content: string }[];
+  history: { role: "user" | "assistant"; content: string }[];
 }
 
 export interface PrepareChatResult {
@@ -136,10 +136,12 @@ export async function prepareChat({
   const { systemPrompt, sources, keywords } =
     await fetchSystemPrompt(sanitized);
 
+  const safeHistory = sanitizeHistory(history, RAG_MAX_HISTORY);
+
   const messages: { role: "system" | "user" | "assistant"; content: string }[] =
     [
       { role: "system", content: systemPrompt },
-      ...(history ?? []),
+      ...safeHistory,
       { role: "user", content: sanitized },
     ];
 
