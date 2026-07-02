@@ -11,6 +11,7 @@
  */
 
 import { z } from "zod";
+import type { PrepareChatInput } from "~/server/rag";
 
 // ---------------------------------------------------------------------------
 // Slug validation
@@ -121,7 +122,7 @@ const HistoryEntrySchema = z.object({
 });
 
 export function sanitizeHistory(
-  history: unknown,
+  history: PrepareChatInput["history"],
   maxTurns: number,
 ): {
   role: "user" | "assistant";
