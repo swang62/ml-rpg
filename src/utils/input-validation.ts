@@ -122,7 +122,7 @@ const HistoryEntrySchema = z.object({
 });
 
 export function sanitizeHistory(
-  history: PrepareChatInput["history"],
+  history: unknown,
   maxTurns: number,
 ): {
   role: "user" | "assistant";
