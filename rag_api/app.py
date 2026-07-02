@@ -6,15 +6,23 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 
-from .config import IDLE_TIMEOUT, LOG_LEVEL, MAX_TEXT_SIZE, MIN_TEXT_SIZE
+from .config import (
+    EMBEDDING_DIM,
+    IDLE_TIMEOUT,
+    LOG_LEVEL,
+    MAX_TEXT_SIZE,
+    MIN_TEXT_SIZE,
+)
 from .jailbreak.detect import check
-from .retrieval.embedding import close_client, embed_queries
+from .retrieval.embedding import embed_queries, unload_embedder
 from .retrieval.keyword_extract import unload_nlp_core
 from .retrieval.routes import retrieve
 from .retrieval.vector_search import close_vectordb, hybrid_search
 from .schemas import (
     BatchChunkResult,
     BatchQueryResult,
+    EmbedRequest,
+    EmbedResponse,
     EnrichRequest,
     EnrichResponse,
     GuardRequest,
@@ -30,15 +38,13 @@ logging.basicConfig(
     level=_log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 
-# Silence noisy libraries — only show their WARNING+ messages
 for lib in (
     "asyncio",
     "httpx",
     "httpcore",
     "lancedb",
+    "filelock",
     "uvicorn.access",
-    "voyage",
-    "voyageai",
 ):
     logging.getLogger(lib).setLevel(logging.WARNING)
 
@@ -57,7 +63,7 @@ async def _idle_unloader():
             logger.info("idle for %.0fs — unloading resources...", idle)
             unload_nlp_core()
             close_vectordb()
-            await close_client()
+            unload_embedder()
             _unloaded = True
 
 
@@ -71,7 +77,7 @@ async def lifespan(_app: FastAPI):
 
     unloader.cancel()
     close_vectordb()
-    await close_client()
+    unload_embedder()
 
 
 app = FastAPI(title="rag-api", lifespan=lifespan)
@@ -94,6 +100,16 @@ async def health():
 @app.get("/status")
 async def service_status():
     return {"idle": _unloaded}
+
+
+@app.post("/embed", response_model=EmbedResponse)
+async def embed_endpoint(req: EmbedRequest) -> EmbedResponse:
+    try:
+        embeddings = await embed_queries(req.texts)
+        return EmbedResponse(embeddings=embeddings)
+    except Exception:
+        logger.exception("embed failed for %d texts", len(req.texts))
+        raise HTTPException(status_code=500, detail="embedding failed")
 
 
 @app.post("/guard", response_model=GuardResponse)
@@ -121,22 +137,18 @@ async def retrieve_chunks_batch(req: RetrieveBatchRequest) -> RetrieveBatchRespo
 
     logger.info("retrieve_chunks: %d queries", len(queries))
 
-    # Step 1: embed all queries via Voyage
     valid_queries = [(i, q) for i, q in enumerate(queries) if len(q) >= MIN_TEXT_SIZE]
     if valid_queries:
         idxs, texts = zip(*valid_queries)
-        logger.info("  -> %d valid, calling Voyage API ...", len(valid_queries))
+        logger.info("  -> %d valid, calling fastembed ...", len(valid_queries))
         try:
             batch_results = await embed_queries(list(texts))
-            logger.info("  -> Voyage returned %d embeddings", len(batch_results))
+            logger.info("  -> fastembed returned %d embeddings", len(batch_results))
             for idx, emb in zip(idxs, batch_results):
                 embeddings[idx] = emb
         except Exception:
-            logger.exception(
-                "Voyage embedding failed for batch — returning empty results"
-            )
+            logger.exception("fastembed failed for batch — returning empty results")
 
-    # Step 2: hybrid search for each (local, fast)
     results = []
     total_chunks = 0
     for query, embedding in zip(queries, embeddings):

@@ -1,65 +1,72 @@
 import logging
+import os
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
-import httpx
+from fastembed import TextEmbedding
 
-from ..config import VOYAGE_API_KEY, VOYAGE_API_URL, VOYAGE_MODEL
+from ..config import FASTEMBED_BATCH_SIZE, FASTEMBED_MODEL_NAME
 
 logger = logging.getLogger("rag_api")
 
-_client: httpx.AsyncClient | None = None
+_embedder: TextEmbedding | None = None
+_executor = ThreadPoolExecutor(max_workers=1)
 
 
-def get_client() -> httpx.AsyncClient:
-    global _client
-    if _client is None:
-        _client = httpx.AsyncClient(timeout=120.0)
-    return _client
+def _hf_cache_dir() -> str:
+    """Return the HuggingFace cache directory for model downloads."""
+    return os.environ.get(
+        "HF_HUB_CACHE",
+        os.environ.get(
+            "HF_HOME",
+            str(Path.home() / ".cache" / "huggingface" / "hub"),
+        ),
+    )
 
 
-async def close_client() -> None:
-    global _client
-    if _client is not None:
-        await _client.aclose()
-        _client = None
+def get_embedder() -> TextEmbedding:
+    global _embedder
+    if _embedder is None:
+        logger.info("loading fastembed model: %s", FASTEMBED_MODEL_NAME)
+        _embedder = TextEmbedding(
+            model_name=FASTEMBED_MODEL_NAME,
+            max_length=512,
+            cache_dir=_hf_cache_dir(),
+        )
+        logger.info("fastembed model loaded (cache: %s)", _hf_cache_dir())
+    return _embedder
+
+
+def unload_embedder() -> None:
+    global _embedder
+    if _embedder is not None:
+        logger.info("unloading fastembed model")
+        _embedder = None
 
 
 async def embed_query(query: str) -> list[float]:
-    return (await embed_queries([query]))[0]
+    loop = __import__("asyncio").get_event_loop()
+    return await loop.run_in_executor(_executor, _embed_single, query)
 
 
-async def embed_queries(queries: list[str]) -> list[list[float]]:
-    """Embed multiple queries via Voyage API, batching up to 100 per request."""
-    client = get_client()
-    results: list[list[float]] = []
-    batch_size = 100
+def _embed_single(text: str) -> list[float]:
+    embedder = get_embedder()
+    results = list(embedder.embed([text], batch_size=1))
+    return results[0].tolist()
 
-    for start in range(0, len(queries), batch_size):
-        batch = queries[start : start + batch_size]
-        try:
-            response = await client.post(
-                VOYAGE_API_URL,
-                headers={
-                    "Authorization": f"Bearer {VOYAGE_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "inputs": [[q] for q in batch],
-                    "model": VOYAGE_MODEL,
-                    "input_type": "query",
-                },
-            )
 
-            if not response.is_success:
-                err_text = response.text
-                raise RuntimeError(
-                    f"Voyage API error: {response.status_code} {err_text}"
-                )
+async def embed_queries(texts: list[str]) -> list[list[float]]:
+    if not texts:
+        return []
+    loop = __import__("asyncio").get_event_loop()
+    return await loop.run_in_executor(_executor, _embed_batch, texts)
 
-            body = response.json()
-            for item in body["data"]:
-                results.append(item["data"][0]["embedding"])
-        except Exception:
-            logger.exception("Voyage embedding failed for batch starting at %d", start)
-            raise
 
-    return results
+async def embed_documents(texts: list[str]) -> list[list[float]]:
+    return await embed_queries(texts)
+
+
+def _embed_batch(texts: list[str]) -> list[list[float]]:
+    embedder = get_embedder()
+    results = list(embedder.embed(texts, batch_size=FASTEMBED_BATCH_SIZE))
+    return [r.tolist() for r in results]

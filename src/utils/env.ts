@@ -20,7 +20,6 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
-  VOYAGE_API_KEY: z.string(),
   RAG_API_URL: z.url().min(1, "RAG_API_URL environment variable is required"),
   LLAMA_API_URL: z
     .url()
