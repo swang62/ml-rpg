@@ -47,17 +47,18 @@ def hybrid_search(embedding: list[float], query: str) -> list[dict]:
     for chunk in chunks:
         tags = chunk.get("tags") or []
         if any(tag.lower() in query_lower for tag in tags):
-            chunk["_relevance_score"] = chunk.get("_relevance_score", 0.0) * 1.15
+            chunk["_relevance_score"] = chunk.get("_relevance_score", 0.0) * 1.2
 
+    # If any of the chunks are from the GitHub repo, return all repo chunks.
     for r in chunks:
         if r.get("lessonUrl") == GITHUB_REPO_URL:
-            return [r]
+            return [c for c in chunks if c.get("lessonUrl") == GITHUB_REPO_URL]
 
     chunks = [c for c in chunks if c.get("_relevance_score", 0.0) >= MIN_RAG_SCORE]
     return chunks[:TOP_K_CHUNKS]
 
 
-def to_chunk_result(raw: dict) -> ChunkResult:
+def map_chunk_result(raw: dict) -> ChunkResult:
     return ChunkResult(
         title=raw["lessonTitle"],
         url=raw["lessonUrl"],
@@ -67,24 +68,6 @@ def to_chunk_result(raw: dict) -> ChunkResult:
         courseTitle=raw["courseTitle"],
         relevance=raw.get("_relevance_score", 0.0),
     )
-
-
-import re
-
-
-def filter_by_keywords(chunks: list[dict], keywords: list[str]) -> list[dict]:
-    """Keep only chunks where at least one keyword appears in the text or title (word boundary match).
-    Site info chunks (lessonUrl == GITHUB_REPO_URL) always pass regardless.
-    """
-    if not keywords:
-        return []
-    patterns = [re.compile(rf"\b{re.escape(kw)}\b", re.IGNORECASE) for kw in keywords]
-    return [
-        c
-        for c in chunks
-        if c.get("lessonUrl") == GITHUB_REPO_URL
-        or any(p.search(c.get("text", "") + " " + c.get("lessonTitle", "")) for p in patterns)
-    ]
 
 
 def deduplicate_sources(chunks: list[dict]) -> list[SourceResult]:

@@ -5,10 +5,11 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 finetuning_model := "unsloth/Llama-3.2-3B-Instruct"
 # teaching_model := "openai/gpt-oss-20b"
 teaching_model := "gemma-4-26b-a4b-it-heretic"
+lmstudio_base_url := env("LMSTUDIO_BASE_URL", "http://localhost:11434")
 
 # Preprocessing
-examples_per_category := "100"
-batch_size := "20"
+total_examples := "600"
+batch_size := "30"
 test_set_pct := "0.1"
 
 # HF upload
@@ -83,16 +84,16 @@ check:
 generate: check
     @echo "--- Step 2: Generating training data ---"
     @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.generate_training_data \
+        --base-url "{{ lmstudio_base_url }}/v1" \
         --model "{{ teaching_model }}" \
-        --examples-per-category "{{ examples_per_category }}" \
-        --batch-size "{{ batch_size }}" \
-        --output "{{ data_dir }}/training_raw.jsonl"
+        --total-examples "{{ total_examples }}" \
+        --batch-size "{{ batch_size }}"
 
 # Step 3: Format and split for MLX
 clean: check
     @echo "--- Step 3: Cleaning raw training data ---"
     @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.clean_raw_data \
-        --examples-per-category "{{ examples_per_category }}" \
+        --total-examples "{{ total_examples }}" \
         --output "{{ data_dir }}/training_raw.jsonl"
 
 # Step 4: Format and split for MLX
@@ -123,14 +124,17 @@ preprocess: clean
 train: check
     @echo "--- Step 4: Training LoRA adapters ---"
     @mkdir -p "{{ models_dir }}/adapters"
-    @TIMEFORMAT="{{ elapsed }}"; time uv run mlx_lm.lora \
-        --model "{{ finetuning_model }}" \
-        --train \
-        --data "{{ data_dir }}" \
-        --adapter-path "{{ models_dir }}/adapters" \
-        --config "lora_config.yaml" \
-        --max-seq-len 1024 \
-        --save-every 999999
+    @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
+        lms unload --all >/dev/null 2>&1 || true; \
+        uv run mlx_lm.lora \
+            --model "{{ finetuning_model }}" \
+            --train \
+            --data "{{ data_dir }}" \
+            --adapter-path "{{ models_dir }}/adapters" \
+            --config "lora_config.yaml" \
+            --max-seq-len 2048 \
+            --save-every 999999\
+    '
 
 # Step 6: Fuse LoRA into base model
 fuse:

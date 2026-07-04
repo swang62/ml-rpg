@@ -4,11 +4,11 @@ optimizer_config:
   adamw:
     weight_decay: 0.01
 iters: 120
-steps_per_eval: 40
-learning_rate: 2e-5
+steps_per_eval: 60
+learning_rate: 1.5e-5
 batch_size: 8
 num_layers: 28
 lora_parameters:
-  rank: 8
-  dropout: 0.1
-  scale: 8.0
+  rank: 16
+  dropout: 0.05
+  scale: 16.0
