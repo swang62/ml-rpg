@@ -206,11 +206,22 @@ export async function ensureVectorStore(): Promise<void> {
 
   if (!stale && (_vectorStoreExists || existsSync(tablePath))) {
     if (existsSync(tablePath)) {
-      _vectorStoreExists = true;
-      await updateReadmeChunks();
-      await ensureFtsIndexes();
+      const dimsMatch = await checkVectorDimension();
+      if (dimsMatch) {
+        _vectorStoreExists = true;
+        await updateReadmeChunks();
+        await ensureFtsIndexes();
+        return;
+      }
+
+      console.log(
+        "[lancedb] Vector dimension mismatch, dropping and rebuilding...",
+      );
+      await dropTableViaApi();
+      deleteLanceDb();
     }
-    return;
+    _vectorStoreExists = false;
+    _g[STALE_KEY] = true;
   }
 
   const existing = _g[REBUILD_KEY];
@@ -230,6 +241,40 @@ export async function ensureVectorStore(): Promise<void> {
     await promise;
   } else {
     await existing;
+  }
+}
+
+async function checkVectorDimension(): Promise<boolean> {
+  try {
+    const lancedb = await connect(getEnv().LANCEDB_PATH);
+    const table = await lancedb.openTable("chunks");
+    const rows = await table.query().limit(1).toArray();
+    if (rows.length === 0) return true;
+
+    const ragApiUrl = getEnv().RAG_API_URL;
+    const response = await fetch(`${ragApiUrl}/embed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: ["test"] }),
+    });
+    if (!response.ok) return true;
+
+    const { embeddings } = (await response.json()) as {
+      embeddings: number[][];
+    };
+    const currentDim = embeddings[0]?.length;
+    const storedDim = rows[0].vector?.length;
+
+    if (currentDim && storedDim && currentDim !== storedDim) {
+      console.log(
+        `[lancedb] Dimension mismatch: stored=${storedDim}, current=${currentDim}`,
+      );
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[lancedb] Could not check vector dimension:", err);
+    return true;
   }
 }
 

@@ -32,7 +32,7 @@ if [ -f "$MODEL_PATH" ]; then
     --ctx-size 1024 \
     --parallel 1 \
     --threads 4 \
-    --cache-ram 0 \
+    --cache-ram 1024 --cache-idle-slots \
     --sleep-idle-seconds "${IDLE_TIMEOUT:-60}" &
   PID_LLAMA=$!
 else
