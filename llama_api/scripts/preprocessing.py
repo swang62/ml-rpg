@@ -9,9 +9,11 @@ from pathlib import Path
 
 from .utils import FORMATTERS, get_project_root
 
-
 SHARED_SYSTEM_PROMPT_PATH = (
-    Path(__file__).resolve().parent.parent.parent / "shared" / "prompts" / "bob-system.json"
+    Path(__file__).resolve().parent.parent.parent
+    / "shared"
+    / "prompts"
+    / "bob-system.json"
 )
 with SHARED_SYSTEM_PROMPT_PATH.open(encoding="utf-8") as shared_prompt_file:
     SHARED_SYSTEM_PROMPT_TEMPLATE = json.load(shared_prompt_file)["template"]
