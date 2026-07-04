@@ -24,7 +24,7 @@ root_dir := "llama_api"
 data_dir := root_dir + "/data"
 models_dir := root_dir + "/models"
 log_dir := root_dir + "/logs"
-llama_scripts_dir := "scripts/llama_cpp"
+llama_cpp_dir := "/Users/steve/dev/llama.cpp"
 
 # Run the full pipeline with timestamped log, no upload
 default:
@@ -60,23 +60,8 @@ default:
 check:
     @echo "--- Step 1: Ensuring dependencies ---"
     @TIMEFORMAT="{{ elapsed }}"; time uv sync --group train --inexact
-    @bash -c '\
-        echo "[check] llama.cpp scripts ..."; \
-        mkdir -p "{{ llama_scripts_dir }}"; \
-        _TAG=$(brew info llama.cpp --json=v2 2>/dev/null | python3 -c "import sys,json; v=json.load(sys.stdin)[\"formulae\"][0][\"versions\"][\"stable\"]; print(f\"b{v}\" if not v.startswith(\"b\") else v)" 2>/dev/null || echo "master"); \
-        _SCRIPT="{{ llama_scripts_dir }}/convert_hf_to_gguf.py"; \
-        _TAGFILE="{{ llama_scripts_dir }}/convert_hf_to_gguf.py.tag"; \
-        _STORED_TAG="$(cat "$_TAGFILE" 2>/dev/null || echo "")"; \
-        if [ ! -f "$_SCRIPT" ] || [ "$_STORED_TAG" != "$_TAG" ]; then \
-            echo "[check] Downloading convert_hf_to_gguf.py (tag: $_TAG) ..."; \
-            curl -sfL "https://raw.githubusercontent.com/ggml-org/llama.cpp/refs/tags/$_TAG/convert_hf_to_gguf.py" -o "$_SCRIPT" || { \
-                echo "[check] Tag $_TAG not found, falling back to master ..."; \
-                curl -sfL "https://raw.githubusercontent.com/ggml-org/llama.cpp/refs/heads/master/convert_hf_to_gguf.py" -o "$_SCRIPT"; \
-            }; \
-            echo "$_TAG" > "$_TAGFILE"; \
-        fi; \
-        echo "[check] llama.cpp scripts OK"; \
-    '
+    @if [ ! -d "{{ llama_cpp_dir }}" ]; then echo "ERROR: llama.cpp repo not found at {{ llama_cpp_dir }}"; exit 1; fi
+    @cd "{{ llama_cpp_dir }}" && git checkout master && git pull --ff-only 2>/dev/null || echo "[check] Warning: could not pull latest llama.cpp (local changes or network issue), using current state"
     @command -v llama-quantize >/dev/null || { echo "ERROR: llama-quantize not found (install via: brew install llama.cpp)"; exit 1; }
     @command -v llama-server >/dev/null || { echo "ERROR: llama-server not found (install via: brew install llama.cpp)"; exit 1; }
 
@@ -122,7 +107,7 @@ preprocess: clean
 
 # Step 5: Train LoRA adapters
 train: check
-    @echo "--- Step 4: Training LoRA adapters ---"
+    @echo "--- Step 5: Training LoRA adapters ---"
     @mkdir -p "{{ models_dir }}/adapters"
     @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
         echo "[train] Freeing GPU memory ..."; \
@@ -141,7 +126,7 @@ train: check
 
 # Step 6: Fuse LoRA into base model
 fuse:
-    @echo "--- Step 5: Fusing LoRA into base model ---"
+    @echo "--- Step 6: Fusing LoRA into base model ---"
     @mkdir -p "{{ models_dir }}/fused"
     @TIMEFORMAT="{{ elapsed }}"; time uv run mlx_lm.fuse \
         --model "{{ finetuning_model }}" \
@@ -150,35 +135,45 @@ fuse:
 
 # Step 7: Convert to GGUF
 convert: check
-    @echo "--- Step 6: Converting to GGUF ---"
+    @echo "--- Step 7: Converting to GGUF ---"
     @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
         echo "[convert] Running convert_hf_to_gguf.py ..."; \
-        uv run python "{{ llama_scripts_dir }}/convert_hf_to_gguf.py" \
+        rm -f "{{ models_dir }}/fused-f16.gguf"; \
+        uv run python "{{ llama_cpp_dir }}/convert_hf_to_gguf.py" \
             "{{ models_dir }}/fused" \
             --outfile "{{ models_dir }}/fused-f16.gguf" \
-            --outtype f16 > /tmp/convert.log 2>&1; \
+            --outtype f16 2>&1 | tee /tmp/convert.log; \
+        if [ ! -f "{{ models_dir }}/fused-f16.gguf" ]; then \
+            echo "[convert] ERROR: convert failed — see /tmp/convert.log"; \
+            exit 1; \
+        fi; \
         echo "[convert] Done — f16 GGUF ready"; \
         echo "[convert] Quantizing to Q4_K_M ..."; \
+        rm -f "{{ models_dir }}/{{ hf_model_file }}"; \
         llama-quantize \
             "{{ models_dir }}/fused-f16.gguf" \
             "{{ models_dir }}/{{ hf_model_file }}" \
-            q4_k_m > /tmp/quantize.log 2>&1; \
+            q4_k_m 2>&1 | tee /tmp/quantize.log; \
+        if [ ! -f "{{ models_dir }}/{{ hf_model_file }}" ]; then \
+            echo "[convert] ERROR: quantize failed — see /tmp/quantize.log"; \
+            exit 1; \
+        fi; \
         echo "[convert] Done — {{ hf_model_file }} ready" \
     '
 
 # Step 8: Test the GGUF with random questions from training data
 test:
-    @echo "--- Testing GGUF model ---"
+    @echo "--- Step 8: Testing GGUF model ---"
     @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.eval_model \
         "{{ models_dir }}/{{ hf_model_file }}" \
         "{{ data_dir }}/valid.jsonl" \
         8082 \
         "llama-server" \
-        10
+        5
 
 # Upload to HuggingFace (MANUAL)
 upload:
-    @echo "--- Step 8: Uploading to HuggingFace ---"
+    @echo "--- Uploading to HuggingFace ---"
     @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
         if [ -n "$HF_TOKEN" ]; then \
             echo "Uploading {{ hf_model_file }} to {{ hf_model_repo }} ..."; \

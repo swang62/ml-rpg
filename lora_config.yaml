@@ -3,8 +3,8 @@ optimizer: adamw
 optimizer_config:
   adamw:
     weight_decay: 0.01
-iters: 150
-steps_per_eval: 150
+iters: 200
+steps_per_eval: 40
 learning_rate: 1.5e-5
 batch_size: 4
 num_layers: 28
