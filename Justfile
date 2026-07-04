@@ -8,7 +8,7 @@ teaching_model := "gemma-4-26b-a4b-it-heretic"
 lmstudio_base_url := env("LMSTUDIO_BASE_URL", "http://localhost:11434")
 
 # Preprocessing
-total_examples := "600"
+total_examples := "500"
 batch_size := "30"
 test_set_pct := "0.1"
 
@@ -125,14 +125,17 @@ train: check
     @echo "--- Step 4: Training LoRA adapters ---"
     @mkdir -p "{{ models_dir }}/adapters"
     @TIMEFORMAT="{{ elapsed }}"; time bash -c '\
+        echo "[train] Freeing GPU memory ..."; \
+        kill -9 $(lsof -ti:8001) 2>/dev/null || true; \
         lms unload --all >/dev/null 2>&1 || true; \
+        sleep 3; \
         uv run mlx_lm.lora \
             --model "{{ finetuning_model }}" \
             --train \
             --data "{{ data_dir }}" \
             --adapter-path "{{ models_dir }}/adapters" \
             --config "lora_config.yaml" \
-            --max-seq-len 2048 \
+            --max-seq-len 1024 \
             --save-every 999999\
     '
 
