@@ -53,7 +53,7 @@ export interface LevelDef {
 /**
  * 20 levels with smoothly increasing XP thresholds.
  * Early diffs (200, 300) are singles; mid diffs repeat in pairs (500,500, 1000,1000, 1500,1500);
- * later diffs increase stepwise to 7000. Level 20 requires 62,000 XP.
+ * later diffs increase stepwise to 7000. Level 20 requires 70,000 XP.
  */
 export const LEVELS: LevelDef[] = [
   { level: 0, title: "Novice", xpRequired: 0 },

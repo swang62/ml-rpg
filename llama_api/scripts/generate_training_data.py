@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-from collections import defaultdict
 from pathlib import Path
 
 from openai import OpenAI
@@ -11,7 +10,12 @@ from openai.types.shared_params.response_format_json_schema import (
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from .prompts import BOB_PERSONA, CATEGORY_PROMPTS, PLATFORM_FACTS
+from .prompts import (
+    BOB_PERSONA,
+    build_category_targets,
+    CATEGORY_PROMPTS,
+    PLATFORM_FACTS,
+)
 from .utils import (
     clean_text,
     extract_openai_message_text,
@@ -210,16 +214,6 @@ def generate_batch(
     return new_pairs, duplicates
 
 
-def write_markdown(per_category: dict[str, list[dict]], path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# Generated Pairs\n\n")
-        for cat in sorted(per_category):
-            f.write(f"## {cat}\n\n")
-            for pair in per_category[cat]:
-                f.write(f"Q: {pair['question']}\nA: {pair['answer']}\n\n")
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Generate Bob training data via Ollama"
@@ -235,22 +229,16 @@ def main():
         help="Ollama API base URL (default: http://localhost:11434/v1)",
     )
     parser.add_argument(
-        "--examples-per-category",
+        "--total-examples",
         type=int,
-        default=100,
-        help="Number of Q/A pairs to generate per category (default: 100)",
+        default=500,
+        help="Total number of Q/A pairs across all categories after percentage weighting (default: 500)",
     )
     parser.add_argument(
         "--batch-size",
         type=int,
         default=50,
         help="Number of pairs per generation batch (default: 50)",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=get_project_root() / "llama_api" / "data" / "training_raw.jsonl",
-        help="Output path for training_raw.jsonl",
     )
     parser.add_argument(
         "--raw-dir",
@@ -260,11 +248,12 @@ def main():
     )
     args = parser.parse_args()
 
-    categories = sorted(CATEGORY_PROMPTS.keys())
-    batch_size = min(args.batch_size, args.examples_per_category)
+    category_targets = build_category_targets(args.total_examples)
+    categories = sorted(category_targets)
+    batch_size = min(args.batch_size, max(category_targets.values()))
     log.info(
-        "Generating %d examples per category in batches of %d for: %s",
-        args.examples_per_category,
+        "Generating weighted category targets from total count %d in batches of %d for: %s",
+        args.total_examples,
         batch_size,
         ", ".join(categories),
     )
@@ -276,11 +265,11 @@ def main():
         for category in categories:
             category_file = raw_dir / f"{category}.jsonl"
             existing_pairs = load_category_pairs(category_file)
+            target = category_targets[category]
             n = len(existing_pairs)
-            target = args.examples_per_category
 
             if n >= target:
-                tqdm.write(f"{category}: {n}/{target} — skipping")
+                tqdm.write(f"{category}: {n}/{target} - skipping")
                 continue
 
             tqdm.write(f"{category}: {n}/{target} existing — continuing")
@@ -293,13 +282,15 @@ def main():
             )
 
             failed_retry_count = 0
-            while len(existing_pairs) < args.examples_per_category:
-                remaining = args.examples_per_category - len(existing_pairs)
+            while len(existing_pairs) < target:
+                remaining = target - len(existing_pairs)
                 batch_request = min(batch_size, remaining) + 5
 
                 new_pairs, duplicates = generate_batch(
                     category, batch_request, existing_pairs, args.model, args.base_url
                 )
+
+                log.info(f"[new_pairs: {len(new_pairs)} | duplicates: {duplicates}]")
 
                 if not new_pairs:
                     failed_retry_count += 1
@@ -315,41 +306,7 @@ def main():
                 bar.update(len(new_pairs))
 
             bar.close()
-
-    # Concatenate all per-category JSONL files into training_raw.jsonl
-    all_examples: list[dict] = []
-    per_category: dict[str, list[dict]] = defaultdict(list)
-    for category in categories:
-        cat_file = raw_dir / f"{category}.jsonl"
-        if not cat_file.exists():
-            continue
-        with open(cat_file, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                pair = json.loads(line)
-                example = {
-                    "messages": [
-                        {"role": "user", "content": pair["question"]},
-                        {"role": "assistant", "content": pair["answer"]},
-                    ],
-                    "category": category,
-                }
-                all_examples.append(example)
-                per_category[category].append(pair)
-
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    with open(args.output, "w", encoding="utf-8") as f:
-        for example in all_examples:
-            f.write(json.dumps(example, ensure_ascii=False) + "\n")
-
-    total = len(all_examples)
-    tqdm.write(f"\nDone! {total} generated examples -> {args.output}")
-    for cat in categories:
-        actual = sum(1 for e in all_examples if e["category"] == cat)
-        expected = args.examples_per_category
-        tqdm.write(f"  {cat}: {actual}/{expected}")
+    tqdm.write(f"\nDone! Total of {len(existing_pairs)} examples")
 
 
 if __name__ == "__main__":

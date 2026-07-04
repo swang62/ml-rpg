@@ -6,9 +6,8 @@ from .embedding import embed_query
 from .keyword_extract import extract_keywords
 from .vector_search import (
     deduplicate_sources,
-    filter_by_keywords,
     hybrid_search,
-    to_chunk_result,
+    map_chunk_result,
 )
 
 logger = logging.getLogger("rag_api")
@@ -20,8 +19,8 @@ async def retrieve(query: str) -> RetrieveResponse:
     keywords = extract_keywords(query)
     logger.debug("extracted keywords: %s", keywords)
 
-    if not keywords:
-        return RetrieveResponse(chunks=[], sources=[], keywords=[])
+    # if not keywords:
+    #     return RetrieveResponse(chunks=[], sources=[], keywords=[])
 
     embedding = await embed_query(query)
     logger.debug("generated fastembed embedding dims=%d", len(embedding))
@@ -29,10 +28,7 @@ async def retrieve(query: str) -> RetrieveResponse:
     chunks = hybrid_search(embedding, query)
     logger.debug("hybrid search returned %d raw chunks", len(chunks))
 
-    chunks = filter_by_keywords(chunks, keywords)
-    logger.debug("after keyword filter: %d chunks", len(chunks))
-
-    chunk_results = [to_chunk_result(c) for c in chunks]
+    chunk_results = [map_chunk_result(c) for c in chunks]
     sources = deduplicate_sources(chunks)
     logger.debug("deduped to %d sources", len(sources))
 

@@ -1,8 +1,9 @@
 import argparse
 import json
+import random
 from pathlib import Path
 
-from .prompts import CATEGORY_PROMPTS
+from .prompts import build_category_targets, CATEGORY_PROMPTS
 from .utils import get_project_root, is_acceptable_generated_pair, normalize_pair
 
 MAX_ANSWER_CHARS = 200
@@ -65,10 +66,13 @@ def sanitize_category_file(path: Path) -> tuple[list[dict], dict[str, int]]:
     return cleaned_pairs, summary
 
 
-def validate_counts(category_pairs: dict[str, list[dict]], expected_count: int) -> None:
+def validate_counts(
+    category_pairs: dict[str, list[dict]], expected_counts: dict[str, int]
+) -> None:
     mismatched_categories: list[str] = []
     for category, pairs in category_pairs.items():
         actual_count = len(pairs)
+        expected_count = expected_counts[category]
         if actual_count != expected_count:
             mismatched_categories.append(
                 f"{category}: expected {expected_count}, found {actual_count}"
@@ -102,10 +106,10 @@ def write_training_raw(
 def main():
     parser = argparse.ArgumentParser(description="Clean raw generated JSONL pairs")
     parser.add_argument(
-        "--examples-per-category",
+        "--total-examples",
         type=int,
         required=True,
-        help="Expected number of pairs per category after cleaning",
+        help="Total number of Q/A pairs across all categories after percentage weighting",
     )
     parser.add_argument(
         "--raw-dir",
@@ -123,8 +127,20 @@ def main():
 
     category_pairs: dict[str, list[dict]] = {}
     categories = sorted(CATEGORY_PROMPTS.keys())
+    expected_counts = build_category_targets(args.total_examples)
+
     for category in categories:
         pairs, summary = sanitize_category_file(args.raw_dir / f"{category}.jsonl")
+        target = expected_counts[category]
+        downsampled_count = 0
+        if len(pairs) > target:
+            downsampled_count = len(pairs) - target
+            pairs = random.sample(pairs, target)
+            (args.raw_dir / f"{category}.jsonl").write_text(
+                "".join(json.dumps(pair, ensure_ascii=False) + "\n" for pair in pairs),
+                encoding="utf-8",
+            )
+        summary["duplicates"] += downsampled_count
         removed_total = sum(summary.values())
         print(
             f"{category}: removed {removed_total} "
@@ -132,7 +148,7 @@ def main():
         )
         category_pairs[category] = pairs
 
-    validate_counts(category_pairs, args.examples_per_category)
+    validate_counts(category_pairs, expected_counts)
     write_training_raw(args.output, category_pairs)
 
 

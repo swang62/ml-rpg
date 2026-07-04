@@ -92,9 +92,9 @@ A custom `llama_api/` pipeline that generates synthetic training data via Ollama
 
 ### Key features
 
-- **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), 70k XP max.
-- **Keyword Search:** MiniSearch index (title + extracted text) built on first query in-memory. 
-- **RAG (Ask Bob):** Hybrid search using LanceDB → FastAPI backend for top chunks retrieval → sent to custom fine-tuned llama3.2 model (llama.cpp), rate-limiting, input sanitizing, jailbreak detection via `llama-prompt-guard`.
+- **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), final rank requires 70,000 total XP.
+- **Keyword Search:** MiniSearch index (title, content, category, section) built on first query in-memory. 
+- **RAG (Ask Bob):** Hybrid search using LanceDB → FastAPI backend for top chunks retrieval → sent to custom fine-tuned llama3.2 model (llama.cpp), rate-limiting, input sanitizing, jailbreak detection via regex patterns.
 - **Rate limiting:** Per-IP sliding window middleware, most strict on auth, AI chat
 
 ### Testing

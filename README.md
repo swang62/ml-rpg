@@ -26,9 +26,20 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ### Navigation
 
-- Keyboard navigation, use arrow keys (select cards), enter (select), backspace (back)
-- Built-in keyword search to instantly find matching lessons
-- Chat with a "local guide" to find what you're looking for, help summarize core concepts and provide links to relevant lessons
+The platform is fully navigable by keyboard on desktop. All keys are ignored when typing in an input field.
+
+| Key | Action |
+|-----|--------|
+| Arrow keys | Navigate between cards |
+| Enter | Select a card or confirm |
+| Backspace | Go back |
+| Escape | Close current panel |
+| f | Focus keyword search |
+| h | Ask Bob for help |
+| p | Player profile |
+| s | Sign-up form |
+| l | Log in / Log out |
+| r | Reset XP & progress |
   
 ### XP & Leveling
 
@@ -38,10 +49,11 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 ### Player Tracking
 
-- Login is completely optional, default user is Anon
-- For guest/anonymous users, all data is tracked locally in the browser
-- Player stats are shown in a RPG-style player HUD, dynamic XP and level status, expands into full profile
-- Custom avatars with each rank, higher ranks have upgraded visuals
+- Login is completely optional. Default user is Anon
+- **Anonymous users:** All progress is stored locally in your browser, does not sync across devices, and is lost if you clear your browser cache
+- **Signed-in users:** Progress is synced server-side. Available across devices after logging in
+- Player stats are shown in a RPG-style HUD with dynamic XP and level status; expands into a full profile sheet
+- Custom avatars for each rank, higher ranks have upgraded visuals
 
 ---
 
@@ -53,7 +65,7 @@ He's been here ever since, watching travelers come and go, helping them along th
 
 But he's also trapped. His knowledge ends at the Archive World's borders. Ask him about anything outside of machine learning, data engineering, or this world, and he genuinely doesn't know — he's never been able to leave.
 
-Bob is friendly, chill, and always glad to see a new face.
+Bob is friendly and always glad to see a new face.
 
 > "Hi, I'm Bob. Welcome to Machine Learning (the RPG).
 
