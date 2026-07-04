@@ -6,14 +6,15 @@ from pathlib import Path
 from .prompts import build_category_targets, CATEGORY_PROMPTS
 from .utils import get_project_root, is_acceptable_generated_pair, normalize_pair
 
-MAX_ANSWER_CHARS = 200
+MAX_ANSWER_CHARS = 400
+MIN_QUESTION_CHARS = 10
 
 
 def normalize_question(question: str) -> str:
     return question.lower().strip()
 
 
-def sanitize_category_file(path: Path) -> tuple[list[dict], dict[str, int]]:
+def sanitize_category_file(path: Path, category: str = "") -> tuple[list[dict], dict[str, int]]:
     seen_questions: set[str] = set()
     cleaned_pairs: list[dict] = []
     summary = {
@@ -21,6 +22,7 @@ def sanitize_category_file(path: Path) -> tuple[list[dict], dict[str, int]]:
         "invalid_pair": 0,
         "garbled": 0,
         "duplicates": 0,
+        "too_short": 0,
     }
 
     if not path.exists():
@@ -49,6 +51,10 @@ def sanitize_category_file(path: Path) -> tuple[list[dict], dict[str, int]]:
 
             if len(normalized_pair["answer"]) > MAX_ANSWER_CHARS:
                 summary["garbled"] += 1
+                continue
+
+            if category != "greetings" and len(normalized_pair["question"].strip()) < MIN_QUESTION_CHARS:
+                summary["too_short"] += 1
                 continue
 
             normalized_question = normalize_question(normalized_pair["question"])
@@ -130,7 +136,7 @@ def main():
     expected_counts = build_category_targets(args.total_examples)
 
     for category in categories:
-        pairs, summary = sanitize_category_file(args.raw_dir / f"{category}.jsonl")
+        pairs, summary = sanitize_category_file(args.raw_dir / f"{category}.jsonl", category)
         target = expected_counts[category]
         downsampled_count = 0
         if len(pairs) > target:
@@ -141,10 +147,16 @@ def main():
                 encoding="utf-8",
             )
         summary["duplicates"] += downsampled_count
-        removed_total = sum(summary.values())
+        removed_invalid = summary["garbled"] + summary["invalid_json"] + summary["invalid_pair"] + summary["too_short"]
+        remove_breakdown_parts = []
+        for k in ("invalid_json", "invalid_pair", "garbled", "too_short"):
+            if summary[k]:
+                remove_breakdown_parts.append(f"{k}={summary[k]}")
+        breakdown = f" ({', '.join(remove_breakdown_parts)})" if remove_breakdown_parts else ""
         print(
-            f"{category}: removed {removed_total} "
-            f"(invalid={summary['garbled'] + summary['invalid_json'] + summary['invalid_pair']}, duplicates={summary['duplicates']})"
+            f"{category}: removed {sum(summary.values())}"
+            f"{breakdown}"
+            f", duplicates={summary['duplicates']}"
         )
         category_pairs[category] = pairs
 

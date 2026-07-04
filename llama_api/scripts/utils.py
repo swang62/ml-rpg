@@ -58,6 +58,8 @@ REPEATED_PUNCTUATION_PATTERN = re.compile(r"([.,!?;:\-])\1{2,}")
 LONG_PUNCTUATION_RUN_PATTERN = re.compile(r"[.,!?;:\-]{4,}")
 NORMALIZED_PUNCTUATION_RUN_PATTERN = re.compile(r"([.,!?;:])\1{2,}|-{3,}|[.,!?;:\-]{4,}")
 SUSPICIOUS_UNICODE_PUNCTUATION = {"…"}
+REPEATED_CHARACTER_PATTERN = re.compile(r"(.)\1{4,}")
+GARBLED_NONALPHA_THRESHOLD = 0.6
 
 
 def strip_control_chars(text: str) -> str:
@@ -66,6 +68,11 @@ def strip_control_chars(text: str) -> str:
 
 def clean_text(text: str) -> str:
     text = strip_control_chars(text)
+    # Unescape any JSON escaping left in the string (e.g., \" -> ")
+    text = text.replace('\\"', '"')
+    # Strip all single quotes (straight and smart)
+    for c in ("'", "\u2018", "\u2019"):
+        text = text.replace(c, "")
     text = re.sub(
         "[\U0001F300-\U0001FAFF"    # Misc Symbols, Emoticons, Enclosed, etc.
         "\U0001F600-\U0001F64F"     # Emoticons
@@ -248,6 +255,22 @@ def has_suspicious_unicode_symbols(text: str) -> bool:
 def has_garbled_text(text: str) -> bool:
     cleaned_text = clean_text(text)
     normalized_text = normalize_punctuation(cleaned_text)
+    stripped_text = cleaned_text.strip()
+    # Empty after cleaning
+    if not stripped_text:
+        return True
+    # Repeated identical character (e.g. "aaaaaaaa", "???????", "---------")
+    if REPEATED_CHARACTER_PATTERN.search(stripped_text):
+        return True
+    # Mostly non-alphanumeric, non-whitespace, non-standard-punctuation characters
+    # (flags gibberish like "!@#!@#!@#" or keyboard mashing with symbols)
+    if stripped_text and len(stripped_text) > 5:
+        unusual = sum(
+            1 for c in stripped_text
+            if not c.isalnum() and not c.isspace() and c not in ".,!?;:'\"-()"
+        )
+        if unusual / len(stripped_text) > GARBLED_NONALPHA_THRESHOLD:
+            return True
     return bool(
         has_invisible_spacing_or_control(text)
         or has_suspicious_unicode_symbols(text)
