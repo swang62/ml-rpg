@@ -5,11 +5,11 @@ plugins:
     url: file://sqlc-gen-typescript.wasm
     sha256: 8d7a37d2656d1fa833c59f656775c9e253639175fdb4b4646c91108feaf10a98
 sql:
-- schema: "src/db/raw/base.sql"
-  queries: "src/db/raw/"
+- schema: "apps/web/src/db/raw/base.sql"
+  queries: "apps/web/src/db/raw/"
   engine: sqlite
   codegen:
-  - out: src/db
+  - out: apps/web/src/db
     plugin: ts
     options:
       runtime: node

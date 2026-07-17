@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ml-rpg"
 version = "0.1.0"
@@ -39,6 +43,7 @@ train = [
 ]
 
 [tool.setuptools.packages.find]
+where = ["apps/rag-api", "apps/llama-api"]
 include = ["rag_api*", "llama_api*"]
 
 [tool.ruff]
@@ -55,7 +60,7 @@ order-by-type = false
 [tool.basedpyright]
 typeCheckingMode = "basic"
 pythonVersion = "3.12"
-include = ["rag_api", "llama_api"]
+include = ["apps/rag-api/rag_api", "apps/llama-api/llama_api"]
 exclude = [
   "**/__pycache__",
   "**/.venv",

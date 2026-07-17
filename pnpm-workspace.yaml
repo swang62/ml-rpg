@@ -1,3 +1,6 @@
+packages:
+  - apps/web
+
 minimumReleaseAge: 10080
 
 allowBuilds:

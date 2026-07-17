@@ -2,9 +2,9 @@ import { type ChildProcess, spawn } from "node:child_process";
 
 import { globSync, readFileSync } from "node:fs";
 import Database from "better-sqlite3";
-import de from "../.data/scraped/courses/data-engineering";
-import fundamentals from "../.data/scraped/courses/fundamentals";
-import mlSysDesign from "../.data/scraped/courses/ml-system-design";
+import de from "../../.data/scraped/courses/data-engineering";
+import fundamentals from "../../.data/scraped/courses/fundamentals";
+import mlSysDesign from "../../.data/scraped/courses/ml-system-design";
 import {
   ensureCategoryTable,
   ensureCourseTable,

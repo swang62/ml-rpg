@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 
 from .config import (
-    EMBEDDING_DIM,
     IDLE_TIMEOUT,
     LOG_LEVEL,
     MAX_TEXT_SIZE,

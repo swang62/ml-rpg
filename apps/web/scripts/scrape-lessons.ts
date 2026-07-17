@@ -6,7 +6,7 @@ import { type HTMLElement, parse } from "node-html-parser";
 import { cleanTitle } from "./acronyms";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, "..");
+const ROOT = join(__dirname, "..", "..");
 
 // ─── Config ────────────────────────────────────────────────────────────────
 // Change these values to scrape a different course / set of sections.
@@ -37,8 +37,8 @@ const SCRAPED_DIR = join(ROOT, ".data/scraped");
 const LESSONS_DIR = join(SCRAPED_DIR, "lessons", COURSE_KEY);
 const COURSES_DIR = join(SCRAPED_DIR, "courses");
 const SITEMAP_PATH = join(ROOT, ".data/urls/sitemap.xml");
-const SEED_DB_PATH = join(ROOT, "scripts/seed-db.ts");
-const BIOME_GLOB = `.data/scraped/courses/${COURSE_KEY}.ts .data/scraped/lessons/${COURSE_KEY}`;
+const SEED_DB_PATH = join(ROOT, "apps/web/scripts/seed-db.ts");
+const BIOME_GLOB = `${join(ROOT, ".data/scraped/courses", COURSE_KEY)}.ts ${join(ROOT, ".data/scraped/lessons", COURSE_KEY)}`;
 
 // ─── agent-browser helper ─────────────────────────────────────────────────
 
@@ -681,7 +681,7 @@ export default course;
   }
 
   // 5. Update seed-db.ts
-  const importLine = `import ${COURSE_KEY} from "../.data/scraped/courses/${COURSE_KEY}";`;
+  const importLine = `import ${COURSE_KEY} from "../../.data/scraped/courses/${COURSE_KEY}";`;
   const courseEntryLine = `  "${COURSE_KEY}": ${COURSE_KEY},`;
   const _typeKey = `"${COURSE_KEY}"`;
   const seedContent = readFileSync(SEED_DB_PATH, "utf-8");
@@ -694,7 +694,7 @@ export default course;
   } else {
     // Find the first course import line and insert after it
     const insertIdx = lines.findIndex((l) =>
-      /^import .+ from ["']\.\.\/\.data\/scraped\/courses\/.+["'];$/.test(l),
+      /^import .+ from ["']\.\.\/\.\.\/\.data\/scraped\/courses\/.+["'];$/,
     );
     if (insertIdx === -1) {
       console.log("ERROR: could not find course imports section in seed-db.ts");

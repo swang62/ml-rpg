@@ -18,16 +18,17 @@ __pycache__/
 .codegraph
 
 # llama
-llama_api/models/
-llama_api/data/
-llama_api/logs/
+apps/llama-api/llama_api/models/
+apps/llama-api/llama_api/data/
+apps/llama-api/llama_api/logs/
 
 # Environment
 .env
 .env*.local
 
 # dependencies
-/node_modules
+node_modules
+*.egg-info/
 
 # IDEs and editors
 .fallowrc.json
