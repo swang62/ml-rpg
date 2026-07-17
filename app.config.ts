@@ -9,6 +9,18 @@ export default defineConfig({
     },
     minify: false,
     sourceMap: false,
+    routeRules: {
+      "/assets/**": {
+        headers: {
+          "cache-control": "public, max-age=31536000, immutable",
+        },
+      },
+      "/_build/assets/**": {
+        headers: {
+          "cache-control": "public, max-age=31536000, immutable",
+        },
+      },
+    },
   },
   vite: {
     build: {

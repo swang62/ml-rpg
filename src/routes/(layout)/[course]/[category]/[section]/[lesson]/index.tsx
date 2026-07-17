@@ -49,14 +49,16 @@ export default function LessonPage() {
     { initialValue: "" },
   );
 
-  const serverReadStatus = createAsync(() =>
-    signedIn()
-      ? getLessonReadStatusQuery(
-          params.course as string,
-          params.section as string,
-          params.lesson as string,
-        )
-      : Promise.resolve(false),
+  const serverReadStatus = createAsync(
+    () =>
+      signedIn()
+        ? getLessonReadStatusQuery(
+            params.course as string,
+            params.section as string,
+            params.lesson as string,
+          )
+        : Promise.resolve(false),
+    { initialValue: false },
   );
 
   const isRead = createMemo(() => {

@@ -17,7 +17,7 @@ export default createMiddleware({
     const url = event.request.url;
     const { pathname } = new URL(url);
 
-    if (isStaticAsset(pathname)) {
+    if (isStaticAsset(pathname) || process.env.PRERENDER) {
       return;
     }
 

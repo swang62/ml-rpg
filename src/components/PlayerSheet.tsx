@@ -20,6 +20,7 @@ import {
   resetAllProgressAction,
   updateUserNameAction,
 } from "~/server/mutations";
+import { getAvatarUrl } from "~/utils/avatars";
 import {
   LEVELS,
   type LevelDef,
@@ -70,7 +71,7 @@ function LevelRow(props: { lvl: LevelDef; currentLevel: number }) {
         <img
           class={`w-6 h-6 mix-blend-screen brightness-125 ${isCurrent ? "brightness-150 sepia-[0.6] saturate-[4] hue-rotate-340" : ""}`}
           style={{ "image-rendering": "pixelated" }}
-          src={`/assets/avatars/lvl${props.lvl.level}.svg`}
+          src={getAvatarUrl(props.lvl.level)}
           alt=""
         />
       </div>

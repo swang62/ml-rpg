@@ -11,6 +11,7 @@ import {
 import { useAuth } from "~/components/AuthContext";
 import PlayerSheet from "~/components/PlayerSheet";
 import { getTotalXpQuery } from "~/server/progress";
+import { getAvatarUrl } from "~/utils/avatars";
 import { SHORTCUTS } from "~/utils/constants";
 import {
   bumpVersion,
@@ -134,7 +135,7 @@ export default function PlayerHUD() {
           style={avatarStyle()}
         >
           <img
-            src={`/assets/avatars/lvl${level().level}.svg`}
+            src={getAvatarUrl(level().level)}
             alt={level().title}
             width="28"
             height="28"
