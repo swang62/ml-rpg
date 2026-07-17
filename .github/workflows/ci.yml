@@ -93,7 +93,7 @@ jobs:
       - name: Cache .vinxi
         uses: actions/cache@v4
         with:
-          path: .vinxi
+          path: apps/web/.vinxi
           key: vinxi-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: vinxi-
       - run: pnpm install --frozen-lockfile --prefer-offline

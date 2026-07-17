@@ -14,7 +14,7 @@
     }
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!src/db"],
+    "includes": ["**", "!!**/dist", "!!apps/web/src/db"],
     "maxSize": 5242880
   },
   "formatter": {

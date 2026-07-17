@@ -20,7 +20,7 @@ hf_model_file := env("HF_MODEL_FILE", "bob.gguf")
 elapsed := "\n[elapsed]: %lR\n"
 
 # Derived paths
-root_dir := "llama_api"
+root_dir := "apps/llama-api/llama_api"
 data_dir := root_dir + "/data"
 models_dir := root_dir + "/models"
 log_dir := root_dir + "/logs"

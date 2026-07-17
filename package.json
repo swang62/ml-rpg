@@ -24,7 +24,7 @@
     ],
     "!apps/web/src/db/*_sql.ts": [],
     "**/test_*.py": [
-      "uv run --group dev pytest"
+      "uv run --group dev pytest apps/rag-api/rag_api/__tests__ apps/llama-api/llama_api/__tests__ -v"
     ]
   },
   "engines": {

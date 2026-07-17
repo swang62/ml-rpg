@@ -22,7 +22,7 @@ uv run python -m debugpy --listen 0.0.0.0:5678 -m uvicorn rag_api.app:app --host
 PID_RAG=$!
 
 # Start llama-server on port 9876
-MODEL_PATH="llama_api/models/bob.gguf"
+MODEL_PATH="apps/llama-api/llama_api/models/bob.gguf"
 if [ -f "$MODEL_PATH" ]; then
   echo "Starting llama-server on port 9876..."
   llama-server \
@@ -41,4 +41,4 @@ fi
 
 # SolidStart dev
 echo "Starting dev server..."
-vinxi dev
+pnpm --filter @ml-rpg/web dev
