@@ -41,4 +41,4 @@ fi
 
 # SolidStart dev
 echo "Starting dev server..."
-cd apps/web && pnpm exec vinxi dev
+cd apps/web && dotenv -e ../../.env -- vinxi dev
