@@ -1,10 +1,4 @@
-packages:
-  - apps/web
-
 minimumReleaseAge: 10080
-
-publicHoistPattern:
-  - "*"
 
 allowBuilds:
   "@parcel/watcher": true
