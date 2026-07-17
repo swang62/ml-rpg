@@ -4,7 +4,7 @@ services:
     image: swang62/ml-rpg
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/web/Dockerfile
       args:
         - VITE_SITE_URL=${VITE_SITE_URL}
         - VITE_SITE_ID=${VITE_SITE_ID:-}
@@ -36,7 +36,7 @@ services:
     container_name: rag-api
     build:
       context: .
-      dockerfile: rag_api/Dockerfile
+      dockerfile: apps/rag-api/Dockerfile
     restart: unless-stopped
     volumes:
       - course-data:/app/.data
@@ -61,7 +61,7 @@ services:
   llama-api:
     container_name: llama-api
     build:
-      context: ./llama_api
+      context: ./apps/llama-api
       dockerfile: Dockerfile
     restart: unless-stopped
     volumes:

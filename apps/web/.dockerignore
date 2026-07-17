@@ -9,7 +9,7 @@ node_modules
 .venv
 .pytest_cache
 
-llama_api
+apps/llama-api
 
 .env
 .DS_Store

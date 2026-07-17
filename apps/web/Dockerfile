@@ -13,10 +13,13 @@ RUN --mount=type=cache,target=/root/.npm \
   corepack enable && corepack prepare pnpm@11.2.2 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/package.json
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
   pnpm install --frozen-lockfile --store-dir /pnpm/store
 
-COPY . .
+COPY apps/web ./apps/web
+COPY shared ./apps/web/shared
+COPY README.md ./README.md
 
 RUN pnpm build
 
@@ -40,9 +43,9 @@ RUN adduser -D -H -h /app -u 1001 www && \
 WORKDIR /app
 
 # Copy with explicit UID for consistency with the www user
-COPY --from=build --chown=1001:1001 /app/.output .
+COPY --from=build --chown=1001:1001 /app/apps/web/.output .
 COPY --from=build --chown=1001:1001 /app/README.md /app/README.md
-COPY --from=build --chown=1001:1001 /app/src/db/empty.db /app/src/db/empty.db
+COPY --from=build --chown=1001:1001 /app/apps/web/src/db/empty.db /app/src/db/empty.db
 
 # Switch to non-root user for runtime
 USER www

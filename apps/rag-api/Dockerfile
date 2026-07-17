@@ -4,8 +4,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-COPY pyproject.toml .
-COPY rag_api/ /app/rag_api/
+COPY pyproject.toml uv.lock ./
+COPY apps/rag-api/rag_api /app/rag_api/
 
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --inexact && \

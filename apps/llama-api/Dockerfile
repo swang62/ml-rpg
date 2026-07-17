@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /app/entrypoint.sh
-COPY scripts/ /app/scripts/
+COPY llama_api/scripts/ /app/scripts/
 
 RUN chmod +x /app/entrypoint.sh
 
