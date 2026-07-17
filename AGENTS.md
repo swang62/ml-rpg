@@ -27,8 +27,6 @@ pnpm build:finetune   # full fine-tuning pipeline
 
 > Always use `uv sync --inexact` (never plain `uv sync`). spaCy models are installed as pip packages that aren't tracked by uv.lock, so a plain `uv sync` would remove them
 
-> Never touch `pnpm dev` — the user controls dev server. HMR reflects edits instantly.
-
 ## Folder Structure
 
 ```
@@ -69,7 +67,7 @@ shared/              Shared prompts and assets
 ### UI ↔ Custom internal naming
 
 | UI Label  | Internal |
-|-----------|----------|
+| --------- | -------- |
 | World     | course   |
 | Level     | category |
 | Quest     | section  |
@@ -93,19 +91,15 @@ shared/              Shared prompts and assets
 
 ### Fine-tuning Pipeline
 
-A custom fine-tuning pipeline (`apps/llama-api/llama_api/`) that generates synthetic training data via Ollama, fine-tunes a Llama 3.2 3B model with LoRA using mlx-lm on Apple Silicon, fuses adapters, converts to GGUF, and serves via a llama.cpp server container. 
+A custom fine-tuning pipeline (`apps/llama-api/llama_api/`) that generates synthetic training data via Ollama, fine-tunes a Llama 3.2 3B model with LoRA using mlx-lm on Apple Silicon, fuses adapters, converts to GGUF, and serves via a llama.cpp server container.
 
 ### Key features
 
 - **XP & levels:** Each lesson awards `lesson_order * 25 XP`. 20 ranks (Novice → Eternal), final rank requires 70,000 total XP.
-- **Keyword Search:** MiniSearch index (title, content, category, section) built on first query in-memory. 
+- **Keyword Search:** MiniSearch index (title, content, category, section) built on first query in-memory.
 - **RAG (Ask Bob):** Hybrid search using LanceDB → FastAPI backend for top chunks retrieval → sent to custom fine-tuned llama3.2 model (llama.cpp), rate-limiting, input sanitizing, jailbreak detection via regex patterns.
 - **Rate limiting:** Per-IP sliding window middleware, most strict on auth, AI chat
 
 ### Testing
 
 Tests in `__tests__/` co-located with source. Run with `pnpm test`. **Required for all new code logic (pure functions only, integration and E2E tests only when asked).** Cover happy path, edge cases, and invalid/malicious inputs.
-
-## Commits
-
-After each task or logical step, commit before moving on. Semantic messages (`fix:`, `feat:`, `refactor:`).

@@ -18,7 +18,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
   pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 COPY apps/web ./apps/web
-COPY shared ./apps/web/shared
+COPY shared ./shared
 COPY README.md ./README.md
 
 RUN pnpm build

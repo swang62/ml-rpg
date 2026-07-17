@@ -3,7 +3,7 @@ import { RAG_MAX_HISTORY, RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeHistory, sanitizeSearchQuery } from "~/utils/input-validation";
 import type { ChunkResult, SourceResult } from "~/utils/types";
-import sharedBobSystemPrompt from "../../shared/prompts/bob-system.json";
+import sharedBobSystemPrompt from "@shared/prompts/bob-system.json";
 import { checkRateLimit } from "../middleware/rate-limiter";
 import { getSession } from "./session";
 

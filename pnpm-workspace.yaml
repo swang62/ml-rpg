@@ -3,8 +3,11 @@ packages:
 
 minimumReleaseAge: 10080
 
+publicHoistPattern:
+  - "*"
+
 allowBuilds:
-  '@parcel/watcher': true
+  "@parcel/watcher": true
   argon2: true
   better-sqlite3: true
   esbuild: true
