@@ -41,4 +41,4 @@ fi
 
 # SolidStart dev
 echo "Starting dev server..."
-pnpm --filter @ml-rpg/web dev
+cd apps/web && pnpm exec vinxi dev
