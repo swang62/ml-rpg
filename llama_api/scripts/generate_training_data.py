@@ -225,8 +225,8 @@ def main():
     )
     parser.add_argument(
         "--base-url",
-        default="http://localhost:11434/v1",
-        help="Ollama API base URL (default: http://localhost:11434/v1)",
+        default="http://localhost:1234/v1",
+        help="LMSTUDIO API base URL (default: http://localhost:1234/v1)",
     )
     parser.add_argument(
         "--total-examples",

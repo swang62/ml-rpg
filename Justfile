@@ -5,7 +5,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 finetuning_model := "unsloth/Llama-3.2-3B-Instruct"
 # teaching_model := "openai/gpt-oss-20b"
 teaching_model := "gemma-4-26b-a4b-it-heretic"
-lmstudio_base_url := env("LMSTUDIO_BASE_URL", "http://localhost:11434")
+lmstudio_base_url := env("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
 
 # Preprocessing
 total_examples := "500"
@@ -69,7 +69,7 @@ check:
 generate: check
     @echo "--- Step 2: Generating training data ---"
     @TIMEFORMAT="{{ elapsed }}"; time uv run python -m llama_api.scripts.generate_training_data \
-        --base-url "{{ lmstudio_base_url }}/v1" \
+        --base-url "{{ lmstudio_base_url }}" \
         --model "{{ teaching_model }}" \
         --total-examples "{{ total_examples }}" \
         --batch-size "{{ batch_size }}"

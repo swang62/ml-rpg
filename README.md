@@ -2,7 +2,7 @@
 
 ![Homepage screenshot](public/assets/screenshot-homepage.png)
 
-A gamified learning course platform for ML engineering, data engineering, and overall system design. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, and includes a helpful RAG-assisted local "librarian" to help along your journey. 
+A gamified learning course platform for ML engineering, data engineering, and overall system design. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, and includes a helpful RAG-assisted local "librarian" to help along your journey.
 
 ## Summary
 
@@ -28,19 +28,19 @@ Each objective/lesson awards XP when completed. Players level up gradually throu
 
 The platform is fully navigable by keyboard on desktop. All keys are ignored when typing in an input field.
 
-| Key | Action |
-|-----|--------|
-| Arrow keys | Navigate between cards |
-| Enter | Select a card or confirm |
-| Backspace | Go back |
-| Escape | Close current panel |
-| f | Focus keyword search |
-| h | Ask Bob for help |
-| p | Player profile |
-| s | Sign-up form |
-| l | Log in / Log out |
-| r | Reset XP & progress |
-  
+| Key        | Action                   |
+| ---------- | ------------------------ |
+| Arrow keys | Navigate between cards   |
+| Enter      | Select a card or confirm |
+| Backspace  | Go back                  |
+| Escape     | Close current panel      |
+| f          | Focus keyword search     |
+| h          | Ask Bob for help         |
+| p          | Player profile           |
+| s          | Sign-up form             |
+| l          | Log in / Log out         |
+| r          | Reset XP & progress      |
+
 ### XP & Leveling
 
 - Each objective/lesson awards a multiple of `25 XP`, increasing with lesson count (e.g. lesson 1 = 25 XP, lesson 6 = 150 XP)
@@ -81,4 +81,4 @@ I tried to avoid any external dependencies for this small project, so trading a 
 
 ## License
 
-MIT. Do what you will. [LICENSE.md](LICENSE.md).
+MIT. Do what you will. [LICENSE](LICENSE).
