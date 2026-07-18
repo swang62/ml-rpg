@@ -25,7 +25,7 @@ llama_api/logs/
 # Environment
 .env
 .env*.local
-.dev.vars
+.dev*
 
 # dependencies
 /node_modules
@@ -46,6 +46,7 @@ Thumbs.db
 
 # sqlc
 sqlc-gen-typescript.wasm
+d1-seed.sql
 
 # agent
 DESIGN.md
