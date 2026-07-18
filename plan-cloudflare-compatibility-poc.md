@@ -89,7 +89,7 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
   * Do not change Docker's SQLite source of truth for the web app.
   * Do not commit API tokens or other secrets.
 
-### [ ] Task 3: Move all embeddings and LanceDB indexing into `rag_api`
+### [x] Task 3: Move all embeddings and LanceDB indexing into `rag_api`
 
 * Description: Port the current lesson extraction, recursive chunking with overlap, tag enrichment, README chunks, batched FastEmbed calls, vector-dimension validation, LanceDB table creation, and FTS index creation into Python. Build the RAG index from replicated course content local to `rag_api` (for example `src/db/empty.db` or a replicated content artifact), not by querying D1. At container startup compare the replicated content version with the local index version, skip a current index, and build a missing or stale index before readiness. Build into a temporary path and replace the old index only after validation.
 * Files: `rag_api/indexing/__init__.py` (new), `rag_api/indexing/d1_client.py` (new), `rag_api/indexing/build_index.py` (new), `rag_api/indexing/ensure_index.py` (new), `rag_api/config.py`, `rag_api/Dockerfile`, `rag_api/app.py`, `rag_api/retrieval/vector_search.py`, `rag_api/__tests__/test_index_builder.py` (new), `rag_api/__tests__/test_app.py`, `docker-compose.yaml`
@@ -107,7 +107,7 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
   * Do not change existing RAG or llama response contracts.
   * Keep every embedding and LanceDB filesystem operation inside `rag_api`.
 
-### [ ] Task 4: Remove persistent vector code from the frontend
+### [x] Task 4: Remove persistent vector code from the frontend
 
 * Description: Reduce `src/server/search.ts` to lazy in-memory MiniSearch. Remove all web code for LanceDB lifecycle, embedding, dimension checks, stale markers, FTS creation, and README vector updates. Remove storage startup hooks that trigger vector work. Remove JavaScript LanceDB/text-splitter packages after imports are gone.
 * Files: `src/server/search.ts`, `src/server/storage.ts`, `src/utils/constants.ts`, `src/utils/types.ts`, `package.json`, `pnpm-lock.yaml`, `src/server/__tests__/search.test.ts`

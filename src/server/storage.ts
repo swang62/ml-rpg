@@ -13,7 +13,6 @@ import {
 import { runMigrations } from "~/server/migrations";
 import { EMPTY_DB_PATH } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
-import { ensureVectorStore, markVectorStoreStale } from "./search";
 
 const env = getEnv();
 
@@ -153,8 +152,7 @@ async function syncCourseContent(): Promise<void> {
       }
     }
 
-    // Teardown LanceDB — next ensureVectorStore() call will rebuild
-    await markVectorStoreStale();
+    // No vector store teardown needed — rag_api owns the LanceDB lifecycle
   } finally {
     fresh.close();
   }
@@ -175,7 +173,7 @@ export function getDb(): Database.Database {
       _migrationsRun = true;
     }
 
-    syncCourseContent().then(() => ensureVectorStore());
+    syncCourseContent();
   }
 
   return _db;
