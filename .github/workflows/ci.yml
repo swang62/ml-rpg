@@ -76,6 +76,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -105,6 +107,7 @@ jobs:
     if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     env:
+      VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
@@ -140,6 +143,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
+      VITE_SITE_URL: https://ml-rpg.stevewang.dev
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
