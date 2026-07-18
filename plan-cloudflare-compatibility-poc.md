@@ -17,6 +17,20 @@ This plan now targets a **Node-hosted frontend with D1 at runtime**. The fronten
 * all embedding, vector indexing, LanceDB persistence, and other Worker-incompatible search/index lifecycle work live in `rag_api` only;
 * remaining frontend incompatibilities are isolated behind seams so a later Worker cutover is smaller.
 
+### Plan amendment: data replication strategy simplified
+
+To simplify the migration, course content is now intentionally duplicated across two stores:
+
+* **Frontend/app runtime D1** stores runtime application data plus course content needed by the website (`course`, `category`, `section`, `lesson`, users, sessions/account data, progress, and related runtime tables).
+* **`rag_api` local store** continues to build LanceDB from replicated course content on startup, sourced from `src/db/empty.db` or an equivalent replicated content artifact mounted with the RAG service.
+
+As a result:
+
+* `rag_api` does **not** need to call D1 for indexing in this plan.
+* `rag_api` no longer needs user/progress/account tables at all.
+* D1 remains the frontend runtime database target.
+* Course content replication is acceptable in this POC if it reduces migration complexity and keeps the app bootable.
+
 Production Worker deployment, staging traffic, domains, and cutover will be planned only after this POC is accepted.
 
 ## Scope
@@ -24,12 +38,13 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 ### In scope
 
 * A D1 runtime database containing course content plus the app data needed by the Node-hosted frontend.
-* D1-to-LanceDB indexing owned entirely by `rag_api` on the VPS.
+* LanceDB indexing owned entirely by `rag_api`, built locally from replicated course content rather than querying D1.
 * Removal of LanceDB and embedding code from the web runtime while retaining in-memory MiniSearch.
 * A package-by-package Cloudflare compatibility audit of frontend runtime dependencies.
 * Minimal Worker build configuration and a dry-run bundle, not a running Worker environment.
 * Platform-specific storage, environment, password, session, cleanup, and rate-limit seams needed to keep incompatible Node libraries out of the Worker bundle.
 * Runtime D1 support for content, auth/session/account data, and progress in the Node-hosted frontend.
+* A replicated course-content path that lets `rag_api` rebuild its local LanceDB index without D1 access.
 * Unit tests for D1 adapters and Worker-specific pure logic.
 * Full Docker regression testing.
 
@@ -76,19 +91,19 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 
 ### [ ] Task 3: Move all embeddings and LanceDB indexing into `rag_api`
 
-* Description: Port the current lesson extraction, recursive chunking with overlap, tag enrichment, README chunks, batched FastEmbed calls, vector-dimension validation, LanceDB table creation, and FTS index creation into Python. Query D1 using its authenticated REST API and keyset pagination. At container startup compare D1's content version with the local index version, skip a current index, and build a missing or stale index before readiness. Build into a temporary path and replace the old index only after validation.
+* Description: Port the current lesson extraction, recursive chunking with overlap, tag enrichment, README chunks, batched FastEmbed calls, vector-dimension validation, LanceDB table creation, and FTS index creation into Python. Build the RAG index from replicated course content local to `rag_api` (for example `src/db/empty.db` or a replicated content artifact), not by querying D1. At container startup compare the replicated content version with the local index version, skip a current index, and build a missing or stale index before readiness. Build into a temporary path and replace the old index only after validation.
 * Files: `rag_api/indexing/__init__.py` (new), `rag_api/indexing/d1_client.py` (new), `rag_api/indexing/build_index.py` (new), `rag_api/indexing/ensure_index.py` (new), `rag_api/config.py`, `rag_api/Dockerfile`, `rag_api/app.py`, `rag_api/retrieval/vector_search.py`, `rag_api/__tests__/test_index_builder.py` (new), `rag_api/__tests__/test_app.py`, `docker-compose.yaml`
 * Acceptance criteria:
-  * An empty RAG volume builds a usable `chunks` table from D1 while the web container is stopped.
+  * An empty RAG volume builds a usable `chunks` table from replicated local course content while the web container is stopped.
   * An unchanged content version makes no embedding calls and performs no table rewrite.
   * A changed version rebuilds once and records the new version.
   * Rows preserve `id`, `vector`, `text`, `lessonTitle`, `lessonUrl`, `categoryTitle`, `sectionTitle`, `courseTitle`, `chunkIndex`, and `tags`.
   * FTS indexes exist for `text` and `lessonTitle`; dimensions match `FASTEMBED_MODEL_NAME`; representative hybrid searches return expected lesson and README sources.
   * A failed refresh preserves a valid old index and reports stale status. If no valid index exists, readiness fails.
-  * Cloudflare credentials are scoped, injected into the RAG container, and never logged.
+  * `rag_api` does not depend on D1 credentials or frontend runtime tables to rebuild its index.
 * Guardrails:
   * Do not overwrite or delete the last valid index before replacement validation passes.
-  * Do not expose arbitrary D1 SQL through a public endpoint.
+  * Do not add any frontend-runtime dependency on `rag_api` for relational app data.
   * Do not change existing RAG or llama response contracts.
   * Keep every embedding and LanceDB filesystem operation inside `rag_api`.
 
@@ -146,13 +161,13 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 
 ### [ ] Task 7: Run the Docker regression and close the POC
 
-* Description: Run the full Node/Python test suites and production Docker build. Start Compose with the updated RAG startup indexer, verify D1-backed retrieval plus D1-backed frontend runtime flows, and exercise existing web behavior. Record POC results, remaining runtime risks, and exact inputs for the later deployment plan.
+* Description: Run the full Node/Python test suites and production Docker build. Start Compose with the updated RAG startup indexer, verify RAG rebuild from replicated local course content plus D1-backed frontend runtime flows, and exercise existing web behavior. Record POC results, remaining runtime risks, and exact inputs for the later deployment plan.
 * Files: Existing co-located tests, `README.md`, `AGENTS.md`, `docker-compose.yaml`
 * Acceptance criteria:
   * `pnpm test`, `pnpm typecheck`, Python tests, and the Docker production build pass.
   * Docker SSR, D1-backed accounts/session/progress/reset, MiniSearch, RAG retrieval, and streamed chat still work.
-  * The web app remains usable if the RAG index is already valid and D1 is temporarily unavailable at RAG restart.
-  * A fresh RAG volume correctly stays unready when D1 cannot be reached.
+  * The web app remains usable if the RAG index is already valid and D1 is temporarily unavailable to the frontend runtime.
+  * A fresh RAG volume correctly rebuilds from replicated local course content without requiring D1 connectivity.
   * The final audit lists no frontend dependency known to block a future Worker bundle.
   * The POC report explicitly defers `wrangler dev`, Worker SSR, D1 runtime queries, Worker sessions, Free-tier CPU measurements, VPS public-origin authentication, production configuration, and cutover to the next plan.
 * Guardrails:

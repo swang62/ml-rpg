@@ -7,12 +7,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 
 from .config import (
-    EMBEDDING_DIM,
     IDLE_TIMEOUT,
     LOG_LEVEL,
     MAX_TEXT_SIZE,
     MIN_TEXT_SIZE,
 )
+from .indexing import ensure_index
 from .jailbreak.detect import check
 from .retrieval.embedding import (
     embed_queries,
@@ -77,6 +77,15 @@ async def lifespan(_app: FastAPI):
     global _last_request_time
     _last_request_time = time.monotonic()
     preload_embedder()
+
+    # Build or verify the RAG index from local content (non-blocking in executor)
+    loop = asyncio.get_event_loop()
+    _index_ready = await loop.run_in_executor(None, ensure_index)
+    if not _index_ready:
+        logger.warning("RAG index not ready — retrieval will fail until index is built")
+    else:
+        logger.info("RAG index is ready")
+
     unloader = asyncio.create_task(_idle_unloader())
 
     yield
