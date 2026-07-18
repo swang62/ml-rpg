@@ -9,14 +9,16 @@ services:
       context: .
       dockerfile: rag_api/Dockerfile
     restart: unless-stopped
+    networks:
+      - backend
     volumes:
       - course-data:/app/.data
     environment:
       - HF_TOKEN=${HF_TOKEN}
-      - SESSION_SECRET=${SESSION_SECRET}
       - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SESSION_SECRET=${SESSION_SECRET}
     healthcheck:
       test:
         [
@@ -36,6 +38,10 @@ services:
       context: ./llama_api
       dockerfile: Dockerfile
     restart: unless-stopped
+    networks:
+      backend:
+        aliases:
+          - llama-api
     volumes:
       - llama-model:/app/models
     environment:
@@ -50,6 +56,10 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 3
+
+networks:
+  backend:
+    driver: bridge
 
 volumes:
   course-data:

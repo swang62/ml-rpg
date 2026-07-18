@@ -24,7 +24,7 @@ npx wrangler d1 execute D1_CONTENT --remote --env staging --file="$SCRIPT_DIR/wi
 
 echo ""
 echo "==> Seeding D1 content data..."
-npx wrangler d1 execute D1_CONTENT --remote --env staging --file=d1-seed.sql
+npx wrangler d1 execute D1_CONTENT --remote --env staging --file=.data/d1-seed.sql
 
 echo ""
 echo "Done. Staging D1 database initialized."

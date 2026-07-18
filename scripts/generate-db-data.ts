@@ -37,7 +37,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
 const SCRAPED_DIR = join(ROOT, ".data/scraped");
-const D1_SEED_FILE = join(ROOT, ".data", "d1-seed.sql");
+const D1_SEED_FILE = join(ROOT, ".data/d1-seed.sql");
 const SEARCH_INDEX_FILE = join(ROOT, "public/search-index.json");
 const RAG_DB_DIR = join(ROOT, "rag_api/data");
 const RAG_DB_PATH = join(RAG_DB_DIR, "lessons.db");

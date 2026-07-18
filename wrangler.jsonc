@@ -4,11 +4,15 @@
   "main": ".output/server/index.mjs",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
   "assets": {
     "directory": ".output/public"
-  },
-  "vars": {
-    "RAG_API_URL": ""
   },
   "d1_databases": [
     {
@@ -18,17 +22,83 @@
       "migrations_dir": "migrations"
     }
   ],
+  "ratelimits": [
+    {
+      "name": "RL_GENERAL",
+      "namespace_id": "1001",
+      "simple": { "limit": 300, "period": 60 }
+    },
+    {
+      "name": "RL_AUTH",
+      "namespace_id": "1002",
+      "simple": { "limit": 10, "period": 60 }
+    },
+    {
+      "name": "RL_CHAT",
+      "namespace_id": "1003",
+      "simple": { "limit": 20, "period": 60 }
+    }
+  ],
   "env": {
     "staging": {
       "vars": {
-        "RAG_API_URL": ""
+        "NODE_ENV": "production",
+        "RAG_API_URL": "https://dev-rag.stevewang.dev"
       },
       "d1_databases": [
         {
           "binding": "D1_CONTENT",
-          "database_name": "ml-rpg-content-staging",
-          "database_id": "REPLACE_ME",
+          "database_name": "ml-rpg-staging",
+          "database_id": "867768aa-b815-4579-8220-acaec4c533f2",
           "migrations_dir": "migrations"
+        }
+      ],
+      "ratelimits": [
+        {
+          "name": "RL_GENERAL",
+          "namespace_id": "2001",
+          "simple": { "limit": 300, "period": 60 }
+        },
+        {
+          "name": "RL_AUTH",
+          "namespace_id": "2002",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "RL_CHAT",
+          "namespace_id": "2003",
+          "simple": { "limit": 20, "period": 60 }
+        }
+      ]
+    },
+    "production": {
+      "vars": {
+        "NODE_ENV": "production",
+        "RAG_API_URL": "https://rag.stevewang.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "D1_CONTENT",
+          "database_name": "ml-rpg-production",
+          "database_id": "074c21ec-b18e-4d8f-97ad-a4dc0ef27af4",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "ratelimits": [
+        {
+          "name": "RL_GENERAL",
+          "namespace_id": "2001",
+          "simple": { "limit": 300, "period": 60 }
+        },
+        {
+          "name": "RL_AUTH",
+          "namespace_id": "2002",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "RL_CHAT",
+          "namespace_id": "2003",
+          "simple": { "limit": 20, "period": 60 }
         }
       ]
     }

@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 import re
 import time
 from contextlib import asynccontextmanager
@@ -12,12 +11,12 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from .config import (
-    SESSION_SECRET,
     IDLE_TIMEOUT,
     LLAMA_API_URL,
     LOG_LEVEL,
     MAX_TEXT_SIZE,
     MIN_TEXT_SIZE,
+    SESSION_SECRET,
 )
 from .indexing import ensure_index
 from .jailbreak.detect import check
@@ -246,19 +245,29 @@ async def _stream_from_llama(
                     data = line[6:]
                     if data == "[DONE]":
                         # Send source metadata before final [DONE]
-                        meta = json.dumps({
-                            "type": "meta",
-                            "sources": [
-                                {"title": s.get("title", ""), "url": s.get("url", ""), "score": s.get("score", 0.0)}
-                                for s in sources
-                            ],
-                            "keywords": keywords,
-                        })
+                        meta = json.dumps(
+                            {
+                                "type": "meta",
+                                "sources": [
+                                    {
+                                        "title": s.get("title", ""),
+                                        "url": s.get("url", ""),
+                                        "score": s.get("score", 0.0),
+                                    }
+                                    for s in sources
+                                ],
+                                "keywords": keywords,
+                            }
+                        )
                         yield f"data: {meta}\n\n"
                         yield "data: [DONE]\n\n"
                         return
                     yield f"{line}\n\n"
-        except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
+        except (
+            httpx.ConnectError,
+            httpx.TimeoutException,
+            httpx.RemoteProtocolError,
+        ) as exc:
             logger.error("llama_api stream failed: %s", exc)
             yield f"data: {json.dumps({'type': 'error', 'content': 'Sorry, Bob is taking a nap right now.'})}\n\n"
             yield "data: [DONE]\n\n"
@@ -277,17 +286,18 @@ async def chat_endpoint(req: ChatRequest):
 
     # RAG retrieval
     retrieve_resp = await retrieve(req.query)
-    context = "\n\n".join(
-        f"[{c.title}]: {c.text}" for c in retrieve_resp.chunks
-    )
+    context = "\n\n".join(f"[{c.title}]: {c.text}" for c in retrieve_resp.chunks)
     system_prompt = BOB_SYSTEM_TEMPLATE.replace("{context}", context)
 
     sources_dicts = [s.model_dump() for s in retrieve_resp.sources]
 
     return StreamingResponse(
         _stream_from_llama(
-            system_prompt, req.query, req.history,
-            sources_dicts, retrieve_resp.keywords,
+            system_prompt,
+            req.query,
+            req.history,
+            sources_dicts,
+            retrieve_resp.keywords,
         ),
         media_type="text/event-stream",
     )

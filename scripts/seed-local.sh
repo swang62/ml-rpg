@@ -20,7 +20,7 @@ npx wrangler d1 execute D1_CONTENT --local --file="$SCRIPT_DIR/wipe-content.sql"
 
 echo ""
 echo "==> Seeding D1 content data..."
-npx wrangler d1 execute D1_CONTENT --local --file=d1-seed.sql
+npx wrangler d1 execute D1_CONTENT --local --file=.data/d1-seed.sql
 
 echo ""
 echo "Done. Local D1 database initialized."
