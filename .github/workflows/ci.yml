@@ -10,7 +10,7 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check for GitLeaks
@@ -19,15 +19,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "pnpm"
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v8
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
@@ -35,7 +35,7 @@ jobs:
       - name: Rebuild native modules for current Node version
         run: pnpm rebuild better-sqlite3
       - name: Cache uv
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: uv-${{ hashFiles('uv.lock') }}
@@ -47,15 +47,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "pnpm"
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v8
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
@@ -63,7 +63,7 @@ jobs:
       - name: Rebuild native modules for current Node version
         run: pnpm rebuild better-sqlite3
       - name: Cache uv venv
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: uv-${{ hashFiles('uv.lock') }}
@@ -77,21 +77,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "pnpm"
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Rebuild native modules for current Node version
         run: pnpm rebuild better-sqlite3
       - name: Cache .vinxi
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .vinxi
           key: vinxi-${{ hashFiles('pnpm-lock.yaml') }}
@@ -108,14 +108,14 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "pnpm"
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
@@ -130,6 +130,8 @@ jobs:
         run: pnpm build
       - name: Seed staging D1
         run: ./scripts/seed-staging.sh
+      - name: Verify seed files created
+        run: 'ls -lh .data/d1-seed-*.sql 2>/dev/null || echo "WARN: no seed files found"'
       - name: Deploy to staging
         run: npx wrangler deploy --env staging
 
@@ -141,14 +143,14 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "pnpm"
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}

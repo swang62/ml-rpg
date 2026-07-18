@@ -9,7 +9,7 @@
  *   ./scripts/seed-staging.sh   (calls this internally before uploading)
  */
 
-import { globSync, rmSync, writeFileSync } from "node:fs";
+import { globSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
@@ -27,6 +27,8 @@ function escapeSql(val: unknown): string {
 }
 
 function main() {
+  mkdirSync(join(ROOT, ".data"), { recursive: true });
+
   // Clean old chunks
   for (const old of globSync(".data/d1-seed-*.sql")) {
     rmSync(join(ROOT, old));
