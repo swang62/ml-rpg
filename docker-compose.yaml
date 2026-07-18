@@ -10,7 +10,7 @@ services:
       dockerfile: rag_api/Dockerfile
     restart: unless-stopped
     networks:
-      - ml-rpg
+      - coolify
     volumes:
       - course-data:/app/.data
     environment:
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     networks:
-      ml-rpg:
+      coolify:
         aliases:
           - llama-api
     volumes:
@@ -58,7 +58,8 @@ services:
       retries: 3
 
 networks:
-  ml-rpg:
+  coolify:
+    external: true
 
 volumes:
   course-data:
