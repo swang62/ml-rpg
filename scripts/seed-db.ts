@@ -83,7 +83,9 @@ function main(): void {
     // Strip the import line and wrap as a module
     const cleanSource = source
       .replace(/^import type.*$/m, "")
-      .replace(/^import .*$/m, "");
+      .replace(/^import .*$/m, "")
+      .replace(/^export default .*/m, "")
+      .replace(/\b(const|let|var)\s+(\w+)\s*:\s*\w+\s*=\s*/g, "$1 $2 = ");
     // eslint-disable-next-line no-new-func
     const mod = new Function(`${cleanSource}; return course;`)() as Course;
     courses[slug] = mod;

@@ -120,34 +120,33 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 * Guardrails:
   * Keep MiniSearch in memory; do not move it into RAG, KV, Redis, or Durable Objects.
 
-### [ ] Task 5: Replace or isolate every remaining Worker-incompatible library
+### [x] Task 5: Move the frontend runtime fully to Cloudflare Workers
 
-* Description: Work through the Task 1 inventory and close every incompatible frontend item with the smallest dual-runtime change. The frontend remains Node-hosted, but its runtime data path must use D1 and no longer depend on frontend-owned native SQLite/vector/runtime-only code that blocks a later Worker cutover. Keep Docker-specific implementations only where hosting/lifecycle still requires Node today and select Worker implementations only during the Cloudflare build.
-* Files: `src/db/d1-adapter.ts` (new), `src/server/storage.cloudflare.ts` (new), `src/utils/env.ts`, `src/utils/env.cloudflare.ts` (new), `src/server/session.ts`, `src/server/password.ts` (new), `src/server/password.cloudflare.ts` (new), `src/server/cleanup.ts`, `src/entry-server.tsx`, `src/middleware/rate-limiter.ts`, `src/middleware/rate-limiter.cloudflare.ts` (new), `src/utils/search-utils.ts`, `src/server/course.ts`, `app.config.ts`, relevant tests
+* Description: Remove the remaining dual-runtime complexity and make the frontend Cloudflare-first. Replace the old sqlite-targeted sqlc TypeScript output with D1-targeted sqlc-generated functions, route all frontend content/auth/session/account/progress operations through those generated D1 functions, and delete old Node-only frontend runtime branches instead of maintaining parallel adapters.
+* Files: `sqlc.yaml`, `src/db/*` (generated), `scripts/seed-db.ts`, `src/utils/env.ts`, `src/server/session.ts`, `src/server/password.ts`, `src/server/cleanup.ts`, `src/server/shutdown.ts`, `src/server/storage.ts`, `src/server/course.ts`, `src/server/auth.ts`, `src/server/progress.ts`, `src/server/mutations.ts`, `src/utils/search-utils.ts`, `app.config.ts`, relevant tests
 * Required actions:
-  * `better-sqlite3`: remove from the frontend runtime data path; add a minimal D1 `prepare`/bind/`get`/`all`/`run` adapter for the Node-hosted frontend and exclude the native addon from the Worker bundle.
-  * Prefer preserving sqlc type safety by routing Worker-side D1 access through a sqlc-compatible TypeScript D1 adapter/plugin flow rather than rewriting the data layer to Drizzle or hand-written queries. Use the `sqlc-gen-ts-d1` approach as the starting point, pin the exact WASM release/hash if adopted, and keep the generated-query surface aligned with the existing `src/db/*_sql.ts` usage.
-  * `argon2`: remove from the frontend runtime data path where it blocks D1-backed auth/session readiness; add a versioned Web Crypto password implementation for D1-backed accounts and exclude native Argon2 from the Worker bundle.
+  * `better-sqlite3`: remove from the frontend runtime path entirely.
+  * Use `sqlc-gen-ts-d1` for **all** frontend D1 operations; do not keep a custom D1 adapter.
+  * `argon2`: remove from the frontend runtime path and use a versioned Web Crypto password implementation compatible with Workers.
   * `@lancedb/lancedb` and `@langchain/textsplitters`: remove from frontend dependencies after Tasks 3-4.
-  * `node-cron`, process signals, persistent `node:fs`, and long-lived cleanup timers: keep only in Docker-selected modules when still needed for hosting/lifecycle, or replace the Worker side with no-op/testable request-safe seams for this build POC.
+  * `node-cron`, process signals, persistent `node:fs`, and long-lived cleanup timers: remove from the frontend runtime path.
   * `isomorphic-dompurify`: remove. Keep only the existing JSX/code/CSS transformations needed for presentation; clean trusted HTML during seeding.
   * `node:crypto`: retain only if the dry-run build and focused stream-token test pass with `nodejs_compat`; otherwise use Web Crypto in the Worker-selected module.
   * MiniSearch, Zod, SolidJS, router/meta, and Lucide: retain after dry-run bundle verification.
 * Acceptance criteria:
-  * D1 adapter tests cover no-row, one-row, many-row, writes, positional parameters, booleans, and D1 errors.
-  * Node-hosted frontend runtime reads/writes content, auth/session/account data, and progress via D1-compatible code paths.
-  * Docker continues using Node hosting, current cleanup behavior, and Node environment variables.
-  * Worker-selected modules typecheck without requiring native addons or persistent filesystem access.
+  * All frontend runtime reads/writes for content, auth/session/account data, and progress use sqlc-generated D1 functions.
+  * The frontend runtime no longer depends on `better-sqlite3`, `argon2`, `node-cron`, or persistent filesystem access.
+  * Worker-targeted frontend modules typecheck without native addons or Node-only lifecycle behavior.
   * `cleanLessonHtml` contains required transformations but no sanitization dependency.
   * The dependency audit has no unresolved "replace" or "remove" entries.
 * Guardrails:
-  * Implement only the D1 API surface used by generated queries; do not recreate `better-sqlite3`.
+  * Do not recreate `better-sqlite3` behind a compatibility layer.
   * Do not replace sqlc with Drizzle or another ORM unless the sqlc-compatible D1 adapter path is proven unworkable and explicitly re-approved.
   * Do not edit generated `src/db/*_sql.ts` files manually.
   * Do not weaken password settings merely to make a test fast.
-  * Do not remove Node packages still required by the Docker-selected build.
+  * Do not reintroduce a second frontend runtime path.
 
-### [ ] Task 6: Prove the Worker bundle excludes Node-only implementations
+### [x] Task 6: Prove the Worker bundle excludes Node-only implementations
 
 * Description: Produce the dry-run Worker bundle after all replacements, inspect it for forbidden imports/native binaries, and run focused unit tests against Worker-selected modules. This proves build compatibility only; it does not claim runtime or deployment readiness.
 * Files: `package.json`, `app.config.ts`, `wrangler.jsonc`, `tsconfig.json`, Worker-specific tests added in Task 5, `README.md`

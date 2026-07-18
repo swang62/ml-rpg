@@ -79,6 +79,92 @@ I created this repo to initially self-learn about ML/Data engineering and system
 
 I tried to avoid any external dependencies for this small project, so trading a little bit of accuracy in exchange for full privacy and offline processing is worth it IMO. All LLM models and embeddings are created locally with a backend FastAPI server. For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
 
+## Cloudflare Worker workflow
+
+### Local dev
+
+`pnpm dev` now runs the frontend through Wrangler so the Worker gets a real local `D1_CONTENT` binding.
+
+```bash
+pnpm dev
+```
+
+What it does:
+
+1. starts `rag_api`
+2. starts `llama-server`
+3. regenerates seed artifacts with `pnpm seed`
+4. applies local D1 migrations + seed with `pnpm seed:d1-local`
+5. builds the Worker bundle with `pnpm build`
+6. starts `wrangler dev`
+
+If you want the lighter rebuild loop for frontend-only edits:
+
+```bash
+pnpm dev:watch
+```
+
+### Generate / seed
+
+```bash
+pnpm generate:types
+pnpm seed
+pnpm seed:d1-local
+```
+
+Artifacts:
+
+- `src/db/querier.ts` and `src/db/models.ts` are regenerated from sqlc
+- `d1-seed.sql` is regenerated for the frontend D1 database
+- `rag_api/data/lessons.db` is regenerated for the RAG indexer
+
+### Staging D1 initialization
+
+1. Create the staging database:
+
+```bash
+wrangler d1 create ml-rpg-content-staging
+```
+
+2. Copy the returned `database_id` into `wrangler.jsonc` under:
+
+```jsonc
+{
+  "env": {
+    "staging": {
+      "d1_databases": [
+        {
+          "binding": "D1_CONTENT",
+          "database_name": "ml-rpg-content-staging",
+          "database_id": "REPLACE_ME",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
+}
+```
+
+3. Seed staging:
+
+```bash
+pnpm seed
+pnpm seed:d1-staging
+```
+
+### Build / deploy staging
+
+```bash
+pnpm build
+wrangler deploy --env staging
+```
+
+Set staging secrets/vars before deploy, especially:
+
+- `SESSION_SECRET`
+- `RAG_API_URL`
+- `LLAMA_API_URL`
+
 ## License
 
 MIT. Do what you will. [LICENSE](LICENSE).

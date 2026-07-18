@@ -18,16 +18,17 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-// Trim stale entries every 60 seconds
-setInterval(() => {
+function pruneExpiredEntries(windowMs: number): void {
   const now = Date.now();
   for (const [key, entry] of store) {
-    entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
+    entry.timestamps = entry.timestamps.filter((timestamp) => {
+      return now - timestamp < windowMs;
+    });
     if (entry.timestamps.length === 0) {
       store.delete(key);
     }
   }
-}, 60_000).unref();
+}
 
 export interface RateLimitConfig {
   maxAttempts: number;
@@ -45,6 +46,8 @@ export function checkRateLimit(
   key: string,
   config: RateLimitConfig,
 ): RateLimitResult {
+  pruneExpiredEntries(config.windowMs);
+
   const now = Date.now();
   let entry = store.get(key);
 

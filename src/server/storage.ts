@@ -20,9 +20,34 @@ export function getDb(): D1Database {
   if (_d1) return _d1;
 
   const event = getRequestEvent();
-  const platform = (event as { platform?: { env?: Record<string, unknown> } })
-    ?.platform;
-  const d1 = platform?.env?.D1_CONTENT as D1Database | undefined;
+  const requestEvent = event as {
+    platform?: { env?: Record<string, unknown> };
+    nativeEvent?: {
+      req?: {
+        runtime?: {
+          cloudflare?: {
+            env?: Record<string, unknown>;
+          };
+        };
+      };
+      context?: {
+        cloudflare?: { env?: Record<string, unknown> };
+        _platform?: {
+          cloudflare?: { env?: Record<string, unknown> };
+        };
+      };
+    };
+  };
+  const d1 =
+    (requestEvent.platform?.env?.D1_CONTENT as D1Database | undefined) ??
+    (requestEvent.nativeEvent?.req?.runtime?.cloudflare?.env?.D1_CONTENT as
+      | D1Database
+      | undefined) ??
+    (requestEvent.nativeEvent?.context?.cloudflare?.env?.D1_CONTENT as
+      | D1Database
+      | undefined) ??
+    (requestEvent.nativeEvent?.context?._platform?.cloudflare?.env
+      ?.D1_CONTENT as D1Database | undefined);
 
   if (!d1) {
     throw new Error(

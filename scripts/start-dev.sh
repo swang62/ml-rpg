@@ -39,6 +39,17 @@ else
   echo "WARNING: Bob model not found at $MODEL_PATH — llama-server not started."
 fi
 
-# SolidStart dev
-echo "Starting dev server..."
-vinxi dev
+echo "Generating seed artifacts..."
+pnpm seed
+
+echo "Applying local D1 migrations and seed..."
+pnpm seed:d1-local
+
+# Build the application for Cloudflare Worker output
+echo "Building application for Cloudflare Workers..."
+pnpm build
+
+# Start wrangler dev with local D1 bindings (foreground)
+echo "Starting wrangler dev on port 3333 (D1_CONTENT binding available)..."
+echo "NOTE: HMR is not available in this mode. Re-run 'pnpm dev' (or use 'pnpm dev:watch') to pick up changes."
+npx wrangler dev --local --port 3333

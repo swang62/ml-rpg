@@ -6,17 +6,27 @@ export interface Session {
   id: number;
 }
 
-const env = getEnv();
-const SESSION_SECRET = env.SESSION_SECRET;
+// Lazy init — avoid env validation at module level (Cloudflare Workers
+// forbids async I/O, crypto, or process.env access in global scope).
+let _secret: string | null = null;
+let _isProduction: boolean | null = null;
+function getSessionSecret(): string {
+  if (!_secret) {
+    const env = getEnv();
+    _secret = env.SESSION_SECRET;
+    _isProduction = env.NODE_ENV === "production";
+  }
+  return _secret;
+}
 
 export const getSession = () =>
   useSession<Session>({
-    password: SESSION_SECRET,
+    password: getSessionSecret(),
     name: "session",
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: env.NODE_ENV === "production",
+      secure: _isProduction ?? false,
       maxAge: 60 * 60 * 24 * SESSION_TIMEOUT_DAYS, // seconds
     },
   });
