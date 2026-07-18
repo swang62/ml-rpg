@@ -13,13 +13,7 @@ export interface SearchDocument {
 export function getSearchEngineOptions() {
   return {
     fields: ["lessonTitle", "lessonContent", "categoryTitle", "sectionTitle"],
-    storeFields: [
-      "lessonTitle",
-      "lessonContent",
-      "categoryTitle",
-      "sectionTitle",
-      "url",
-    ],
+    storeFields: ["lessonTitle", "categoryTitle", "sectionTitle", "url"],
     processTerm: (term: string) => {
       const normalizedTerm = term.toLowerCase();
       if (normalizedTerm.length < 3 || /^[0-9\s]+$/.test(normalizedTerm)) {

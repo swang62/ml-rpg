@@ -1,6 +1,6 @@
 import MiniSearch, { type SearchResult } from "minisearch";
-import { getRequestEvent } from "solid-js/web";
 import { SEARCH_MAX_RESULTS } from "~/utils/constants";
+import { getWorkerEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
 import {
   getSearchEngineOptions,
@@ -39,15 +39,16 @@ async function loadIndex() {
   if (_engine) return _engine;
   if (_enginePromise) return _enginePromise;
 
-  const requestEvent = getRequestEvent();
-  const requestUrl = requestEvent?.request?.url;
-  if (!requestUrl) {
-    throw new Error("Search index requires an active request URL");
+  const assets = getWorkerEnv().ASSETS as Fetcher | undefined;
+  if (!assets) {
+    throw new Error("ASSETS binding not available");
   }
 
   _enginePromise = (async () => {
     const start = performance.now();
-    const response = await fetch(new URL("/search-index.json", requestUrl));
+    const response = await assets.fetch(
+      "https://assets.local/search-index.json",
+    );
     if (!response.ok) {
       throw new Error(`Failed to load search index: ${response.status}`);
     }

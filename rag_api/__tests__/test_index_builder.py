@@ -11,7 +11,6 @@ from ..indexing.build_index import (
     _compute_content_hash,
     _compute_db_content_hash,
     _enrich_tags,
-    _extract_relevant_text,
     _extract_word_tokens,
     _get_readme_lesson_group,
     _load_lessons_from_db,
@@ -31,49 +30,15 @@ def content_db(tmp_path):
         CREATE TABLE course (id INTEGER PRIMARY KEY, slug TEXT, title TEXT);
         CREATE TABLE category (id INTEGER PRIMARY KEY, slug TEXT, title TEXT, course_id INTEGER);
         CREATE TABLE section (id INTEGER PRIMARY KEY, slug TEXT, title TEXT, course_id INTEGER, category_id INTEGER);
-        CREATE TABLE lesson (slug TEXT, title TEXT, html TEXT, keywords TEXT, section_id INTEGER, category_id INTEGER, course_id INTEGER);
+        CREATE TABLE lesson (slug TEXT, title TEXT, html TEXT, lesson_highlights TEXT, keywords TEXT, section_id INTEGER, category_id INTEGER, course_id INTEGER);
 
         INSERT INTO course VALUES (1, 'ml-engineering', 'ML Engineering');
         INSERT INTO category VALUES (1, 'ml-basics', 'ML Basics', 1);
         INSERT INTO section VALUES (1, 'intro', 'Introduction', 1, 1);
-        INSERT INTO lesson VALUES ('lesson-1', 'What is ML', '<h1>Intro</h1><p>Machine learning is fun</p>', '["ml"]', 1, 1, 1);
+        INSERT INTO lesson VALUES ('lesson-1', 'What is ML', '<h1>Intro</h1><p>Machine learning is fun</p>', 'Intro Machine learning is fun', '["ml"]', 1, 1, 1);
     """)
     conn.close()
     return str(db_path)
-
-
-# ---------------------------------------------------------------------------
-# Lesson text extraction
-# ---------------------------------------------------------------------------
-
-
-def test_extract_relevant_text_h1():
-    html = "<h1>Introduction to ML</h1><p>Some text</p>"
-    result = _extract_relevant_text(html)
-    assert "Introduction to ML" in result
-
-
-def test_extract_relevant_text_card():
-    html = '<span class="Learn_keyTakeaways_abc">Key insight here</span>'
-    result = _extract_relevant_text(html)
-    assert "Key insight here" in result
-
-
-def test_extract_relevant_text_border():
-    html = '<div style="border-left: 4px solid red;">Callout text</div>'
-    result = _extract_relevant_text(html)
-    assert "Callout text" in result
-
-
-def test_extract_relevant_text_empty():
-    assert _extract_relevant_text("") == ""
-
-
-def test_extract_relevant_text_no_match():
-    html = "<p>Just a paragraph with no headers or cards</p>"
-    result = _extract_relevant_text(html)
-    # Should still return cleaned text (border pattern catches the <p>)
-    assert "Just" in result or result == ""
 
 
 # ---------------------------------------------------------------------------

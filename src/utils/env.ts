@@ -45,7 +45,7 @@ function getProcessEnv(): Record<string, unknown> {
   return maybeEnv as Record<string, unknown>;
 }
 
-function getWorkerEnv(): Record<string, unknown> {
+export function getWorkerEnv(): Record<string, unknown> {
   try {
     const event = getRequestEvent() as {
       platform?: { env?: Record<string, unknown> };

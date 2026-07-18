@@ -38,47 +38,6 @@ README_PATH = _rag_api_dir / "data" / "README.md"
 
 
 # ---------------------------------------------------------------------------
-# Lesson extraction
-# ---------------------------------------------------------------------------
-
-
-def _extract_relevant_text(html: str) -> str:
-    """Port of extractRelevantText in src/utils/search-utils.ts."""
-    parts: list[str] = []
-
-    h1_match = re.search(r"<h1[^>]*>([\s\S]*?)</h1>", html, re.IGNORECASE)
-    if h1_match:
-        parts.append(h1_match.group(1))
-
-    card_pattern = re.compile(
-        r'<span[^>]*class="[^"]*Learn_keyTakeaways[^"]*"[^>]*>([\s\S]*?)</span>',
-        re.IGNORECASE,
-    )
-    for match in card_pattern.finditer(html):
-        if match.group(1).strip():
-            parts.append(match.group(1))
-
-    border_pattern = re.compile(
-        r"<(\w+)[^>]*border-left:\s*4px[^>]*>([\s\S]*?)</\1>",
-        re.IGNORECASE | re.DOTALL,
-    )
-    for match in border_pattern.finditer(html):
-        if match.group(2).strip():
-            parts.append(match.group(2))
-
-    return _strip_html_tags(" ".join(parts))
-
-
-def _strip_html_tags(text: str) -> str:
-    text = re.sub(r"<[^>]+>", " ", text)
-    text = re.sub(r"&[a-z]+;", " ", text)
-    text = re.sub(r"&[a-z]+\d*;", " ", text)
-    text = re.sub(r"&#\d+;", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
-
-
-# ---------------------------------------------------------------------------
 # Recursive text splitting with overlap (port of LangChain's RecursiveCharacterTextSplitter)
 # ---------------------------------------------------------------------------
 
@@ -202,9 +161,9 @@ def _load_lessons_from_db() -> list[dict[str, Any]]:
     sections = {row["id"]: dict(row) for row in cursor.fetchall()}
 
     cursor.execute(
-        "SELECT slug, title, html, keywords, section_id AS sectionid, "
+        "SELECT slug, title, lesson_highlights, keywords, section_id AS sectionid, "
         "category_id AS categoryid, course_id AS courseid "
-        "FROM lesson WHERE html != ''"
+        "FROM lesson WHERE lesson_highlights != ''"
     )
     lessons_raw = [dict(row) for row in cursor.fetchall()]
     conn.close()
@@ -218,7 +177,7 @@ def _load_lessons_from_db() -> list[dict[str, Any]]:
         if not course or not category or not section:
             continue
 
-        plain_text = _extract_relevant_text(lesson["html"])
+        plain_text = lesson["lesson_highlights"]
         if not plain_text:
             continue
 

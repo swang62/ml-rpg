@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS lesson (
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   html TEXT NOT NULL DEFAULT '',
+  lesson_highlights TEXT NOT NULL DEFAULT '',
   lesson_order INTEGER NOT NULL DEFAULT 0,
   course_id INTEGER NOT NULL REFERENCES course(id),
   category_id INTEGER NOT NULL REFERENCES category(id),
@@ -592,12 +593,13 @@ export function getAllLessons(
 }
 
 const createLessonQuery = `-- name: CreateLesson :one
-INSERT INTO lesson (slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`;
+INSERT INTO lesson (slug, title, html, lesson_highlights, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`;
 
 export type CreateLessonParams = {
   slug: string;
   title: string;
   html: string;
+  lessonHighlights: string;
   lessonOrder: number;
   courseId: number;
   categoryId: number;
@@ -615,7 +617,7 @@ export function createLesson(
 ): Query<CreateLessonRow | null> {
   const ps = d1
     .prepare(createLessonQuery)
-    .bind(args.slug, args.title, args.html, args.lessonOrder, args.courseId, args.categoryId, args.sectionId, args.keywords);
+    .bind(args.slug, args.title, args.html, args.lessonHighlights, args.lessonOrder, args.courseId, args.categoryId, args.sectionId, args.keywords);
   return {
     then(onFulfilled?: (value: CreateLessonRow | null) => void, onRejected?: (reason?: any) => void) {
       ps.first<CreateLessonRow | null>()

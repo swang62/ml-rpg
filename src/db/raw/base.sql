@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS lesson (
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   html TEXT NOT NULL DEFAULT '',
+  lesson_highlights TEXT NOT NULL DEFAULT '',
   lesson_order INTEGER NOT NULL DEFAULT 0,
   course_id INTEGER NOT NULL REFERENCES course(id),
   category_id INTEGER NOT NULL REFERENCES category(id),

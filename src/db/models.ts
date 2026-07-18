@@ -29,6 +29,7 @@ export type Lesson = {
   slug: string;
   title: string;
   html: string;
+  lessonHighlights: string;
   lessonOrder: number;
   courseId: number;
   categoryId: number;

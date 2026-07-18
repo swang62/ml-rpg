@@ -20,6 +20,7 @@ import {
   globSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -234,6 +235,7 @@ interface SeedLesson {
   slug: string;
   title: string;
   html: string;
+  lessonHighlights: string;
   lessonOrder: number;
   courseId: number;
   categoryId: number;
@@ -288,11 +290,13 @@ function buildSeedData(
 
         for (const lesson of sub.lessons) {
           const html = lessonHtml.get(lesson.lesson) ?? "";
+          const lessonHighlights = html ? extractRelevantText(html) : "";
           seedLessons.push({
             id: nextId++,
             slug: lesson.lesson,
             title: cleanTitle(lesson.title),
             html,
+            lessonHighlights,
             lessonOrder: lesson.order,
             courseId,
             categoryId: catId,
@@ -363,7 +367,7 @@ function writeD1Seed(seed: SeedData): void {
   push("-- Lessons");
   for (const row of seed.lessons) {
     push(
-      `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${row.lessonOrder}, ${row.courseId}, ${row.categoryId}, ${row.sectionId}, ${escapeSql(row.keywords)});`,
+      `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_highlights, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${escapeSql(row.lessonHighlights)}, ${row.lessonOrder}, ${row.courseId}, ${row.categoryId}, ${row.sectionId}, ${escapeSql(row.keywords)});`,
     );
   }
   push("");
@@ -392,7 +396,7 @@ function writeSearchIndex(seed: SeedData): void {
     const course = courses.get(lesson.courseId);
     if (!course) continue;
 
-    const lessonContent = extractRelevantText(lesson.html);
+    const lessonContent = lesson.lessonHighlights;
     if (!lessonContent) continue;
 
     docs.push({
@@ -425,7 +429,7 @@ function writeRagDb(seed: SeedData): void {
     if (existsSync(RAG_DB_PATH)) {
       const old = new Database(RAG_DB_PATH);
       old.close();
-      // Remove it — will be rewritten
+      rmSync(RAG_DB_PATH);
     }
   } catch {
     // Ignore
@@ -462,6 +466,7 @@ function writeRagDb(seed: SeedData): void {
       slug TEXT NOT NULL,
       title TEXT NOT NULL,
       html TEXT NOT NULL DEFAULT '',
+      lesson_highlights TEXT NOT NULL DEFAULT '',
       lesson_order INTEGER NOT NULL DEFAULT 0,
       course_id INTEGER NOT NULL REFERENCES course(id),
       category_id INTEGER NOT NULL REFERENCES category(id),
@@ -488,7 +493,7 @@ function writeRagDb(seed: SeedData): void {
     "INSERT INTO section (id, slug, title, course_id, category_id) VALUES (?, ?, ?, ?, ?)",
   );
   const insertLesson = db.prepare(
-    "INSERT INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO lesson (id, slug, title, html, lesson_highlights, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
   );
 
   const tx = db.transaction(() => {
@@ -513,6 +518,7 @@ function writeRagDb(seed: SeedData): void {
         row.slug,
         row.title,
         row.html,
+        row.lessonHighlights,
         row.lessonOrder,
         row.courseId,
         row.categoryId,

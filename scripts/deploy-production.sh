@@ -1,17 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "==> Rebuilding D1 seed data + search index..."
+pnpm generate
+
 echo "==> Building Worker bundle..."
 pnpm build
-
-echo "==> Rebuilding D1 seed data..."
-pnpm generate
 
 echo "==> Seeding production D1 (migrations + content)..."
 pnpm seed:production
 
 echo "==> Deploying Worker to production..."
-wrangler deploy --env production
+CI=1 wrangler deploy --env production
 
 echo "==> Smoke test..."
 curl -sf -o /dev/null https://ml-rpg.stevewang.dev/ && echo "OK: Worker responds" || echo "WARN: Worker not reachable yet (DNS may need setup)"
