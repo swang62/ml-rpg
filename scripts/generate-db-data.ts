@@ -3,16 +3,14 @@
 /**
  * Seed script — reads raw lesson HTML files and course structure,
  * then emits:
- *   1. A D1-compatible SQL seed file (.data/d1-seed.sql) for the frontend
- *   2. A standalone SQLite DB (rag_api/data/lessons.db) for rag_api ingestion
+ *   1. A static MiniSearch index (public/search-index.json)
+ *   2. A standalone SQLite DB (rag_api/data/lessons.db) for rag_api + D1 seeding
+ *
+ * D1 SQL seed files are generated separately from lessons.db by:
+ *   pnpm export:d1
  *
  * Usage:
  *   pnpm generate
- *
- * The D1 seed file is applied via:
- *   wrangler d1 execute ml-rpg-content --local --file=.data/d1-seed.sql
- *
- * The rag_api SQLite DB is picked up automatically by rag_api at startup.
  */
 
 import {
@@ -38,7 +36,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
 const SCRAPED_DIR = join(ROOT, ".data/scraped");
-const D1_SEED_FILE = join(ROOT, ".data/d1-seed.sql");
 const SEARCH_INDEX_FILE = join(ROOT, "public/search-index.json");
 const RAG_DB_DIR = join(ROOT, "rag_api/data");
 const RAG_DB_PATH = join(RAG_DB_DIR, "lessons.db");
@@ -105,19 +102,15 @@ function main(): void {
   console.log("Building seed data...");
   const seed = buildSeedData(courses, lessonHtml);
 
-  // 4. Emit D1 SQL seed file
-  console.log("Writing D1 SQL seed file...");
-  writeD1Seed(seed);
-
-  // 5. Emit static MiniSearch index
+  // 4. Emit static MiniSearch index
   console.log("Writing search index...");
   writeSearchIndex(seed);
 
-  // 6. Emit rag_api SQLite DB
+  // 5. Emit rag_api SQLite DB
   console.log("Writing rag_api SQLite DB...");
   writeRagDb(seed);
 
-  // 7. Validate lesson count
+  // 6. Validate lesson count
   const lessonFiles = countLessonFiles();
   if (seed.lessons.length !== lessonFiles) {
     throw new Error(
@@ -128,7 +121,6 @@ function main(): void {
   console.log(
     `\nSeed complete: ${seed.courses.length} courses, ${seed.categories.length} categories, ${seed.sections.length} sections, ${seed.lessons.length} lessons`,
   );
-  console.log(`  D1 seed:  ${D1_SEED_FILE}`);
   console.log(`  RAG DB:   ${RAG_DB_PATH}`);
 }
 
@@ -317,65 +309,6 @@ function buildSeedData(
 }
 
 // ---------------------------------------------------------------------------
-// D1 SQL seed emission
-// ---------------------------------------------------------------------------
-
-function escapeSql(val: unknown): string {
-  if (val === null || val === undefined) return "NULL";
-  const str = String(val);
-  return `'${str.replace(/'/g, "''")}'`;
-}
-
-function writeD1Seed(seed: SeedData): void {
-  const lines: string[] = [];
-  const push = (s: string) => lines.push(s);
-
-  push("-- D1 content seed — generated from scraped lesson files");
-  push(
-    `-- Rows: ${seed.courses.length} courses, ${seed.categories.length} categories, ${seed.sections.length} sections, ${seed.lessons.length} lessons`,
-  );
-  push("");
-
-  // Courses
-  push("-- Courses");
-  for (const row of seed.courses) {
-    push(
-      `INSERT OR REPLACE INTO course (id, slug, title) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)});`,
-    );
-  }
-  push("");
-
-  // Categories
-  push("-- Categories");
-  for (const row of seed.categories) {
-    push(
-      `INSERT OR REPLACE INTO category (id, slug, title, course_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseId});`,
-    );
-  }
-  push("");
-
-  // Sections
-  push("-- Sections");
-  for (const row of seed.sections) {
-    push(
-      `INSERT OR REPLACE INTO section (id, slug, title, course_id, category_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseId}, ${row.categoryId});`,
-    );
-  }
-  push("");
-
-  // Lessons
-  push("-- Lessons");
-  for (const row of seed.lessons) {
-    push(
-      `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_highlights, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${escapeSql(row.lessonHighlights)}, ${row.lessonOrder}, ${row.courseId}, ${row.categoryId}, ${row.sectionId}, ${escapeSql(row.keywords)});`,
-    );
-  }
-  push("");
-
-  writeFileSync(D1_SEED_FILE, lines.join("\n"), "utf-8");
-  console.log(`  Wrote ${D1_SEED_FILE} (${lines.length} lines)`);
-}
-
 function writeSearchIndex(seed: SeedData): void {
   const courses = new Map(seed.courses.map((course) => [course.id, course]));
   const categories = new Map(

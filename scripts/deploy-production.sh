@@ -11,7 +11,10 @@ echo "==> Seeding production D1 (migrations + content)..."
 pnpm seed:production
 
 echo "==> Deploying Worker to production..."
-CI=1 wrangler deploy --env production
+wrangler deploy --env production </dev/null
+
+echo "==> Waiting for deployment to propagate..."
+sleep 20
 
 echo "==> Smoke test..."
 curl -sf -o /dev/null https://ml-rpg.stevewang.dev/ && echo "OK: Worker responds" || echo "WARN: Worker not reachable yet (DNS may need setup)"

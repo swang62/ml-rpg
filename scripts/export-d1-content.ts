@@ -1,17 +1,15 @@
 #!/usr/bin/env tsx
 /**
- * Generates a D1-compatible SQL seed file from the rag_api SQLite DB.
+ * Generates chunked D1-compatible SQL seed files from the rag_api lessons.db.
  *
- * This is a fallback/reference — the primary seed flow is `pnpm generate`
- * which reads directly from scraped lesson files.
+ * lessons.db is version-controlled, so this works in CI without .data/scraped/.
  *
  * Usage:
- *   pnpm export:d1                    # writes .data/d1-seed.sql
- *   wrangler d1 execute ml-rpg-content --local --file=.data/d1-seed.sql
+ *   pnpm export:d1
+ *   ./scripts/seed-staging.sh   (calls this internally before uploading)
  */
 
-import { createHash } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { globSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
@@ -19,7 +17,8 @@ import Database from "better-sqlite3";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const RAG_DB_PATH = join(ROOT, "rag_api/data/lessons.db");
-const OUTPUT_FILE = join(ROOT, ".data", "d1-seed.sql");
+const SEED_PREFIX = join(ROOT, ".data/d1-seed-");
+const MAX_LESSONS_PER_CHUNK = 330;
 
 function escapeSql(val: unknown): string {
   if (val === null || val === undefined) return "NULL";
@@ -28,6 +27,11 @@ function escapeSql(val: unknown): string {
 }
 
 function main() {
+  // Clean old chunks
+  for (const old of globSync(".data/d1-seed-*.sql")) {
+    rmSync(join(ROOT, old));
+  }
+
   console.log(`Reading content from ${RAG_DB_PATH}...`);
   const db = new Database(RAG_DB_PATH, { readonly: true });
 
@@ -60,13 +64,14 @@ function main() {
 
   const lessons = db
     .prepare(
-      "SELECT id, slug, title, html, lesson_order AS lessonorder, course_id AS courseid, category_id AS categoryid, section_id AS sectionid, keywords FROM lesson ORDER BY id",
+      "SELECT id, slug, title, html, lesson_highlights AS lessonhighlights, lesson_order AS lessonorder, course_id AS courseid, category_id AS categoryid, section_id AS sectionid, keywords FROM lesson ORDER BY id",
     )
     .all() as {
     id: number;
     slug: string;
     title: string;
     html: string;
+    lessonhighlights: string;
     lessonorder: number;
     courseid: number;
     categoryid: number;
@@ -76,65 +81,56 @@ function main() {
 
   db.close();
 
-  const canonical = JSON.stringify({ courses, categories, sections, lessons });
-  const versionHash = createHash("sha256")
-    .update(canonical, "utf-8")
-    .digest("hex");
+  // Build header (reused in every chunk)
+  const header: string[] = [];
+  header.push("-- D1 content seed — exported from rag_api lessons.db");
+  header.push("");
 
-  const lines: string[] = [];
-  const push = (s: string) => lines.push(s);
-
-  push("-- D1 content seed — generated from rag_api lessons.db");
-  push(`-- Version: ${versionHash.slice(0, 12)}`);
-  push(
-    `-- Rows: ${courses.length} courses, ${categories.length} categories, ${sections.length} sections, ${lessons.length} lessons`,
-  );
-  push("");
-
-  push("-- Courses");
+  header.push("-- Courses");
   for (const row of courses) {
-    push(
+    header.push(
       `INSERT OR REPLACE INTO course (id, slug, title) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)});`,
     );
   }
-  push("");
+  header.push("");
 
-  push("-- Categories");
+  header.push("-- Categories");
   for (const row of categories) {
-    push(
+    header.push(
       `INSERT OR REPLACE INTO category (id, slug, title, course_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseid});`,
     );
   }
-  push("");
+  header.push("");
 
-  push("-- Sections");
+  header.push("-- Sections");
   for (const row of sections) {
-    push(
+    header.push(
       `INSERT OR REPLACE INTO section (id, slug, title, course_id, category_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseid}, ${row.categoryid});`,
     );
   }
-  push("");
+  header.push("");
 
-  push("-- Lessons");
-  for (const row of lessons) {
-    push(
-      `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${row.lessonorder}, ${row.courseid}, ${row.categoryid}, ${row.sectionid}, ${escapeSql(row.keywords)})`,
+  const totalChunks = Math.ceil(lessons.length / MAX_LESSONS_PER_CHUNK);
+  for (let chunkIdx = 0; chunkIdx < totalChunks; chunkIdx++) {
+    const chunk = lessons.slice(
+      chunkIdx * MAX_LESSONS_PER_CHUNK,
+      (chunkIdx + 1) * MAX_LESSONS_PER_CHUNK,
     );
+
+    const lines = [...header];
+    lines.push(`-- Lessons (chunk ${chunkIdx + 1}/${totalChunks})`);
+    for (const row of chunk) {
+      lines.push(
+        `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_highlights, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${escapeSql(row.lessonhighlights)}, ${row.lessonorder}, ${row.courseid}, ${row.categoryid}, ${row.sectionid}, ${escapeSql(row.keywords)});`,
+      );
+    }
+    lines.push("");
+
+    const file = `${SEED_PREFIX}${String(chunkIdx).padStart(2, "0")}.sql`;
+    writeFileSync(file, lines.join("\n"), "utf-8");
   }
-  push("");
 
-  push("-- Content version tracking");
-  push(
-    `INSERT OR REPLACE INTO content_version (id, version_hash, row_count_hash, applied_at) VALUES (1, ${escapeSql(versionHash)}, ${escapeSql(versionHash.slice(0, 16))}, datetime('now'));`,
-  );
-
-  push("");
-
-  const sql = lines.join("\n");
-  const sizeKb = (Buffer.byteLength(sql, "utf-8") / 1024).toFixed(1);
-  writeFileSync(OUTPUT_FILE, sql, "utf-8");
-  console.log(`Wrote ${OUTPUT_FILE} (${sizeKb} KB)`);
-  console.log(`Content version: ${versionHash.slice(0, 12)}`);
+  console.log(`Wrote ${totalChunks} seed chunk(s) (${lessons.length} lessons)`);
 }
 
 main();

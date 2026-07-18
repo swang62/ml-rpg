@@ -99,3 +99,32 @@ jobs:
       - run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
+
+  deploy-staging:
+    needs: [lint, test, build]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Rebuild native modules (needed by export-d1-content)
+        run: pnpm rebuild better-sqlite3
+      - name: Build Worker bundle
+        run: pnpm build
+      - name: Seed staging D1
+        run: ./scripts/seed-staging.sh
+      - name: Deploy to staging
+        run: npx wrangler deploy --env staging

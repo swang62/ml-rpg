@@ -18,8 +18,8 @@ pnpm build            # vinxi build (Worker bundle)
 pnpm preview          # serve built app (vinxi start)
 pnpm lint             # biome check --write --unsafe . && pnpm typecheck
 pnpm test             # vitest run + pytest
-pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
-pnpm generate          # tsx ./scripts/seed-db.ts — re-seeds course.db from scraped lesson files
+pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db
+pnpm generate          # tsx ./scripts/seed-db.ts — re-seeds from scraped lesson files
 pnpm build:docker     # docker compose up --build --force-recreate -d — build rag_api + llama_api containers
 pnpm build:finetune   # full fine-tuning pipeline
 ```
