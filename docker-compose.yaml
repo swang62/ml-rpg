@@ -4,7 +4,6 @@
 
 services:
   rag-api:
-    container_name: rag-api
     build:
       context: .
       dockerfile: rag_api/Dockerfile
@@ -16,8 +15,8 @@ services:
       - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - LLAMA_API_URL=${LLAMA_API_URL}
       - SESSION_SECRET=${SESSION_SECRET}
+      - LLAMA_API_URL=http://${SERVICE_NAME_LLAMA_API}:9876
     healthcheck:
       test:
         [
@@ -32,7 +31,6 @@ services:
       retries: 3
 
   llama-api:
-    container_name: llama-api
     build:
       context: ./llama_api
       dockerfile: Dockerfile
