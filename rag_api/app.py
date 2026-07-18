@@ -83,6 +83,7 @@ async def _idle_unloader():
 async def lifespan(_app: FastAPI):
     global _last_request_time
     _last_request_time = time.monotonic()
+    logger.info("LLAMA_API_URL=%s SESSION_SECRET=%s...", LLAMA_API_URL, SESSION_SECRET[:8] if SESSION_SECRET else "(empty)")
     preload_embedder()
 
     # Build or verify the RAG index from local content (non-blocking in executor)
