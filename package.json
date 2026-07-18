@@ -16,6 +16,7 @@
     "scrape": "dotenv -- tsx ./scripts/scrape-lessons.ts",
     "seed:local": "./scripts/seed-local.sh",
     "seed:staging": "./scripts/seed-staging.sh",
+    "db:delete-local": "rm -rf .wrangler/state/v3/d1",
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {

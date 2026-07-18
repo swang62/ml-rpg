@@ -10,7 +10,7 @@ services:
       dockerfile: rag_api/Dockerfile
     restart: unless-stopped
     volumes:
-      - rag-content:/app/rag_api/data
+      - course-data:/app/.data
     environment:
       - HF_TOKEN=${HF_TOKEN}
       - SESSION_SECRET=${SESSION_SECRET}
@@ -52,5 +52,5 @@ services:
       retries: 3
 
 volumes:
-  rag-content:
+  course-data:
   llama-model:
