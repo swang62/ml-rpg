@@ -1,13 +1,17 @@
+import pytest
 from fastapi.testclient import TestClient
 
-from ..app import app
+from .. import app as app_module
 
-client = TestClient(app)
+client = TestClient(app_module.app)
 
-# Auth token from config (set via .env or docker-compose)
-from ..config import SESSION_SECRET  # noqa: E402
+AUTH_TOKEN = "test-session-secret"
+AUTH_HEADERS = {"Authorization": f"Bearer {AUTH_TOKEN}"}
 
-AUTH_HEADERS = {"Authorization": f"Bearer {SESSION_SECRET}"}
+
+@pytest.fixture(autouse=True)
+def require_auth(monkeypatch):
+    monkeypatch.setattr(app_module, "SESSION_SECRET", AUTH_TOKEN)
 
 
 def test_health_public():
@@ -21,7 +25,7 @@ def test_status_public():
 
 
 def test_no_auth_returns_403():
-    response = client.post("/retrieve", json={"query": "test"})
+    response = client.post("/guard", json={"query": "test"})
     assert response.status_code == 403
     data = response.json()
     assert data["detail"] == "Forbidden"
@@ -29,13 +33,18 @@ def test_no_auth_returns_403():
 
 def test_wrong_auth_returns_403():
     response = client.post(
-        "/retrieve",
+        "/guard",
         json={"query": "test"},
         headers={"Authorization": "Bearer wrong-token"},
     )
     assert response.status_code == 403
     data = response.json()
     assert data["detail"] == "Forbidden"
+
+
+def test_correct_auth_allows_protected_endpoint():
+    response = client.post("/guard", json={"query": "test"}, headers=AUTH_HEADERS)
+    assert response.status_code == 200
 
 
 def test_chat_no_auth_returns_403():
