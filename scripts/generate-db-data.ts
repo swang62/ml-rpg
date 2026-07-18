@@ -3,14 +3,14 @@
 /**
  * Seed script — reads raw lesson HTML files and course structure,
  * then emits:
- *   1. A D1-compatible SQL seed file (d1-seed.sql) for the frontend
+ *   1. A D1-compatible SQL seed file (.data/d1-seed.sql) for the frontend
  *   2. A standalone SQLite DB (rag_api/data/lessons.db) for rag_api ingestion
  *
  * Usage:
  *   pnpm generate
  *
  * The D1 seed file is applied via:
- *   wrangler d1 execute ml-rpg-content --local --file=d1-seed.sql
+ *   wrangler d1 execute ml-rpg-content --local --file=.data/d1-seed.sql
  *
  * The rag_api SQLite DB is picked up automatically by rag_api at startup.
  */
@@ -37,7 +37,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
 const SCRAPED_DIR = join(ROOT, ".data/scraped");
-const D1_SEED_FILE = join(ROOT, "d1-seed.sql");
+const D1_SEED_FILE = join(ROOT, ".data", "d1-seed.sql");
 const SEARCH_INDEX_FILE = join(ROOT, "public/search-index.json");
 const RAG_DB_DIR = join(ROOT, "rag_api/data");
 const RAG_DB_PATH = join(RAG_DB_DIR, "lessons.db");

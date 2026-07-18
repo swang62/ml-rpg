@@ -6,8 +6,8 @@
  * which reads directly from scraped lesson files.
  *
  * Usage:
- *   pnpm export:d1                    # writes d1-seed.sql
- *   wrangler d1 execute ml-rpg-content --local --file=d1-seed.sql
+ *   pnpm export:d1                    # writes .data/d1-seed.sql
+ *   wrangler d1 execute ml-rpg-content --local --file=.data/d1-seed.sql
  */
 
 import { createHash } from "node:crypto";
@@ -19,7 +19,7 @@ import Database from "better-sqlite3";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const RAG_DB_PATH = join(ROOT, "rag_api/data/lessons.db");
-const OUTPUT_FILE = join(ROOT, "d1-seed.sql");
+const OUTPUT_FILE = join(ROOT, ".data", "d1-seed.sql");
 
 function escapeSql(val: unknown): string {
   if (val === null || val === undefined) return "NULL";

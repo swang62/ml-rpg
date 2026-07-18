@@ -53,4 +53,4 @@ PRODUCT.md
 .worktrees/
 
 # Generated artifacts
-d1-seed.sql
+.data/d1-seed.sql
