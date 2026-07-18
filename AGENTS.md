@@ -19,7 +19,13 @@ pnpm preview          # serve built app (vinxi start)
 pnpm lint             # biome check --write --unsafe . && pnpm typecheck
 pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db
-pnpm generate          # tsx ./scripts/seed-db.ts — re-seeds from scraped lesson files
+pnpm generate          # tsx ./scripts/generate-db-data.ts — rebuilds lessons.db + search-index.json from .data/scraped/
+pnpm export:d1         # tsx ./scripts/export-d1-content.ts — generates .data/d1-seed-*.sql from lessons.db
+pnpm seed:local        # ./scripts/seed-local.sh
+pnpm seed:staging      # ./scripts/seed-staging.sh
+pnpm seed:production   # ./scripts/seed-production.sh
+pnpm deploy:staging    # ./scripts/deploy-staging.sh — generate + build + seed + deploy to staging
+pnpm deploy:production # ./scripts/deploy-production.sh — generate + build + seed + deploy to production
 pnpm build:docker     # docker compose up --build --force-recreate -d — build rag_api + llama_api containers
 pnpm build:finetune   # full fine-tuning pipeline
 ```
@@ -96,3 +102,56 @@ A custom `llama_api/` pipeline that generates synthetic training data via Ollama
 ### Testing
 
 Tests in `__tests__/` co-located with source. Run with `pnpm test`. **Required for all new code logic (pure functions only, integration and E2E tests only when asked).** Cover happy path, edge cases, and invalid/malicious inputs.
+
+## Deployment
+
+### Environments
+
+| Env | Worker | D1 | RAG API |
+|---|---|---|---|
+| Staging | `dev-ml-rpg.stevewang.dev` | `ml-rpg-staging` | `dev-rag.stevewang.dev` |
+| Production | `ml-rpg.stevewang.dev` | `ml-rpg-production` | `rag.stevewang.dev` |
+
+### Deploy flow
+
+```bash
+pnpm deploy:staging     # generate + build + seed + deploy to staging
+pnpm deploy:production  # generate + build + seed + deploy to production
+```
+
+Order matters: `generate` (creates `lessons.db` + `search-index.json`) MUST run before `build` (which inlines `search-index.json`).
+
+### CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`):
+- Push to any non-main branch OR PR to main → lint + test + build + deploy staging
+- Push to main → lint + test + build + deploy production
+
+Requires GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+
+### Seed pipeline
+
+`pnpm generate` creates two committed artifacts: `rag_api/data/lessons.db` + `public/search-index.json`. D1 SQL seed files are generated separately from `lessons.db` via `pnpm export:d1` — this means CI can seed D1 without `.data/scraped/` (which is gitignored).
+
+Seed files are chunked (~330 lessons per file, ~2.5MB each) to avoid Cloudflare API timeouts. The seed scripts (`seed-staging.sh`, `seed-production.sh`) call `export-d1-content.ts`, then upload each chunk with retry + 3s delay.
+
+All remote wrangler commands in seed scripts use `</dev/null` to force non-interactive mode (skips confirmation prompts).
+
+### Search index
+
+`public/search-index.json` is committed. At runtime, `src/server/search.ts` reads it via the `ASSETS` binding (not a self-fetch to the Worker's own URL, which fails on Workers). The `ASSETS` binding is configured in `wrangler.jsonc`:
+
+```jsonc
+"assets": {
+  "directory": ".output/public",
+  "binding": "ASSETS"
+}
+```
+
+### Build-time envs
+
+`VITE_SITE_URL` must be set during `pnpm build`. In CI this is set per-job (staging vs production URL). Locally it's in `.env`.
+
+### wrangler auto-confirm
+
+`pnpm deploy:staging` and `pnpm deploy:production` use `</dev/null` on all remote wrangler commands to skip interactive prompts. The deploy scripts also `sleep 20` after `wrangler deploy` to let edge propagation finish before the smoke-test curl.

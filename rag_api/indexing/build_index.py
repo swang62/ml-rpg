@@ -34,7 +34,7 @@ logger = logging.getLogger("rag_api")
 CHUNKS_TABLE_NAME = "chunks"
 
 _rag_api_dir = Path(__file__).parent.parent
-README_PATH = _rag_api_dir / "data" / "README.md"
+README_PATH = _rag_api_dir.parent / "README.md"
 
 
 # ---------------------------------------------------------------------------
