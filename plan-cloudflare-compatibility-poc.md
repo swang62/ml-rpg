@@ -6,7 +6,16 @@ Prepare the codebase for a later SolidStart-to-Cloudflare Workers migration with
 
 * Move all embedding and persistent LanceDB work into `rag_api`, sourced from D1.
 * Produce a Cloudflare Worker-compatible frontend bundle with incompatible libraries removed or isolated behind platform-specific modules.
-* Keep the current Docker/SQLite website fully functional.
+* Keep the current website fully functional while shifting runtime app data access to D1.
+
+### Plan amendment: runtime target clarified
+
+This plan now targets a **Node-hosted frontend with D1 at runtime**. The frontend does **not** need to run on Workers yet, but it **does** need to stop owning Cloudflare-incompatible runtime code. By the end of this plan:
+
+* frontend SSR/runtime remains on Node/Docker for now;
+* D1 is the runtime database for content, auth, session/account data, and progress flows that previously depended on SQLite in the app runtime;
+* all embedding, vector indexing, LanceDB persistence, and other Worker-incompatible search/index lifecycle work live in `rag_api` only;
+* remaining frontend incompatibilities are isolated behind seams so a later Worker cutover is smaller.
 
 Production Worker deployment, staging traffic, domains, and cutover will be planned only after this POC is accepted.
 
@@ -14,28 +23,29 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 
 ### In scope
 
-* A proof D1 database containing course content and a content version.
+* A D1 runtime database containing course content plus the app data needed by the Node-hosted frontend.
 * D1-to-LanceDB indexing owned entirely by `rag_api` on the VPS.
 * Removal of LanceDB and embedding code from the web runtime while retaining in-memory MiniSearch.
 * A package-by-package Cloudflare compatibility audit of frontend runtime dependencies.
 * Minimal Worker build configuration and a dry-run bundle, not a running Worker environment.
-* Platform-specific storage, environment, password, cleanup, and rate-limit seams needed to keep incompatible Node libraries out of the Worker bundle.
+* Platform-specific storage, environment, password, session, cleanup, and rate-limit seams needed to keep incompatible Node libraries out of the Worker bundle.
+* Runtime D1 support for content, auth/session/account data, and progress in the Node-hosted frontend.
 * Unit tests for D1 adapters and Worker-specific pure logic.
 * Full Docker regression testing.
 
 ### Out of scope
 
 * Running the frontend with `wrangler dev` or deploying a staging/production Worker.
-* Production D1 provisioning, migration, account creation, progress behavior, DNS, or traffic cutover.
-* Migrating current users, sessions, passwords, or progress.
+* DNS or traffic cutover.
+* Migrating existing production users or progress unless explicitly required to keep local/runtime behavior working in this repo.
 * VPS public-origin authentication and production networking changes.
 * GitHub Actions or Cloudflare Git integration.
-* Replacing Docker's working `better-sqlite3`, Argon2id, or Node lifecycle behavior where build isolation is sufficient.
+* Replacing Node hosting for the frontend where build isolation is sufficient.
 * Request-time HTML sanitization. Seeded content is trusted; the existing presentation-related JSX/code/CSS transformations remain.
 
 ## Tasks
 
-### [ ] Task 1: Add a dry-run Worker build and dependency audit
+### [x] Task 1: Add a dry-run Worker build and dependency audit
 
 * Description: Add the minimum Cloudflare build target using SolidStart's `cloudflare_module` preset, required async-context externals, `nodejs_compat`, and a proof Wrangler configuration. Run a dry-run bundle to inventory every frontend runtime dependency and Node API. Classify each as Web-standard, Cloudflare-supported, Docker-only, build-only, replace, or remove. Save the inventory in project documentation so later work has an explicit exit checklist.
 * Files: `package.json`, `app.config.ts`, `wrangler.jsonc` (new), `tsconfig.json`, `README.md`
@@ -50,9 +60,9 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
   * Do not upgrade SolidStart/Vinxi unless the pinned versions cannot emit the documented Cloudflare bundle.
   * Do not add broad Node emulation to conceal unsupported packages.
 
-### [ ] Task 2: Publish proof course content to D1
+### [x] Task 2: Publish proof course content to D1
 
-* Description: Create a POC D1 schema and deterministic content-version record. Add a command that reads `src/db/empty.db` and applies ordered, idempotent inserts/updates for courses, categories, sections, and lessons. This database exists only to prove `rag_api` can source its index independently of the web app.
+* Description: Create an initial D1 schema and deterministic content-version record. Add a command that reads `src/db/empty.db` and applies ordered, idempotent inserts/updates for courses, categories, sections, and lessons. This establishes D1 as the first runtime-owned data source, with auth/session/progress data moving in later tasks.
 * Files: `src/db/raw/base.sql`, `migrations/0001_initial.sql` (new), `migrations/0002_content_metadata.sql` (new), `scripts/export-d1-content.ts` (new), `scripts/seed-db.ts`, `package.json`, `wrangler.jsonc`
 * Acceptance criteria:
   * A non-production D1 database can be migrated and seeded without a Worker deployment.
@@ -96,24 +106,27 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 
 ### [ ] Task 5: Replace or isolate every remaining Worker-incompatible library
 
-* Description: Work through the Task 1 inventory and close every incompatible frontend item with the smallest dual-runtime change. Keep Docker implementations where they already work and select Worker implementations only during the Cloudflare build.
+* Description: Work through the Task 1 inventory and close every incompatible frontend item with the smallest dual-runtime change. The frontend remains Node-hosted, but its runtime data path must use D1 and no longer depend on frontend-owned native SQLite/vector/runtime-only code that blocks a later Worker cutover. Keep Docker-specific implementations only where hosting/lifecycle still requires Node today and select Worker implementations only during the Cloudflare build.
 * Files: `src/db/d1-adapter.ts` (new), `src/server/storage.cloudflare.ts` (new), `src/utils/env.ts`, `src/utils/env.cloudflare.ts` (new), `src/server/session.ts`, `src/server/password.ts` (new), `src/server/password.cloudflare.ts` (new), `src/server/cleanup.ts`, `src/entry-server.tsx`, `src/middleware/rate-limiter.ts`, `src/middleware/rate-limiter.cloudflare.ts` (new), `src/utils/search-utils.ts`, `src/server/course.ts`, `app.config.ts`, relevant tests
 * Required actions:
-  * `better-sqlite3`: retain for Docker; add a minimal D1 `prepare`/bind/`get`/`all`/`run` adapter and exclude the native addon from the Worker bundle.
-  * `argon2`: retain for Docker; add a versioned Web Crypto password implementation for future fresh D1 accounts and exclude native Argon2 from the Worker bundle.
+  * `better-sqlite3`: remove from the frontend runtime data path; add a minimal D1 `prepare`/bind/`get`/`all`/`run` adapter for the Node-hosted frontend and exclude the native addon from the Worker bundle.
+  * Prefer preserving sqlc type safety by routing Worker-side D1 access through a sqlc-compatible TypeScript D1 adapter/plugin flow rather than rewriting the data layer to Drizzle or hand-written queries. Use the `sqlc-gen-ts-d1` approach as the starting point, pin the exact WASM release/hash if adopted, and keep the generated-query surface aligned with the existing `src/db/*_sql.ts` usage.
+  * `argon2`: remove from the frontend runtime data path where it blocks D1-backed auth/session readiness; add a versioned Web Crypto password implementation for D1-backed accounts and exclude native Argon2 from the Worker bundle.
   * `@lancedb/lancedb` and `@langchain/textsplitters`: remove from frontend dependencies after Tasks 3-4.
-  * `node-cron`, process signals, persistent `node:fs`, and long-lived cleanup timers: keep only in Docker-selected modules or replace the Worker side with no-op/testable request-safe seams for this build POC.
+  * `node-cron`, process signals, persistent `node:fs`, and long-lived cleanup timers: keep only in Docker-selected modules when still needed for hosting/lifecycle, or replace the Worker side with no-op/testable request-safe seams for this build POC.
   * `isomorphic-dompurify`: remove. Keep only the existing JSX/code/CSS transformations needed for presentation; clean trusted HTML during seeding.
   * `node:crypto`: retain only if the dry-run build and focused stream-token test pass with `nodejs_compat`; otherwise use Web Crypto in the Worker-selected module.
   * MiniSearch, Zod, SolidJS, router/meta, and Lucide: retain after dry-run bundle verification.
 * Acceptance criteria:
   * D1 adapter tests cover no-row, one-row, many-row, writes, positional parameters, booleans, and D1 errors.
-  * Docker continues using `better-sqlite3`, Argon2id, current cleanup behavior, and Node environment variables.
+  * Node-hosted frontend runtime reads/writes content, auth/session/account data, and progress via D1-compatible code paths.
+  * Docker continues using Node hosting, current cleanup behavior, and Node environment variables.
   * Worker-selected modules typecheck without requiring native addons or persistent filesystem access.
   * `cleanLessonHtml` contains required transformations but no sanitization dependency.
   * The dependency audit has no unresolved "replace" or "remove" entries.
 * Guardrails:
   * Implement only the D1 API surface used by generated queries; do not recreate `better-sqlite3`.
+  * Do not replace sqlc with Drizzle or another ORM unless the sqlc-compatible D1 adapter path is proven unworkable and explicitly re-approved.
   * Do not edit generated `src/db/*_sql.ts` files manually.
   * Do not weaken password settings merely to make a test fast.
   * Do not remove Node packages still required by the Docker-selected build.
@@ -133,11 +146,11 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 
 ### [ ] Task 7: Run the Docker regression and close the POC
 
-* Description: Run the full Node/Python test suites and production Docker build. Start Compose with the updated RAG startup indexer, verify D1-backed retrieval, and exercise existing web behavior. Record POC results, remaining runtime risks, and exact inputs for the later deployment plan.
+* Description: Run the full Node/Python test suites and production Docker build. Start Compose with the updated RAG startup indexer, verify D1-backed retrieval plus D1-backed frontend runtime flows, and exercise existing web behavior. Record POC results, remaining runtime risks, and exact inputs for the later deployment plan.
 * Files: Existing co-located tests, `README.md`, `AGENTS.md`, `docker-compose.yaml`
 * Acceptance criteria:
   * `pnpm test`, `pnpm typecheck`, Python tests, and the Docker production build pass.
-  * Docker SSR, existing SQLite accounts, progress, reset, MiniSearch, RAG retrieval, and streamed chat still work.
+  * Docker SSR, D1-backed accounts/session/progress/reset, MiniSearch, RAG retrieval, and streamed chat still work.
   * The web app remains usable if the RAG index is already valid and D1 is temporarily unavailable at RAG restart.
   * A fresh RAG volume correctly stays unready when D1 cannot be reached.
   * The final audit lists no frontend dependency known to block a future Worker bundle.

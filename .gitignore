@@ -50,3 +50,6 @@ sqlc-gen-typescript.wasm
 DESIGN.md
 PRODUCT.md
 .worktrees/
+
+# Generated artifacts
+d1-seed.sql

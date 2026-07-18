@@ -3,9 +3,11 @@
   "type": "module",
   "scripts": {
     "build": "vinxi build",
+    "build:cloudflare": "echo '--- Cloudflare dry-run build ---' && echo 'Expected to fail at this stage (see CLOUDFLARE_AUDIT.md for blockers)' && CLOUDFLARE_BUILD=true vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
     "build:finetune": "just default",
     "dev": "./scripts/start-dev.sh",
+    "export:d1": "dotenv -- tsx ./scripts/export-d1-content.ts",
     "generate:types": "rm -f ./src/db/*.ts && sqlc generate",
     "lint": "biome check --write --unsafe . && pnpm typecheck && uv run basedpyright rag_api/",
     "test": "vitest run && pnpm test:python",
@@ -46,6 +48,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.13",
+    "wrangler": "^4.14.0",
     "vitest": "^4.1.6"
   },
   "lint-staged": {
