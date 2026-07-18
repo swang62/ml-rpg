@@ -14,8 +14,6 @@ services:
         condition: service_healthy
       llama-api:
         condition: service_healthy
-    ports:
-      - ${PORT:-3333}:${PORT:-3333}
     volumes:
       - course-data:/app/.data
     environment:
