@@ -7,9 +7,14 @@ if (!import.meta.env.VITE_SITE_URL) {
 }
 
 const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
+const NO_CACHE_PREFIXES = ["/api/", "/auth/", "/_server/"];
 
 export function isStaticAsset(url: string): boolean {
   return STATIC_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
+function isAuthOrApi(pathname: string): boolean {
+  return NO_CACHE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 export default createMiddleware({
@@ -25,6 +30,17 @@ export default createMiddleware({
         );
       }
       return;
+    }
+
+    // Prevent caching of dynamic/auth responses
+    if (isAuthOrApi(pathname)) {
+      event.response.headers.set("Cache-Control", "no-store, must-revalidate");
+    } else {
+      // Public course pages — cache at CDN edge for 1 hour
+      event.response.headers.set(
+        "Cache-Control",
+        "public, max-age=0, s-maxage=3600",
+      );
     }
 
     const ip =
@@ -48,6 +64,7 @@ export default createMiddleware({
           statusText: "Too Many Requests",
           headers: {
             "Content-Type": "application/json",
+            "Cache-Control": "no-store, must-revalidate",
             "Retry-After": String(retryAfter),
             "X-RateLimit-Limit": String(RATE_LIMIT_REGULAR.maxAttempts),
             "X-RateLimit-Remaining": "0",

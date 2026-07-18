@@ -11,6 +11,9 @@
       "invocation_logs": true
     }
   },
+  "cache": {
+    "enabled": true
+  },
   "assets": {
     "directory": ".output/public"
   },

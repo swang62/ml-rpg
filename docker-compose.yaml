@@ -10,7 +10,7 @@ services:
       dockerfile: rag_api/Dockerfile
     restart: unless-stopped
     networks:
-      - backend
+      - ml-rpg
     volumes:
       - course-data:/app/.data
     environment:
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     networks:
-      backend:
+      ml-rpg:
         aliases:
           - llama-api
     volumes:
@@ -58,8 +58,7 @@ services:
       retries: 3
 
 networks:
-  backend:
-    driver: bridge
+  ml-rpg:
 
 volumes:
   course-data:
