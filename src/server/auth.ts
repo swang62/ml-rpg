@@ -6,7 +6,7 @@ import {
   getUserByUserNameWithPassword,
   updateLastVisitedAt,
   upsertUser,
-} from "~/db/users_sql";
+} from "~/db/querier";
 import { checkRateLimit } from "~/middleware/rate-limiter";
 import { checkPassword, createHash, getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
@@ -18,11 +18,11 @@ export const querySession = query(async () => {
   const { data } = await getSession();
   if (!data.id) return null;
 
-  const db = getDb();
-  const user = await getUserById(db, { id: data.id });
+  const d1 = getDb();
+  const user = await getUserById(d1, { id: data.id });
 
   // Track page visit for signed-in users
-  await updateLastVisitedAt(db, { id: data.id });
+  await updateLastVisitedAt(d1, { id: data.id });
 
   return user ?? null;
 }, "session");
@@ -45,18 +45,18 @@ export const formLogin = action(async (formData: FormData) => {
     return new Error("Invalid username or password format");
   }
 
-  const db = getDb();
-  const row = await getUserByUserNameWithPassword(db, { username });
+  const d1 = getDb();
+  const row = await getUserByUserNameWithPassword(d1, { username });
   if (!row) {
     throw new Error("Invalid username");
   }
   if (!row.userpassword) {
     throw new Error("Account exists via another method");
   }
-  await checkPassword(row.userpassword as string, password);
+  await checkPassword(row.userpassword, password);
 
   const session = await getSession();
-  await session.update({ id: row.id as number });
+  await session.update({ id: row.id });
   return redirect("/", { revalidate: "session" });
 });
 
@@ -75,17 +75,17 @@ export const formSignup = action(async (formData: FormData) => {
   const username = validateUsername(rawUsername);
   const password = validatePassword(rawPassword);
   if (!username || !password) {
-    throw new Error("Invalid username or password format");
+    return new Error("Invalid username or password format");
   }
 
-  const db = getDb();
-  const existing = await getUserByUserName(db, { username });
+  const d1 = getDb();
+  const existing = await getUserByUserName(d1, { username });
   if (existing) {
     throw new Error("Username already taken");
   }
 
   const hashed = await createHash(password);
-  const row = await upsertUser(db, {
+  const row = await upsertUser(d1, {
     username,
     userPassword: hashed,
     displayName: `${username.charAt(0).toUpperCase()}${username.slice(1)}`,
@@ -93,7 +93,7 @@ export const formSignup = action(async (formData: FormData) => {
   if (!row) return new Error("Failed to create user");
 
   const session = await getSession();
-  await session.update({ id: row.id as number });
+  await session.update({ id: row.id });
   return redirect("/", { revalidate: "session" });
 });
 

@@ -28,8 +28,6 @@ export const RATE_LIMIT_REGULAR = {
   windowMs: 60_000,
 } as const;
 
-export const EMPTY_DB_PATH = "src/db/empty.db";
-
 // Global keyboard shortcuts — centralized so components stay in sync
 export const SHORTCUTS = {
   SEARCH: "f",

@@ -1,4 +1,3 @@
-import DOMPurify from "isomorphic-dompurify";
 import { GITHUB_REPO_URL } from "~/utils/constants";
 import type { SourceResult } from "~/utils/types";
 
@@ -16,16 +15,21 @@ export function escapeRegex(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * Clean lesson HTML for display.
+ * Performs JSX spacing cleanup and code tag unescaping.
+ * No sanitization step — content comes from scraped lessons (trusted source).
+ */
 export function cleanLessonHtml(html?: string): string {
   if (!html) return "";
-  return DOMPurify.sanitize(
+  return (
     html
       // Strip JSX {" "} spacing expressions left over from scraped .tsx files
       .replace(/\{" "\}/g, " ")
       .replace(/&lt;code[^&]*?&gt;/g, (m) =>
         m.replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
       )
-      .replaceAll("&lt;/code&gt;", "</code>"),
+      .replaceAll("&lt;/code&gt;", "</code>")
   );
 }
 

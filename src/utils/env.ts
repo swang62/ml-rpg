@@ -1,17 +1,14 @@
 /**
  * Centralized environment variable validation using zod.
  * Validates all env vars at import time and provides typed access.
+ *
+ * In Cloudflare Workers, D1 bindings replace process.env for DB access.
+ * This schema validates the non-D1 env vars shared across runtimes.
  */
 
 import { z } from "zod";
 
 const envSchema = z.object({
-  COURSE_DB_PATH: z
-    .string()
-    .min(1, "COURSE_DB_PATH environment variable is required"),
-  LANCEDB_PATH: z
-    .string()
-    .min(1, "LANCEDB_PATH environment variable is required"),
   SESSION_SECRET: z
     .string()
     .min(32, "SESSION_SECRET must be at least 32 characters"),
@@ -20,8 +17,12 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
-  RAG_API_URL: z.url().min(1, "RAG_API_URL environment variable is required"),
+  RAG_API_URL: z
+    .string()
+    .url()
+    .min(1, "RAG_API_URL environment variable is required"),
   LLAMA_API_URL: z
+    .string()
     .url()
     .min(1, "LLAMA_API_URL environment variable is required"),
 });

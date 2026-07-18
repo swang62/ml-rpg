@@ -1,12 +1,9 @@
 #!/usr/bin/env tsx
 /**
- * Generates a D1-compatible SQL seed file from the current empty.db.
+ * Generates a D1-compatible SQL seed file from the rag_api SQLite DB.
  *
- * Reads all course, category, section, and lesson rows from empty.db,
- * outputs INSERT … ON CONFLICT DO UPDATE statements with explicit IDs,
- * and records a deterministic content version hash for idempotency.
- *
- * User/progress data is NOT exported.
+ * This is a fallback/reference — the primary seed flow is `pnpm seed`
+ * which reads directly from scraped lesson files.
  *
  * Usage:
  *   pnpm export:d1                    # writes d1-seed.sql
@@ -15,10 +12,14 @@
 
 import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
-import { EMPTY_DB_PATH } from "../src/utils/constants";
 
-const OUTPUT_FILE = "d1-seed.sql";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
+const RAG_DB_PATH = join(ROOT, "rag_api/data/lessons.db");
+const OUTPUT_FILE = join(ROOT, "d1-seed.sql");
 
 function escapeSql(val: unknown): string {
   if (val === null || val === undefined) return "NULL";
@@ -27,8 +28,8 @@ function escapeSql(val: unknown): string {
 }
 
 function main() {
-  console.log(`Reading content from ${EMPTY_DB_PATH}...`);
-  const db = new Database(EMPTY_DB_PATH, { readonly: true });
+  console.log(`Reading content from ${RAG_DB_PATH}...`);
+  const db = new Database(RAG_DB_PATH, { readonly: true });
 
   const courses = db
     .prepare("SELECT id, slug, title FROM course ORDER BY id")
@@ -75,71 +76,56 @@ function main() {
 
   db.close();
 
-  // Deterministic content hash: canonical JSON of all rows ordered by ID
   const canonical = JSON.stringify({ courses, categories, sections, lessons });
   const versionHash = createHash("sha256")
     .update(canonical, "utf-8")
     .digest("hex");
 
-  // Short row-count hash for quick scan
-  const rowCountHash = createHash("sha256")
-    .update(
-      `courses:${courses.length},categories:${categories.length},sections:${sections.length},lessons:${lessons.length}`,
-      "utf-8",
-    )
-    .digest("hex")
-    .slice(0, 16);
-
   const lines: string[] = [];
   const push = (s: string) => lines.push(s);
 
-  push("-- D1 content seed — generated from empty.db");
+  push("-- D1 content seed — generated from rag_api lessons.db");
   push(`-- Version: ${versionHash.slice(0, 12)}`);
   push(
     `-- Rows: ${courses.length} courses, ${categories.length} categories, ${sections.length} sections, ${lessons.length} lessons`,
   );
   push("");
 
-  // Courses (no FK dependencies)
   push("-- Courses");
   for (const row of courses) {
     push(
-      `INSERT INTO course (id, slug, title) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}) ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, title = excluded.title;`,
+      `INSERT OR REPLACE INTO course (id, slug, title) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)});`,
     );
   }
   push("");
 
-  // Categories (depend on course)
   push("-- Categories");
   for (const row of categories) {
     push(
-      `INSERT INTO category (id, slug, title, course_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseid}) ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, title = excluded.title, course_id = excluded.course_id;`,
+      `INSERT OR REPLACE INTO category (id, slug, title, course_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseid});`,
     );
   }
   push("");
 
-  // Sections (depend on course + category)
   push("-- Sections");
   for (const row of sections) {
     push(
-      `INSERT INTO section (id, slug, title, course_id, category_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseid}, ${row.categoryid}) ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, title = excluded.title, course_id = excluded.course_id, category_id = excluded.category_id;`,
+      `INSERT OR REPLACE INTO section (id, slug, title, course_id, category_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseid}, ${row.categoryid});`,
     );
   }
   push("");
 
-  // Lessons (depend on course + category + section)
   push("-- Lessons");
   for (const row of lessons) {
     push(
-      `INSERT INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${row.lessonorder}, ${row.courseid}, ${row.categoryid}, ${row.sectionid}, ${escapeSql(row.keywords)}) ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, title = excluded.title, html = excluded.html, lesson_order = excluded.lesson_order, course_id = excluded.course_id, category_id = excluded.category_id, section_id = excluded.section_id, keywords = excluded.keywords;`,
+      `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${row.lessonorder}, ${row.courseid}, ${row.categoryid}, ${row.sectionid}, ${escapeSql(row.keywords)})`,
     );
   }
   push("");
 
-  // Content version
   push("-- Content version tracking");
   push(
-    `INSERT OR REPLACE INTO content_version (id, version_hash, row_count_hash, applied_at) VALUES (1, ${escapeSql(versionHash)}, ${escapeSql(rowCountHash)}, datetime('now'));`,
+    `INSERT OR REPLACE INTO content_version (id, version_hash, row_count_hash, applied_at) VALUES (1, ${escapeSql(versionHash)}, ${escapeSql(versionHash.slice(0, 16))}, datetime('now'));`,
   );
 
   push("");

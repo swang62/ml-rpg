@@ -1,12 +1,10 @@
 import { defineConfig } from "@solidjs/start/config";
 
-const isCloudflare = process.env.CLOUDFLARE_BUILD === "true";
-
 export default defineConfig({
   ssr: true,
   middleware: "src/middleware/index.ts",
   server: {
-    ...(isCloudflare ? { preset: "cloudflare_module" } : {}),
+    preset: "cloudflare_module",
     experimental: {
       asyncContext: true,
     },

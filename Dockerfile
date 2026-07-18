@@ -27,8 +27,6 @@ EXPOSE $PORT
 
 ENV HOST=0.0.0.0 \
   PORT=$PORT \
-  COURSE_DB_PATH=/app/.data/course.db \
-  LANCEDB_PATH=/app/.data/search \
   NODE_ENV=production
 
 # Create non-root user with explicit UID 1001 (required for consistent
@@ -41,19 +39,10 @@ WORKDIR /app
 
 # Copy with explicit UID for consistency with the www user
 COPY --from=build --chown=1001:1001 /app/.output .
-COPY --from=build --chown=1001:1001 /app/README.md /app/README.md
-COPY --from=build --chown=1001:1001 /app/src/db/empty.db /app/src/db/empty.db
 
 # Switch to non-root user for runtime
 USER www
 
-# node:26-alpine uses tini as its default entrypoint for proper signal
-# forwarding. Ensure SIGTERM reaches the Node process so the graceful
-# shutdown handler (src/server/shutdown.ts) can close DB connections.
 STOPSIGNAL SIGTERM
 
-# The Node process handles SIGTERM via shutdown.ts which:
-# 1. Closes the SQLite database (WAL checkpoint)
-# 2. Stops the rate limiter cleanup interval
-# 3. Exits cleanly
 CMD ["node", "server/index.mjs"]

@@ -16,11 +16,7 @@ services:
         condition: service_healthy
     ports:
       - ${PORT:-3333}:${PORT:-3333}
-    volumes:
-      - course-data:/app/.data
     environment:
-      - COURSE_DB_PATH=${COURSE_DB_PATH:-/app/.data/course.db}
-      - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LLAMA_API_URL=http://llama-api:9876
       - PORT=${PORT:-3333}
       - RAG_API_URL=http://rag-api:8000
@@ -39,7 +35,7 @@ services:
       dockerfile: rag_api/Dockerfile
     restart: unless-stopped
     volumes:
-      - course-data:/app/.data
+      - rag-content:/app/rag_api/data
     environment:
       - HF_TOKEN=${HF_TOKEN}
       - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
@@ -80,5 +76,5 @@ services:
       retries: 3
 
 volumes:
-  course-data:
+  rag-content:
   llama-model:

@@ -8,14 +8,15 @@ Prepare the codebase for a later SolidStart-to-Cloudflare Workers migration with
 * Produce a Cloudflare Worker-compatible frontend bundle with incompatible libraries removed or isolated behind platform-specific modules.
 * Keep the current website fully functional while shifting runtime app data access to D1.
 
-### Plan amendment: runtime target clarified
+### Plan amendment: frontend runtime simplified
 
-This plan now targets a **Node-hosted frontend with D1 at runtime**. The frontend does **not** need to run on Workers yet, but it **does** need to stop owning Cloudflare-incompatible runtime code. By the end of this plan:
+This plan now targets a **single Cloudflare Worker frontend runtime**. Maintaining both Node and Worker frontend paths created too much conditional code. By the end of this plan:
 
-* frontend SSR/runtime remains on Node/Docker for now;
-* D1 is the runtime database for content, auth, session/account data, and progress flows that previously depended on SQLite in the app runtime;
+* frontend SSR/runtime targets Cloudflare Workers directly;
+* D1 is the runtime database for content, auth, session/account data, and progress;
+* all frontend DB operations use sqlc-generated TypeScript D1 functions;
 * all embedding, vector indexing, LanceDB persistence, and other Worker-incompatible search/index lifecycle work live in `rag_api` only;
-* remaining frontend incompatibilities are isolated behind seams so a later Worker cutover is smaller.
+* old Node-only frontend runtime code is removed instead of being maintained behind adapters.
 
 ### Plan amendment: data replication strategy simplified
 
@@ -37,16 +38,16 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 
 ### In scope
 
-* A D1 runtime database containing course content plus the app data needed by the Node-hosted frontend.
+* A D1 runtime database containing course content plus the app data needed by the Cloudflare Worker frontend.
 * LanceDB indexing owned entirely by `rag_api`, built locally from replicated course content rather than querying D1.
 * Removal of LanceDB and embedding code from the web runtime while retaining in-memory MiniSearch.
 * A package-by-package Cloudflare compatibility audit of frontend runtime dependencies.
 * Minimal Worker build configuration and a dry-run bundle, not a running Worker environment.
-* Platform-specific storage, environment, password, session, cleanup, and rate-limit seams needed to keep incompatible Node libraries out of the Worker bundle.
-* Runtime D1 support for content, auth/session/account data, and progress in the Node-hosted frontend.
+* Runtime D1 support for content, auth/session/account data, and progress in the Cloudflare Worker frontend.
+* sqlc-generated TypeScript D1 functions used for all frontend DB access.
 * A replicated course-content path that lets `rag_api` rebuild its local LanceDB index without D1 access.
 * Unit tests for D1 adapters and Worker-specific pure logic.
-* Full Docker regression testing.
+* Worker-oriented regression testing.
 
 ### Out of scope
 
@@ -55,7 +56,7 @@ Production Worker deployment, staging traffic, domains, and cutover will be plan
 * Migrating existing production users or progress unless explicitly required to keep local/runtime behavior working in this repo.
 * VPS public-origin authentication and production networking changes.
 * GitHub Actions or Cloudflare Git integration.
-* Replacing Node hosting for the frontend where build isolation is sufficient.
+* Maintaining a separate Node-hosted frontend runtime.
 * Request-time HTML sanitization. Seeded content is trusted; the existing presentation-related JSX/code/CSS transformations remain.
 
 ## Tasks

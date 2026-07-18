@@ -1,39 +1,42 @@
 import { query } from "@solidjs/router";
-import type { Database } from "better-sqlite3";
 import {
+  getAllCourses,
   getCategoriesByCourse,
   getCategoryBySlug,
   getCategoryLessonCounts,
-} from "~/db/category_sql";
-import { getAllCourses, getCourseBySlug } from "~/db/course_sql";
-import {
+  getCourseBySlug,
   getLessonBySlug,
   getLessonHtml,
   getLessonsByCategoryGrouped,
   getLessonsBySection,
-} from "~/db/lesson_sql";
-import { getSectionBySlug, getSectionBySlugInCourse } from "~/db/section_sql";
+  getSectionBySlug,
+  getSectionBySlugInCourse,
+} from "~/db/querier";
 import { getDb } from "~/server/storage";
 import { cleanLessonHtml } from "~/utils/search-utils";
 
 export const getCourseMetaQuery = query(async (courseSlug: string) => {
   "use server";
-  const db = getDb();
-  const course = await getCourseBySlug(db, { slug: courseSlug });
+  const d1 = getDb();
+  const course = await getCourseBySlug(d1, { slug: courseSlug });
   if (!course) return null;
 
-  const categories = await getCategoriesByCourse(db, { courseId: course.id });
-  const counts = await getCategoryLessonCounts(db, { courseId: course.id });
+  const { results: categories } = await getCategoriesByCourse(d1, {
+    courseId: course.id,
+  });
+  const { results: counts } = await getCategoryLessonCounts(d1, {
+    courseId: course.id,
+  });
   const countMap: Record<string, number> = {};
   for (const row of counts) {
-    countMap[row.categoryslug as string] = row.lessoncount;
+    countMap[row.categoryslug] = row.lessoncount;
   }
   return {
     title: course.title,
     categories: categories.map((cat) => ({
       category: cat.slug,
       title: cat.title,
-      lessonCount: countMap[cat.slug as string] ?? 0,
+      lessonCount: countMap[cat.slug] ?? 0,
     })),
   };
 }, "course-meta");
@@ -41,36 +44,36 @@ export const getCourseMetaQuery = query(async (courseSlug: string) => {
 export const getCategoryMetaQuery = query(
   async (courseSlug: string, categorySlug: string) => {
     "use server";
-    const db = getDb();
-    const course = await resolveCourse(db, courseSlug);
+    const d1 = getDb();
+    const course = await resolveCourse(d1, courseSlug);
     if (!course) return null;
 
-    const cat = await resolveCategory(db, course.id, categorySlug);
+    const cat = await resolveCategory(d1, course.id, categorySlug);
     if (!cat) return null;
 
     // Single JOIN query replaces N+1: one call instead of per-section queries
-    const grouped = await getLessonsByCategoryGrouped(db, {
+    const { results: grouped } = await getLessonsByCategoryGrouped(d1, {
       categoryId: cat.id,
     });
 
     // Group lessons by section in JS (single query instead of N+1)
     interface LessonEntry {
-      id: unknown;
-      slug: unknown;
-      title: unknown;
-      lessonorder: unknown;
+      id: number;
+      slug: string;
+      title: string;
+      lessonorder: number;
     }
     const sectionMap = new Map<
       string,
       { section: string; title: string; lessons: LessonEntry[] }
     >();
     for (const row of grouped) {
-      const secSlug = row.secslug as string;
+      const secSlug = row.secslug;
       let entry = sectionMap.get(secSlug);
       if (!entry) {
         entry = {
           section: secSlug,
-          title: row.sectitle as string,
+          title: row.sectitle,
           lessons: [],
         };
         sectionMap.set(secSlug, entry);
@@ -91,9 +94,9 @@ export const getCategoryMetaQuery = query(
 export const getSectionMetaQuery = query(
   async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
     "use server";
-    const db = getDb();
+    const d1 = getDb();
     const chain = await resolveCourseCategorySection(
-      db,
+      d1,
       courseSlug,
       categorySlug,
       sectionSlug,
@@ -101,7 +104,9 @@ export const getSectionMetaQuery = query(
     if (!chain) return null;
     const { sec } = chain;
 
-    const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+    const { results: lessons } = await getLessonsBySection(d1, {
+      sectionId: sec.id,
+    });
     return {
       title: sec.title,
       lessons,
@@ -112,25 +117,25 @@ export const getSectionMetaQuery = query(
 
 export const getCoursesQuery = query(async () => {
   "use server";
-  const db = getDb();
-  const rows = await getAllCourses(db);
+  const d1 = getDb();
+  const { results: rows } = await getAllCourses(d1);
   return rows;
 }, "courses");
 
 export const getBreadcrumbsQuery = query(
   async (courseSlug: string, categorySlug?: string, sectionSlug?: string) => {
     "use server";
-    const db = getDb();
+    const d1 = getDb();
     const crumbs: { label: string; href: string }[] = [];
 
-    const course = await getCourseBySlug(db, { slug: courseSlug });
+    const course = await getCourseBySlug(d1, { slug: courseSlug });
     if (!course) return crumbs;
 
     crumbs.push({ label: course.title, href: `/${courseSlug}` });
 
     if (!categorySlug) return crumbs;
 
-    const cat = await getCategoryBySlug(db, {
+    const cat = await getCategoryBySlug(d1, {
       slug: categorySlug,
       courseId: course.id,
     });
@@ -143,7 +148,7 @@ export const getBreadcrumbsQuery = query(
 
     if (!sectionSlug) return crumbs;
 
-    const sec = await getSectionBySlug(db, {
+    const sec = await getSectionBySlug(d1, {
       slug: sectionSlug,
       categoryId: cat.id,
     });
@@ -166,10 +171,10 @@ export async function getLessonNavQuery(
   lessonSlug: string,
 ) {
   "use server";
-  const db = getDb();
+  const d1 = getDb();
 
   const chain = await resolveCourseCategorySection(
-    db,
+    d1,
     courseSlug,
     categorySlug,
     sectionSlug,
@@ -177,7 +182,9 @@ export async function getLessonNavQuery(
   if (!chain) return null;
   const { sec } = chain;
 
-  const lessons = await getLessonsBySection(db, { sectionId: sec.id });
+  const { results: lessons } = await getLessonsBySection(d1, {
+    sectionId: sec.id,
+  });
   const idx = lessons.findIndex((l) => l.slug === lessonSlug);
   if (idx === -1) return null;
 
@@ -192,18 +199,18 @@ export async function getLessonNavQuery(
 // Internal helpers (shared across other server modules)
 // ---------------------------------------------------------------------------
 
-async function resolveCourse(db: Database, courseSlug: string) {
-  const course = await getCourseBySlug(db, { slug: courseSlug });
+async function resolveCourse(d1: D1Database, courseSlug: string) {
+  const course = await getCourseBySlug(d1, { slug: courseSlug });
   if (!course) return null;
   return course;
 }
 
 async function resolveCategory(
-  db: Database,
+  d1: D1Database,
   courseId: number,
   categorySlug: string,
 ) {
-  const cat = await getCategoryBySlug(db, {
+  const cat = await getCategoryBySlug(d1, {
     slug: categorySlug,
     courseId,
   });
@@ -212,11 +219,11 @@ async function resolveCategory(
 }
 
 async function resolveSection(
-  db: Database,
+  d1: D1Database,
   categoryId: number,
   sectionSlug: string,
 ) {
-  const sec = await getSectionBySlug(db, {
+  const sec = await getSectionBySlug(d1, {
     slug: sectionSlug,
     categoryId,
   });
@@ -224,36 +231,36 @@ async function resolveSection(
   return sec;
 }
 
-/** Resolve course → category → section chain. Returns null if any link is missing. */
+/** Resolve course -> category -> section chain. Returns null if any link is missing. */
 async function resolveCourseCategorySection(
-  db: Database,
+  d1: D1Database,
   courseSlug: string,
   categorySlug: string,
   sectionSlug: string,
 ) {
-  const course = await resolveCourse(db, courseSlug);
+  const course = await resolveCourse(d1, courseSlug);
   if (!course) return null;
 
-  const cat = await resolveCategory(db, course.id, categorySlug);
+  const cat = await resolveCategory(d1, course.id, categorySlug);
   if (!cat) return null;
 
-  const sec = await resolveSection(db, cat.id, sectionSlug);
+  const sec = await resolveSection(d1, cat.id, sectionSlug);
   if (!sec) return null;
 
   return { course, cat, sec };
 }
 
 export async function findSectionBySlugInCourse(
-  db: Database,
+  d1: D1Database,
   courseSlug: string,
   sectionSlug: string,
 ) {
-  const course = await getCourseBySlug(db, { slug: courseSlug });
+  const course = await getCourseBySlug(d1, { slug: courseSlug });
   if (!course) return null;
 
   // Single JOIN query instead of iterating categories
   return (
-    (await getSectionBySlugInCourse(db, {
+    (await getSectionBySlugInCourse(d1, {
       courseId: course.id,
       slug: sectionSlug,
     })) ?? null
@@ -261,15 +268,15 @@ export async function findSectionBySlugInCourse(
 }
 
 export async function findLessonByPath(
-  db: Database,
+  d1: D1Database,
   courseSlug: string,
   sectionSlug: string,
   lessonSlug: string,
 ) {
-  const sec = await findSectionBySlugInCourse(db, courseSlug, sectionSlug);
+  const sec = await findSectionBySlugInCourse(d1, courseSlug, sectionSlug);
   if (!sec) return null;
 
-  const lesson = await getLessonBySlug(db, {
+  const lesson = await getLessonBySlug(d1, {
     slug: lessonSlug,
     sectionId: sec.id,
   });
@@ -282,16 +289,16 @@ export async function getLessonHTMLQuery(
   lessonSlug: string,
 ) {
   "use server";
-  const db = getDb();
+  const d1 = getDb();
 
   const lesson = await findLessonByPath(
-    db,
+    d1,
     courseSlug,
     sectionSlug,
     lessonSlug,
   );
   if (!lesson) return "";
 
-  const htmlRow = await getLessonHtml(db, { id: lesson.id });
+  const htmlRow = await getLessonHtml(d1, { id: lesson.id });
   return cleanLessonHtml(htmlRow?.html ?? "");
 }

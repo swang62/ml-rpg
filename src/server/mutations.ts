@@ -3,8 +3,8 @@ import {
   markLessonRead,
   resetSectionProgress,
   resetUserProgress,
-} from "~/db/progress_sql";
-import { updateDisplayName } from "~/db/users_sql";
+  updateDisplayName,
+} from "~/db/querier";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
@@ -21,16 +21,16 @@ export const markLessonReadAction = action(
     const validatedLesson = validateSlug(lessonSlug);
     if (!validatedCourse || !validatedSection || !validatedLesson) return;
 
-    const db = getDb();
+    const d1 = getDb();
     const lesson = await findLessonByPath(
-      db,
+      d1,
       validatedCourse,
       validatedSection,
       validatedLesson,
     );
     if (!lesson) return;
 
-    await markLessonRead(db, { lessonId: lesson.id, userId: session.data.id });
+    await markLessonRead(d1, { lessonId: lesson.id, userId: session.data.id });
   },
   "mark-lesson-read",
 );
@@ -45,15 +45,15 @@ export const resetSectionAction = action(
     const validatedSection = validateSlug(sectionSlug);
     if (!validatedCourse || !validatedSection) return;
 
-    const db = getDb();
+    const d1 = getDb();
     const sec = await findSectionBySlugInCourse(
-      db,
+      d1,
       validatedCourse,
       validatedSection,
     );
     if (!sec) return;
 
-    await resetSectionProgress(db, {
+    await resetSectionProgress(d1, {
       userId: session.data.id,
       sectionId: sec.id,
     });
@@ -66,8 +66,8 @@ export const resetAllProgressAction = action(async () => {
   const session = await getSession();
   if (!session.data.id) return;
 
-  const db = getDb();
-  await resetUserProgress(db, { userId: session.data.id });
+  const d1 = getDb();
+  await resetUserProgress(d1, { userId: session.data.id });
 }, "reset-all-progress");
 
 export const updateUserNameAction = action(async (displayName: string) => {
@@ -78,6 +78,6 @@ export const updateUserNameAction = action(async (displayName: string) => {
   const validated = validateDisplayName(displayName);
   if (!validated) return;
 
-  const db = getDb();
-  await updateDisplayName(db, { displayName: validated, id: session.data.id });
+  const d1 = getDb();
+  await updateDisplayName(d1, { displayName: validated, id: session.data.id });
 }, "update-display-name");

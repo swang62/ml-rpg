@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router";
 import ArrowLeft from "lucide-solid/icons/arrow-left";
 import ArrowRight from "lucide-solid/icons/arrow-right";
-import type { GetLessonsBySectionRow } from "~/db/lesson_sql";
+import type { GetLessonsBySectionRow } from "~/db/querier";
 import { onCardLeave, onCardMove } from "~/utils/animation";
 
 interface LessonNavProps {

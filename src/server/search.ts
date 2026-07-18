@@ -1,8 +1,10 @@
 import MiniSearch, { type SearchResult } from "minisearch";
-import { getAllCategories } from "~/db/category_sql";
-import { getAllCourses } from "~/db/course_sql";
-import { getSearchLessons } from "~/db/lesson_sql";
-import { getAllSections } from "~/db/section_sql";
+import {
+  getAllCategories,
+  getAllCourses,
+  getAllSections,
+  getSearchLessons,
+} from "~/db/querier";
 import { getDb } from "~/server/storage";
 import { SEARCH_MAX_RESULTS, STOP_WORDS } from "~/utils/constants";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
@@ -48,12 +50,12 @@ async function buildIndex() {
   if (_engine) return true;
 
   const start = performance.now();
-  const db = getDb();
+  const d1 = getDb();
 
-  const courseRows = await getAllCourses(db);
-  const categoryRows = await getAllCategories(db);
-  const sectionRows = await getAllSections(db);
-  const lessonRows = await getSearchLessons(db);
+  const { results: courseRows } = await getAllCourses(d1);
+  const { results: categoryRows } = await getAllCategories(d1);
+  const { results: sectionRows } = await getAllSections(d1);
+  const { results: lessonRows } = await getSearchLessons(d1);
 
   const courses = new Map(courseRows.map((r) => [r.id, r]));
   const categories = new Map(categoryRows.map((r) => [r.id, r]));

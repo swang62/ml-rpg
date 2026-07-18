@@ -1,96 +1,128 @@
-import { type ChildProcess, spawn } from "node:child_process";
+#!/usr/bin/env tsx
 
-import { globSync, readFileSync } from "node:fs";
-import Database from "better-sqlite3";
-import de from "../.data/scraped/courses/data-engineering";
-import fundamentals from "../.data/scraped/courses/fundamentals";
-import mlSysDesign from "../.data/scraped/courses/ml-system-design";
+/**
+ * Seed script — reads raw lesson HTML files and course structure,
+ * then emits:
+ *   1. A D1-compatible SQL seed file (d1-seed.sql) for the frontend
+ *   2. A standalone SQLite DB (rag_api/data/lessons.db) for rag_api ingestion
+ *
+ * Usage:
+ *   pnpm seed
+ *
+ * The D1 seed file is applied via:
+ *   wrangler d1 execute ml-rpg-content --local --file=d1-seed.sql
+ *
+ * The rag_api SQLite DB is picked up automatically by rag_api at startup.
+ */
+
+import { createHash } from "node:crypto";
 import {
-  ensureCategoryTable,
-  ensureCourseTable,
-  ensureLessonTable,
-  ensureProgressTable,
-  ensureSectionTable,
-  ensureUsersTable,
-} from "../src/db/base_sql";
-import { createCategory, deleteAllCategories } from "../src/db/category_sql";
-import { createCourse, deleteAllCourses } from "../src/db/course_sql";
-import { createLesson, deleteAllLessons } from "../src/db/lesson_sql";
-import { deleteAllProgress } from "../src/db/progress_sql";
-import { createSection, deleteAllSections } from "../src/db/section_sql";
-import { deleteAllUsers } from "../src/db/users_sql";
-import { EMPTY_DB_PATH } from "../src/utils/constants";
-import { extractRelevantText } from "../src/utils/search-utils";
+  existsSync,
+  globSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 import { cleanTitle } from "./acronyms";
 
-type Course = {
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
+
+const SCRAPED_DIR = join(ROOT, ".data/scraped");
+const D1_SEED_FILE = join(ROOT, "d1-seed.sql");
+const RAG_DB_DIR = join(ROOT, "rag_api/data");
+const RAG_DB_PATH = join(RAG_DB_DIR, "lessons.db");
+
+// ---------------------------------------------------------------------------
+// Course hierarchy types (matches .data/scraped/types.ts)
+// ---------------------------------------------------------------------------
+
+interface Lesson {
+  lesson: string;
   title: string;
-  categories: {
-    category: string;
-    title: string;
-    sections: {
-      section: string;
-      title: string;
-      lessons: { lesson: string; title: string; order: number }[];
-    }[];
-  }[];
-};
+  order: number;
+}
 
-const COURSES: Record<string, Course> = {
-  "data-engineering": de,
-  "ml-system-design": mlSysDesign,
-  fundamentals: fundamentals,
-};
+interface Section {
+  section: string;
+  title: string;
+  lessons: Lesson[];
+}
 
-// ENTRY POINT
-async function main() {
-  const db = new Database(EMPTY_DB_PATH);
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = ON");
+interface Category {
+  category: string;
+  title: string;
+  sections: Section[];
+}
 
-  await ensureCourseTable(db);
-  await ensureCategoryTable(db);
-  await ensureSectionTable(db);
-  await ensureLessonTable(db);
-  await ensureProgressTable(db);
-  await ensureUsersTable(db);
+interface Course {
+  title: string;
+  categories: Category[];
+}
 
-  db.pragma("foreign_keys = OFF");
-  await deleteAllUsers(db);
-  await deleteAllProgress(db);
-  await deleteAllLessons(db);
-  await deleteAllSections(db);
-  await deleteAllCategories(db);
-  await deleteAllCourses(db);
-  // Reset auto-increment so IDs start from 1 — keeps INSERT OR REPLACE matching in sync
-  db.exec("DELETE FROM sqlite_sequence");
-  db.pragma("foreign_keys = ON");
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
-  const keywordMap = await enrichKeywords();
-  await seedCourseData(db, keywordMap);
+function main(): void {
+  // 1. Load course structures from scraped .ts files
+  // Use eval + readFileSync + Function to avoid ESM import issues with .ts files
+  const courseFiles: [string, string][] = [
+    ["fundamentals", join(SCRAPED_DIR, "courses/fundamentals.ts")],
+    ["data-engineering", join(SCRAPED_DIR, "courses/data-engineering.ts")],
+    ["ml-system-design", join(SCRAPED_DIR, "courses/ml-system-design.ts")],
+  ];
 
-  // Validation, lesson files must match imported unique lessons
+  const courses: Record<string, Course> = {};
+  for (const [slug, filePath] of courseFiles) {
+    const source = readFileSync(filePath, "utf-8");
+    // Strip the import line and wrap as a module
+    const cleanSource = source
+      .replace(/^import type.*$/m, "")
+      .replace(/^import .*$/m, "");
+    // eslint-disable-next-line no-new-func
+    const mod = new Function(`${cleanSource}; return course;`)() as Course;
+    courses[slug] = mod;
+  }
+
+  // 2. Extract all lesson HTML from scraped TSX files
+  console.log("Extracting HTML from scraped lesson files...");
+  const lessonHtml = extractAllLessonHtml();
+
+  // 3. Build seed data with stable IDs
+  console.log("Building seed data...");
+  const seed = buildSeedData(courses, lessonHtml);
+
+  // 4. Emit D1 SQL seed file
+  console.log("Writing D1 SQL seed file...");
+  writeD1Seed(seed);
+
+  // 5. Emit rag_api SQLite DB
+  console.log("Writing rag_api SQLite DB...");
+  writeRagDb(seed);
+
+  // 6. Validate lesson count
   const lessonFiles = countLessonFiles();
-  console.log(`Lesson files on disk: ${lessonFiles}`);
-
-  const validLessons = (
-    db
-      .prepare("SELECT COUNT(*) AS lessoncount FROM lesson WHERE html != ''")
-      .get() as {
-      lessoncount: number;
-    }
-  ).lessoncount;
-  if (validLessons !== lessonFiles) {
+  if (seed.lessons.length !== lessonFiles) {
     throw new Error(
-      `Lesson count mismatch: seeded ${validLessons}, expected ${lessonFiles}`,
+      `Lesson count mismatch: seeded ${seed.lessons.length}, expected ${lessonFiles}`,
     );
   }
 
-  console.log(`Imported lessons: ${validLessons} containing valid HTML`);
-  db.close();
-
-  console.log(`\nSeed ${EMPTY_DB_PATH} complete.`);
+  console.log(
+    `\nSeed complete: ${seed.courses.length} courses, ${seed.categories.length} categories, ${seed.sections.length} sections, ${seed.lessons.length} lessons`,
+  );
+  console.log(`  D1 seed:  ${D1_SEED_FILE}`);
+  console.log(`  RAG DB:   ${RAG_DB_PATH}`);
 }
+
+// ---------------------------------------------------------------------------
+// Data extraction
+// ---------------------------------------------------------------------------
 
 function countLessonFiles(): number {
   return globSync(".data/scraped/lessons/**/*.tsx").length;
@@ -99,6 +131,9 @@ function countLessonFiles(): number {
 function extractAllLessonHtml(): Map<string, string> {
   const files = globSync(".data/scraped/lessons/**/*.tsx");
   const result = new Map<string, string>();
+
+  // Track deduplication
+  const seen = new Set<string>();
 
   for (const file of files) {
     const normalized = file.replace(/\\/g, "/");
@@ -109,6 +144,10 @@ function extractAllLessonHtml(): Map<string, string> {
     const delimIdx = rest.indexOf("__");
     if (delimIdx === -1) continue;
     const lessonSlug = rest.slice(delimIdx + 2);
+
+    // Skip duplicate slugs (last file wins)
+    if (seen.has(lessonSlug)) continue;
+    seen.add(lessonSlug);
 
     const html = extractHtmlFromTsx(file);
     if (html) {
@@ -154,134 +193,315 @@ function extractHtmlFromTsx(filePath: string): string {
   return html;
 }
 
-async function seedCourseData(
-  db: Database.Database,
-  keywordMap: Map<string, string[]>,
-) {
-  console.log("Extracting HTML from scraped files...");
-  const rendered = extractAllLessonHtml();
+// ---------------------------------------------------------------------------
+// Seed data builder
+// ---------------------------------------------------------------------------
 
-  for (const [courseSlug, course] of Object.entries(COURSES)) {
-    const cid = (
-      await createCourse(db, {
-        slug: courseSlug,
-        title: cleanTitle(course.title),
-      })
-    )?.id as string;
+interface SeedCourse {
+  id: number;
+  slug: string;
+  title: string;
+}
 
-    for (const cat of course.categories) {
-      const catid = (
-        await createCategory(db, {
-          slug: cat.category,
-          title: cleanTitle(cat.title),
-          courseId: cid,
-        })
-      )?.id as string;
+interface SeedCategory {
+  id: number;
+  slug: string;
+  title: string;
+  courseId: number;
+}
+
+interface SeedSection {
+  id: number;
+  slug: string;
+  title: string;
+  courseId: number;
+  categoryId: number;
+}
+
+interface SeedLesson {
+  id: number;
+  slug: string;
+  title: string;
+  html: string;
+  lessonOrder: number;
+  courseId: number;
+  categoryId: number;
+  sectionId: number;
+  keywords: string;
+}
+
+interface SeedData {
+  courses: SeedCourse[];
+  categories: SeedCategory[];
+  sections: SeedSection[];
+  lessons: SeedLesson[];
+}
+
+function buildSeedData(
+  courses: Record<string, Course>,
+  lessonHtml: Map<string, string>,
+): SeedData {
+  let nextId = 1;
+
+  const seedCourses: SeedCourse[] = [];
+  const seedCategories: SeedCategory[] = [];
+  const seedSections: SeedSection[] = [];
+  const seedLessons: SeedLesson[] = [];
+
+  for (const [courseSlug, courseData] of Object.entries(courses)) {
+    const courseId = nextId++;
+    seedCourses.push({
+      id: courseId,
+      slug: courseSlug,
+      title: cleanTitle(courseData.title),
+    });
+
+    for (const cat of courseData.categories) {
+      const catId = nextId++;
+      seedCategories.push({
+        id: catId,
+        slug: cat.category,
+        title: cleanTitle(cat.title),
+        courseId,
+      });
 
       for (const sub of cat.sections) {
-        const sid = (
-          await createSection(db, {
-            slug: sub.section,
-            title: cleanTitle(sub.title),
-            courseId: cid,
-            categoryId: catid,
-          })
-        )?.id as string;
+        const secId = nextId++;
+        seedSections.push({
+          id: secId,
+          slug: sub.section,
+          title: cleanTitle(sub.title),
+          courseId,
+          categoryId: catId,
+        });
 
         for (const lesson of sub.lessons) {
-          const html = rendered.get(lesson.lesson) ?? "";
-          const keywords = JSON.stringify(keywordMap.get(lesson.lesson) ?? []);
-          await createLesson(db, {
+          const html = lessonHtml.get(lesson.lesson) ?? "";
+          seedLessons.push({
+            id: nextId++,
             slug: lesson.lesson,
             title: cleanTitle(lesson.title),
             html,
             lessonOrder: lesson.order,
-            courseId: cid,
-            categoryId: catid,
-            sectionId: sid,
-            keywords,
+            courseId,
+            categoryId: catId,
+            sectionId: secId,
+            keywords: "[]",
           });
         }
       }
     }
   }
+
+  return {
+    courses: seedCourses,
+    categories: seedCategories,
+    sections: seedSections,
+    lessons: seedLessons,
+  };
 }
 
-async function enrichKeywords(): Promise<Map<string, string[]>> {
-  const port = process.env.RAG_ENRICH_PORT ?? "8001";
+// ---------------------------------------------------------------------------
+// D1 SQL seed emission
+// ---------------------------------------------------------------------------
 
-  const rendered = extractAllLessonHtml();
-  const slugs = [...rendered.keys()];
-  const texts = slugs.map((slug) =>
-    extractRelevantText(rendered.get(slug) ?? ""),
+function escapeSql(val: unknown): string {
+  if (val === null || val === undefined) return "NULL";
+  const str = String(val);
+  return `'${str.replace(/'/g, "''")}'`;
+}
+
+function writeD1Seed(seed: SeedData): void {
+  // Compute deterministic content hash
+  const canonical = JSON.stringify(seed);
+  const versionHash = createHash("sha256")
+    .update(canonical, "utf-8")
+    .digest("hex");
+
+  const lines: string[] = [];
+  const push = (s: string) => lines.push(s);
+
+  push("-- D1 content seed — generated from scraped lesson files");
+  push(`-- Version: ${versionHash.slice(0, 12)}`);
+  push(
+    `-- Rows: ${seed.courses.length} courses, ${seed.categories.length} categories, ${seed.sections.length} sections, ${seed.lessons.length} lessons`,
+  );
+  push("");
+
+  // Courses
+  push("-- Courses");
+  for (const row of seed.courses) {
+    push(
+      `INSERT OR REPLACE INTO course (id, slug, title) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)});`,
+    );
+  }
+  push("");
+
+  // Categories
+  push("-- Categories");
+  for (const row of seed.categories) {
+    push(
+      `INSERT OR REPLACE INTO category (id, slug, title, course_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseId});`,
+    );
+  }
+  push("");
+
+  // Sections
+  push("-- Sections");
+  for (const row of seed.sections) {
+    push(
+      `INSERT OR REPLACE INTO section (id, slug, title, course_id, category_id) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${row.courseId}, ${row.categoryId});`,
+    );
+  }
+  push("");
+
+  // Lessons
+  push("-- Lessons");
+  for (const row of seed.lessons) {
+    push(
+      `INSERT OR REPLACE INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (${row.id}, ${escapeSql(row.slug)}, ${escapeSql(row.title)}, ${escapeSql(row.html)}, ${row.lessonOrder}, ${row.courseId}, ${row.categoryId}, ${row.sectionId}, ${escapeSql(row.keywords)});`,
+    );
+  }
+  push("");
+
+  // Content version
+  push("-- Content version tracking");
+  push(
+    "CREATE TABLE IF NOT EXISTS content_version (id INTEGER PRIMARY KEY, version_hash TEXT, row_count_hash TEXT, applied_at TEXT);",
+  );
+  push(
+    `INSERT OR REPLACE INTO content_version (id, version_hash, row_count_hash, applied_at) VALUES (1, ${escapeSql(versionHash)}, ${escapeSql(versionHash.slice(0, 16))}, datetime('now'));`,
   );
 
-  console.log(`Enriching ${texts.length} lessons with TF-IDF keywords...`);
-  console.log("Starting RAG API on port", port);
+  push("");
 
-  const proc: ChildProcess = spawn(
-    "uv",
-    [
-      "run",
-      "uvicorn",
-      "rag_api.app:app",
-      "--host",
-      "127.0.0.1",
-      "--port",
-      port,
-    ],
-    {
-      stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, LOG_LEVEL: "WARNING" },
-    },
-  );
+  writeFileSync(D1_SEED_FILE, lines.join("\n"), "utf-8");
+  console.log(`  Wrote ${D1_SEED_FILE} (${lines.length} lines)`);
+}
 
-  proc.stderr?.on("data", () => {});
+// ---------------------------------------------------------------------------
+// rag_api SQLite DB emission
+// ---------------------------------------------------------------------------
 
-  // Wait for health
-  const baseUrl = `http://127.0.0.1:${port}`;
-  let ready = false;
-  for (let i = 0; i < 30; i++) {
-    try {
-      const res = await fetch(`${baseUrl}/health`);
-      if (res.ok) {
-        ready = true;
-        break;
-      }
-    } catch {
-      // not ready yet
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-  if (!ready) {
-    proc.kill();
-    console.warn("Keyword enrichment skipped: RAG API not available");
-    return new Map();
+function writeRagDb(seed: SeedData): void {
+  if (!existsSync(RAG_DB_DIR)) {
+    mkdirSync(RAG_DB_DIR, { recursive: true });
   }
 
+  // Remove existing DB if present
   try {
-    const res = await fetch(`${baseUrl}/extract_keywords`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ texts }),
-      signal: AbortSignal.timeout(120_000),
-    });
-    if (!res.ok) {
-      throw new Error(`Status ${res.status}`);
+    if (existsSync(RAG_DB_PATH)) {
+      const old = new Database(RAG_DB_PATH);
+      old.close();
+      // Remove it — will be rewritten
     }
-    const { results } = (await res.json()) as { results: string[][] };
-    const map = new Map<string, string[]>();
-    for (let i = 0; i < slugs.length; i++) {
-      map.set(slugs[i], results[i] ?? []);
-    }
-    console.log(`Enriched ${map.size} lessons with keywords`);
-    return map;
-  } catch (err) {
-    console.warn("Keyword enrichment skipped:", err);
-    return new Map();
-  } finally {
-    proc.kill();
+  } catch {
+    // Ignore
   }
+
+  const db = new Database(RAG_DB_PATH);
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+
+  // Create schema
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS course (
+      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS category (
+      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL,
+      title TEXT NOT NULL,
+      course_id INTEGER NOT NULL REFERENCES course(id),
+      UNIQUE(course_id, slug)
+    );
+    CREATE TABLE IF NOT EXISTS section (
+      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL,
+      title TEXT NOT NULL,
+      course_id INTEGER NOT NULL REFERENCES course(id),
+      category_id INTEGER NOT NULL REFERENCES category(id),
+      UNIQUE(course_id, category_id, slug)
+    );
+    CREATE TABLE IF NOT EXISTS lesson (
+      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL,
+      title TEXT NOT NULL,
+      html TEXT NOT NULL DEFAULT '',
+      lesson_order INTEGER NOT NULL DEFAULT 0,
+      course_id INTEGER NOT NULL REFERENCES course(id),
+      category_id INTEGER NOT NULL REFERENCES category(id),
+      section_id INTEGER NOT NULL REFERENCES section(id),
+      keywords TEXT NOT NULL DEFAULT '[]',
+      UNIQUE(course_id, category_id, section_id, slug)
+    );
+  `);
+
+  // Clear existing data
+  db.exec("DELETE FROM lesson");
+  db.exec("DELETE FROM section");
+  db.exec("DELETE FROM category");
+  db.exec("DELETE FROM course");
+
+  // Insert data
+  const insertCourse = db.prepare(
+    "INSERT INTO course (id, slug, title) VALUES (?, ?, ?)",
+  );
+  const insertCategory = db.prepare(
+    "INSERT INTO category (id, slug, title, course_id) VALUES (?, ?, ?, ?)",
+  );
+  const insertSection = db.prepare(
+    "INSERT INTO section (id, slug, title, course_id, category_id) VALUES (?, ?, ?, ?, ?)",
+  );
+  const insertLesson = db.prepare(
+    "INSERT INTO lesson (id, slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  );
+
+  const tx = db.transaction(() => {
+    for (const row of seed.courses) {
+      insertCourse.run(row.id, row.slug, row.title);
+    }
+    for (const row of seed.categories) {
+      insertCategory.run(row.id, row.slug, row.title, row.courseId);
+    }
+    for (const row of seed.sections) {
+      insertSection.run(
+        row.id,
+        row.slug,
+        row.title,
+        row.courseId,
+        row.categoryId,
+      );
+    }
+    for (const row of seed.lessons) {
+      insertLesson.run(
+        row.id,
+        row.slug,
+        row.title,
+        row.html,
+        row.lessonOrder,
+        row.courseId,
+        row.categoryId,
+        row.sectionId,
+        row.keywords,
+      );
+    }
+  });
+
+  tx();
+  db.close();
+
+  const sizeKb = (() => {
+    try {
+      const st = statSync(RAG_DB_PATH);
+      return (st.size / 1024).toFixed(1);
+    } catch {
+      return "unknown";
+    }
+  })();
+  console.log(`  Wrote ${RAG_DB_PATH} (${sizeKb} KB)`);
 }
 
 main();

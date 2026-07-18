@@ -1,4 +1,3 @@
-import argon2 from "argon2";
 import { useSession } from "vinxi/http";
 import { SESSION_TIMEOUT_DAYS } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
@@ -22,22 +21,6 @@ export const getSession = () =>
     },
   });
 
-/** Hash a password using Argon2id (OWASP recommended). */
-export async function createHash(
-  password: string,
-  options?: Partial<argon2.Options>,
-): Promise<string> {
-  return argon2.hash(password, {
-    type: argon2.argon2id,
-    ...options,
-  });
-}
-
-/** Verify a password against an Argon2id hash. */
-export async function checkPassword(
-  storedPassword: string,
-  providedPassword: string,
-): Promise<void> {
-  const valid = await argon2.verify(storedPassword, providedPassword);
-  if (!valid) throw new Error("Invalid password");
-}
+// Password operations delegated to password.ts for Worker compatibility.
+// Re-export for backward compatibility with existing callers.
+export { checkPassword, createHash } from "~/server/password";
