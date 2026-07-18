@@ -7,7 +7,6 @@ const ORIGINAL_ENV = { ...process.env };
 const BASE_ENV = {
   SESSION_SECRET: "a".repeat(32),
   RAG_API_URL: "http://rag-api:8000",
-  LLAMA_API_URL: "http://llama-api:9876",
 };
 
 beforeEach(() => {
@@ -34,7 +33,6 @@ describe("getEnv", () => {
     expect(env.HOST).toBe("127.0.0.1");
     expect(env.NODE_ENV).toBe("test");
     expect(env.RAG_API_URL).toBe("http://rag-api:8000");
-    expect(env.LLAMA_API_URL).toBe("http://llama-api:9876");
   });
 
   it("uses defaults for PORT and HOST when not provided", () => {

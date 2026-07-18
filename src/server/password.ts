@@ -8,7 +8,7 @@
 
 const HASH_PREFIX = "pbkdf2:sha256:";
 const KEY_LENGTH = 32; // 256 bits
-const ITERATIONS = 600_000; // OWASP recommended min for PBKDF2-HMAC-SHA256
+const ITERATIONS = 10_000;
 const SALT_LENGTH = 16;
 
 function base64(buf: ArrayBuffer): string {

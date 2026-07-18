@@ -54,16 +54,3 @@ CREATE TABLE IF NOT EXISTS progress (
   read_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (lesson_id, user_id)
 );
-
--- name: EnsureSchemaVersionTable :exec
-CREATE TABLE IF NOT EXISTS schema_version (
-  version INTEGER NOT NULL PRIMARY KEY,
-  description TEXT NOT NULL,
-  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- name: GetCurrentSchemaVersion :one
-SELECT version FROM schema_version ORDER BY version DESC LIMIT 1;
-
--- name: ApplyMigration :exec
-INSERT INTO schema_version (version, description, applied_at) VALUES (?, ?, datetime('now'));

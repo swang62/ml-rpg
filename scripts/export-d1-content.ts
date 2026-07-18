@@ -2,7 +2,7 @@
 /**
  * Generates a D1-compatible SQL seed file from the rag_api SQLite DB.
  *
- * This is a fallback/reference — the primary seed flow is `pnpm seed`
+ * This is a fallback/reference — the primary seed flow is `pnpm generate`
  * which reads directly from scraped lesson files.
  *
  * Usage:

@@ -263,12 +263,27 @@ def _compute_content_hash(lesson_groups: list[dict]) -> str:
     return h.hexdigest()[:16]
 
 
-def _compute_db_file_hash() -> str:
-    """Return a short hash of the content DB file to detect changes."""
+def _compute_db_content_hash() -> str:
+    """Return a hash of lesson content (slug + html), not raw file bytes.
+    
+    SQLite file bytes change on each write due to internal timestamps,
+    even with identical data. Hashing the content itself is stable.
+    """
+    import sqlite3
+    
     db_path = Path(CONTENT_DB_PATH)
     if not db_path.exists():
         raise FileNotFoundError(f"Content DB not found at {CONTENT_DB_PATH}")
-    return hashlib.sha256(db_path.read_bytes()).hexdigest()[:16]
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    rows = conn.execute(
+        "SELECT slug, html FROM lesson ORDER BY slug"
+    ).fetchall()
+    h = hashlib.sha256()
+    for slug, html in rows:
+        h.update(slug.encode("utf-8"))
+        h.update(html.encode("utf-8"))
+    conn.close()
+    return h.hexdigest()[:16]
 
 
 def _get_readme_lesson_group() -> dict[str, Any] | None:
@@ -326,8 +341,8 @@ def build_index() -> tuple[int, str]:
     total_chunks = sum(len(g["texts"]) for g in lesson_groups)
     logger.info("Loaded %d lesson groups, %d total chunks", len(lesson_groups), total_chunks)
 
-    # 2. Compute content DB file hash BEFORE embedding (cheap change detector)
-    db_hash = _compute_db_file_hash()
+    # 2. Compute content hash BEFORE embedding (cheap change detector)
+    db_hash = _compute_db_content_hash()
 
     # 3. Collect all texts for batched embedding
     all_texts: list[str] = []

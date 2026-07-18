@@ -17,7 +17,13 @@ export default createMiddleware({
     const url = event.request.url;
     const { pathname } = new URL(url);
 
-    if (isStaticAsset(pathname) || process.env.PRERENDER) {
+    if (isStaticAsset(pathname) || import.meta.env.PRERENDER) {
+      if (pathname.startsWith("/favicon")) {
+        event.response.headers.set(
+          "Cache-Control",
+          "public, max-age=604800, immutable",
+        );
+      }
       return;
     }
 

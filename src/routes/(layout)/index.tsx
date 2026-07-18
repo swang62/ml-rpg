@@ -35,21 +35,23 @@ export default function HomePage() {
         <p class="subtitle">Choose your adventure</p>
 
         <section class="flex flex-wrap justify-center">
-          {courses().map((course) => (
-            <A
-              href={`/${course.slug}`}
-              class="card hero-course-card"
-              onMouseMove={onCardMove}
-              onMouseLeave={onCardLeave}
-            >
-              <div class="hero-course-card__info">
-                <h2>{course.title}</h2>
-              </div>
-              <div class="hero-course-card__arrow">
-                <ChevronRight size={16} />
-              </div>
-            </A>
-          ))}
+          {courses()
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map((course) => (
+              <A
+                href={`/${course.slug}`}
+                class="card hero-course-card"
+                onMouseMove={onCardMove}
+                onMouseLeave={onCardLeave}
+              >
+                <div class="hero-course-card__info">
+                  <h2>{course.title}</h2>
+                </div>
+                <div class="hero-course-card__arrow">
+                  <ChevronRight size={16} />
+                </div>
+              </A>
+            ))}
         </section>
       </section>
 

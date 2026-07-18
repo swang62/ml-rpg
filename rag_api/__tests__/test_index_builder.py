@@ -8,7 +8,7 @@ import pytest
 
 from ..indexing.build_index import (
     _compute_content_hash,
-    _compute_db_file_hash,
+    _compute_db_content_hash,
     _enrich_tags,
     _extract_relevant_text,
     _extract_word_tokens,
@@ -214,9 +214,9 @@ def test_get_readme_lesson_group_readme_exists():
 
 
 def test_compute_db_file_hash():
-    """Should return a deterministic 16-char hex hash of the content DB."""
-    db_hash = _compute_db_file_hash()
+    """Should return a deterministic 16-char hex hash based on lesson content."""
+    db_hash = _compute_db_content_hash()
     assert len(db_hash) == 16
     assert all(c in "0123456789abcdef" for c in db_hash)
     # Stable within the same call
-    assert _compute_db_file_hash() == db_hash
+    assert _compute_db_content_hash() == db_hash

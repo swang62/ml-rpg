@@ -149,72 +149,6 @@ export function ensureProgressTable(
   }
 }
 
-const ensureSchemaVersionTableQuery = `-- name: EnsureSchemaVersionTable :exec
-CREATE TABLE IF NOT EXISTS schema_version (
-  version INTEGER NOT NULL PRIMARY KEY,
-  description TEXT NOT NULL,
-  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-)`;
-
-export function ensureSchemaVersionTable(
-  d1: D1Database
-): Query<D1Result> {
-  const ps = d1
-    .prepare(ensureSchemaVersionTableQuery);
-  return {
-    then(onFulfilled?: (value: D1Result) => void, onRejected?: (reason?: any) => void) {
-      ps.run()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getCurrentSchemaVersionQuery = `-- name: GetCurrentSchemaVersion :one
-SELECT version FROM schema_version ORDER BY version DESC LIMIT 1`;
-
-export type GetCurrentSchemaVersionRow = {
-  version: number;
-};
-
-export function getCurrentSchemaVersion(
-  d1: D1Database
-): Query<GetCurrentSchemaVersionRow | null> {
-  const ps = d1
-    .prepare(getCurrentSchemaVersionQuery);
-  return {
-    then(onFulfilled?: (value: GetCurrentSchemaVersionRow | null) => void, onRejected?: (reason?: any) => void) {
-      ps.first<GetCurrentSchemaVersionRow | null>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const applyMigrationQuery = `-- name: ApplyMigration :exec
-INSERT INTO schema_version (version, description, applied_at) VALUES (?, ?, datetime('now'))`;
-
-export type ApplyMigrationParams = {
-  version: number;
-  description: string;
-};
-
-export function applyMigration(
-  d1: D1Database,
-  args: ApplyMigrationParams
-): Query<D1Result> {
-  const ps = d1
-    .prepare(applyMigrationQuery)
-    .bind(args.version, args.description);
-  return {
-    then(onFulfilled?: (value: D1Result) => void, onRejected?: (reason?: any) => void) {
-      ps.run()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
 const getCategoriesByCourseQuery = `-- name: GetCategoriesByCourse :many
 SELECT category.id, category.slug, category.title FROM category WHERE category.course_id = ?`;
 
@@ -1001,6 +935,67 @@ export function getReadCountsByCourse(
   return {
     then(onFulfilled?: (value: D1Result<GetReadCountsByCourseRow>) => void, onRejected?: (reason?: any) => void) {
       ps.all<GetReadCountsByCourseRow>()
+        .then(onFulfilled).catch(onRejected);
+    },
+    batch() { return ps; },
+  }
+}
+
+const getUserXpSumQuery = `-- name: GetUserXpSum :one
+SELECT COALESCE(SUM(lesson.lesson_order), 0) AS totalorder, COUNT(*) AS readcount FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
+
+export type GetUserXpSumParams = {
+  userId: number;
+};
+
+export type GetUserXpSumRow = {
+  totalorder: number | string | null;
+  readcount: number;
+};
+
+export function getUserXpSum(
+  d1: D1Database,
+  args: GetUserXpSumParams
+): Query<GetUserXpSumRow | null> {
+  const ps = d1
+    .prepare(getUserXpSumQuery)
+    .bind(args.userId);
+  return {
+    then(onFulfilled?: (value: GetUserXpSumRow | null) => void, onRejected?: (reason?: any) => void) {
+      ps.first<GetUserXpSumRow | null>()
+        .then(onFulfilled).catch(onRejected);
+    },
+    batch() { return ps; },
+  }
+}
+
+const getCourseSectionReadStatusQuery = `-- name: GetCourseSectionReadStatus :many
+SELECT lesson.category_id AS categoryid, lesson.section_id AS sectionid, category.slug AS categoryslug, section.slug AS sectionslug, COUNT(progress.lesson_id) AS readcount, COUNT(lesson.id) AS totallessons FROM lesson INNER JOIN category ON lesson.category_id = category.id INNER JOIN section ON lesson.section_id = section.id LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = ? WHERE lesson.course_id = ? GROUP BY lesson.category_id, lesson.section_id ORDER BY lesson.category_id, lesson.section_id`;
+
+export type GetCourseSectionReadStatusParams = {
+  userId: number;
+  courseId: number;
+};
+
+export type GetCourseSectionReadStatusRow = {
+  categoryid: number;
+  sectionid: number;
+  categoryslug: string;
+  sectionslug: string;
+  readcount: number;
+  totallessons: number;
+};
+
+export function getCourseSectionReadStatus(
+  d1: D1Database,
+  args: GetCourseSectionReadStatusParams
+): Query<D1Result<GetCourseSectionReadStatusRow>> {
+  const ps = d1
+    .prepare(getCourseSectionReadStatusQuery)
+    .bind(args.userId, args.courseId);
+  return {
+    then(onFulfilled?: (value: D1Result<GetCourseSectionReadStatusRow>) => void, onRejected?: (reason?: any) => void) {
+      ps.all<GetCourseSectionReadStatusRow>()
         .then(onFulfilled).catch(onRejected);
     },
     batch() { return ps; },

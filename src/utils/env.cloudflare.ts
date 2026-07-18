@@ -18,12 +18,9 @@ const cloudflareEnvSchema = z.object({
   D1_CONTENT: z.any().optional(),
 
   // RAG API URL (external, same as Node)
-  RAG_API_URL: z.string().url().min(1),
+  RAG_API_URL: z.url().min(1),
 
-  // LLM API URL (external, same as Node)
-  LLAMA_API_URL: z.string().url().min(1),
-
-  // Session secret (same as Node — set via wrangler secrets)
+  // Session secret — also used for Worker → rag_api auth (set via wrangler secrets)
   SESSION_SECRET: z.string().min(32),
 
   // Environment mode

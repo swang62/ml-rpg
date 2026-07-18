@@ -67,3 +67,8 @@ class GuardRequest(BaseModel):
 class GuardResponse(BaseModel):
     jailbreak: bool
     score: float
+
+
+class ChatRequest(BaseModel):
+    query: str
+    history: list[dict] = []

@@ -94,7 +94,7 @@ What it does:
 1. starts `rag_api`
 2. starts `llama-server`
 3. regenerates seed artifacts with `pnpm seed`
-4. applies local D1 migrations + seed with `pnpm seed:d1-local`
+4. applies local D1 migrations + seed with `pnpm seed:local`
 5. builds the Worker bundle with `pnpm build`
 6. starts `wrangler dev`
 
@@ -108,8 +108,8 @@ pnpm dev:watch
 
 ```bash
 pnpm generate:types
-pnpm seed
-pnpm seed:d1-local
+pnpm generate
+pnpm seed:local
 ```
 
 Artifacts:
@@ -137,19 +137,19 @@ wrangler d1 create ml-rpg-content-staging
           "binding": "D1_CONTENT",
           "database_name": "ml-rpg-content-staging",
           "database_id": "REPLACE_ME",
-          "migrations_dir": "migrations"
-        }
-      ]
-    }
-  }
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+  },
 }
 ```
 
 3. Seed staging:
 
 ```bash
-pnpm seed
-pnpm seed:d1-staging
+pnpm generate
+pnpm seed:staging
 ```
 
 This applies D1 migrations (including `migrations/0003_users_progress.sql` which creates the `users` and `progress` tables for auth and XP tracking) and seeds course content.
@@ -158,16 +158,17 @@ This applies D1 migrations (including `migrations/0003_users_progress.sql` which
 
 Set these vars in `wrangler.jsonc` under `env.staging.vars`:
 
-| Variable          | Description                                      |
-| ----------------- | ------------------------------------------------ |
-| `RAG_API_URL`     | URL of the deployed RAG API backend              |
-| `LLAMA_API_URL`   | URL of the deployed llama.cpp server             |
+| Variable      | Description                         |
+| ------------- | ----------------------------------- |
+| `RAG_API_URL` | URL of the deployed RAG API backend |
 
-Set the session secret as a Wrangler secret (not in wrangler.jsonc):
+Set secrets (not in wrangler.jsonc):
 
 ```bash
 echo "your-session-secret" | wrangler secret put SESSION_SECRET --env staging
 ```
+
+> **SESSION_SECRET**: Used for both session cookie signing and Worker → RAG API authentication. Must be at least 32 characters. The RAG API must be configured with the same value via the `SESSION_SECRET` environment variable.
 
 ### Build / deploy staging
 

@@ -13,6 +13,7 @@ services:
       - rag-content:/app/rag_api/data
     environment:
       - HF_TOKEN=${HF_TOKEN}
+      - SESSION_SECRET=${SESSION_SECRET}
       - IDLE_TIMEOUT=${IDLE_TIMEOUT:-300}
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}

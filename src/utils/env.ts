@@ -6,6 +6,7 @@
  * This schema validates the non-D1 env vars shared across runtimes.
  */
 
+import { getRequestEvent } from "solid-js/web";
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -21,15 +22,61 @@ const envSchema = z.object({
     .string()
     .url()
     .min(1, "RAG_API_URL environment variable is required"),
-  LLAMA_API_URL: z
-    .string()
-    .url()
-    .min(1, "LLAMA_API_URL environment variable is required"),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
 let _env: Env | null = null;
+
+function getProcessEnv(): Record<string, unknown> {
+  const maybeProcess = Reflect.get(
+    globalThis as Record<string, unknown>,
+    "process",
+  );
+  if (!maybeProcess || typeof maybeProcess !== "object") {
+    return {};
+  }
+
+  const maybeEnv = Reflect.get(maybeProcess as Record<string, unknown>, "env");
+  if (!maybeEnv || typeof maybeEnv !== "object") {
+    return {};
+  }
+
+  return maybeEnv as Record<string, unknown>;
+}
+
+function getWorkerEnv(): Record<string, unknown> {
+  try {
+    const event = getRequestEvent() as {
+      platform?: { env?: Record<string, unknown> };
+      nativeEvent?: {
+        req?: {
+          runtime?: {
+            cloudflare?: {
+              env?: Record<string, unknown>;
+            };
+          };
+        };
+        context?: {
+          cloudflare?: { env?: Record<string, unknown> };
+          _platform?: {
+            cloudflare?: { env?: Record<string, unknown> };
+          };
+        };
+      };
+    };
+
+    return (
+      event.platform?.env ??
+      event.nativeEvent?.req?.runtime?.cloudflare?.env ??
+      event.nativeEvent?.context?.cloudflare?.env ??
+      event.nativeEvent?.context?._platform?.cloudflare?.env ??
+      {}
+    );
+  } catch {
+    return {};
+  }
+}
 
 /** Reset the cached env (used only in tests). */
 export function resetEnv(): void {
@@ -39,7 +86,10 @@ export function resetEnv(): void {
 export function getEnv(): Env {
   if (_env) return _env;
 
-  const result = envSchema.safeParse(process.env);
+  const result = envSchema.safeParse({
+    ...getProcessEnv(),
+    ...getWorkerEnv(),
+  });
 
   if (!result.success) {
     const issues = result.error.issues

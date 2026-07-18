@@ -2,11 +2,12 @@
 
 Called at startup. Rebuilds only when:
 - The index table is missing or empty, OR
-- The replicated content DB file changed (detected via file hash).
+- The replicated content DB content changed (detected via content hash, not file bytes).
 """
 
 import hashlib
 import logging
+import sqlite3
 from pathlib import Path
 
 import lancedb
@@ -18,7 +19,7 @@ logger = logging.getLogger("rag_api")
 
 
 def _read_stored_hash() -> str | None:
-    """Read the stored DB file hash from .index_meta."""
+    """Read the stored DB content hash from .index_meta."""
     meta_path = Path(LANCEDB_PATH) / ".index_meta"
     if not meta_path.exists():
         return None
@@ -28,14 +29,27 @@ def _read_stored_hash() -> str | None:
         return None
 
 
-def _compute_db_file_hash() -> str | None:
-    """Return a short hash of the content DB file to detect changes."""
+def _compute_db_content_hash() -> str | None:
+    """Return a hash of lesson content (slug + html), not raw file bytes.
+    
+    SQLite file bytes change on each write due to internal timestamps,
+    even with identical data. Hashing the content itself is stable.
+    """
     db_path = Path(CONTENT_DB_PATH)
     if not db_path.exists():
         return None
     try:
-        return hashlib.sha256(db_path.read_bytes()).hexdigest()[:16]
-    except OSError:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        rows = conn.execute(
+            "SELECT slug, html FROM lesson ORDER BY slug"
+        ).fetchall()
+        h = hashlib.sha256()
+        for slug, html in rows:
+            h.update(slug.encode("utf-8"))
+            h.update(html.encode("utf-8"))
+        conn.close()
+        return h.hexdigest()[:16]
+    except Exception:
         return None
 
 
@@ -61,16 +75,16 @@ def _has_valid_table() -> bool:
 def ensure_index() -> bool:
     """Ensure the RAG index exists and is current.
 
-    Rebuilds only if the index is missing/empty or the content DB file hash changed.
+    Rebuilds only if the index is missing/empty or the content DB content hash changed.
 
     Returns True if a valid index is available after the check/rebuild.
     """
     stored_hash = _read_stored_hash()
     has_table = _has_valid_table()
 
-    # Fast path: index exists and DB file hasn't changed — no rebuild needed
+    # Fast path: index exists and DB content hasn't changed — no rebuild needed
     if has_table and stored_hash is not None:
-        current_db_hash = _compute_db_file_hash()
+        current_db_hash = _compute_db_content_hash()
         if current_db_hash is not None and current_db_hash == stored_hash:
             logger.info(
                 "RAG index is current (hash: %s) — skipping rebuild",

@@ -50,9 +50,3 @@ export type Progress = {
   readAt: string;
 };
 
-export type SchemaVersion = {
-  version: number;
-  description: string;
-  appliedAt: string;
-};
-

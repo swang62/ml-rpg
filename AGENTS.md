@@ -4,7 +4,6 @@
 
 - **SolidStart** (SolidJS + `@solidjs/router`) — SSR meta-framework
 - **Vinxi** (Nitro/Vite) — Build tool and dev server with HMR
-- **Better-sqlite3** — Synchronous SQLite for course & user data
 - **Sqlc** — Type-safe generator: raw `.sql` → typed TS query functions
 - **LanceDB** — Vector store for hybrid semantic/keyword RAG search
 - **MiniSearch** — In-memory full-text search for lesson pages
@@ -20,7 +19,7 @@ pnpm preview          # serve built app (vinxi start)
 pnpm lint             # biome check --write --unsafe . && pnpm typecheck
 pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db/raw/*.sql
-pnpm seed             # tsx ./scripts/seed-db.ts — re-seeds course.db from scraped lesson files
+pnpm generate          # tsx ./scripts/seed-db.ts — re-seeds course.db from scraped lesson files
 pnpm build:docker     # docker compose up --build --force-recreate -d — build rag_api + llama_api containers
 pnpm build:finetune   # full fine-tuning pipeline
 ```
@@ -41,7 +40,6 @@ src/
   db/
     raw/          Source .sql files (schema + queries)
     *_sql.ts      Auto-generated typed query functions
-    empty.db      Pre-seeded course DB template, copied on first run
   routes/         File-system routing (SolidStart convention)
   server/         SSR functions organized by domain ('use server')
   utils/          Pure helpers
@@ -70,7 +68,7 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 
 ### Persistence
 
-- **Signed-in users:** Progress in SQLite via `COURSE_DB_PATH`. Login is optional.
+- **Signed-in users:** Progress in D1 (`D1_CONTENT` binding). Login is optional.
 - **Anonymous users:** Progress in `localStorage`, reactivity is maintained through `version` bump signals in `local-storage.ts`.
 
 ### Middleware
@@ -81,8 +79,8 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 
 ### Startup / Warmup
 
-- **Database:** Lazy init in `getDb()` — copies `empty.db` to `COURSE_DB_PATH` if missing, runs schema migrations.
-- **Vector store:** Lazy init — builds LanceDB index from all lessons. Both are self-healing.
+- **Database:** D1 binding provided by Cloudflare at runtime (seeded via `pnpm seed:local`).
+- **Vector store:** Lazy init in rag_api — builds LanceDB index from lesson content. Both are self-healing.
 
 ### Fine-tuning Pipeline
 

@@ -1,13 +1,20 @@
 import asyncio
+import json
 import logging
+import os
 import re
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from .config import (
+    SESSION_SECRET,
     IDLE_TIMEOUT,
+    LLAMA_API_URL,
     LOG_LEVEL,
     MAX_TEXT_SIZE,
     MIN_TEXT_SIZE,
@@ -26,6 +33,7 @@ from .retrieval.vector_search import close_vectordb, hybrid_search
 from .schemas import (
     BatchChunkResult,
     BatchQueryResult,
+    ChatRequest,
     EmbedRequest,
     EmbedResponse,
     EnrichRequest,
@@ -97,6 +105,13 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="rag-api", lifespan=lifespan)
 
+# Load Bob's system prompt template
+_BOB_TEMPLATE_PATH = (
+    Path(__file__).parent.parent / "shared" / "prompts" / "bob-system.json"
+)
+with open(_BOB_TEMPLATE_PATH) as f:
+    BOB_SYSTEM_TEMPLATE: str = json.load(f)["template"]
+
 
 @app.middleware("http")
 async def track_request(request: Request, call_next):
@@ -104,6 +119,18 @@ async def track_request(request: Request, call_next):
         global _last_request_time, _unloaded
         _last_request_time = time.monotonic()
         _unloaded = False
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    # Health and status are public
+    if request.url.path in ("/health", "/status", "/docs", "/openapi.json"):
+        return await call_next(request)
+    if SESSION_SECRET:
+        auth = request.headers.get("Authorization", "")
+        if auth != f"Bearer {SESSION_SECRET}":
+            return JSONResponse(status_code=403, content={"detail": "Forbidden"})
     return await call_next(request)
 
 
@@ -183,6 +210,93 @@ async def retrieve_chunks_batch(req: RetrieveBatchRequest) -> RetrieveBatchRespo
 
     logger.info("  -> %d queries returned %d total chunks", len(results), total_chunks)
     return RetrieveBatchResponse(results=results)
+
+
+async def _stream_from_llama(
+    system_prompt: str,
+    query: str,
+    history: list[dict],
+    sources: list[dict],
+    keywords: list[str],
+):
+    """Stream chat completions from llama_api, yield SSE events."""
+    messages: list[dict] = [
+        {"role": "system", "content": system_prompt},
+        *history,
+        {"role": "user", "content": query},
+    ]
+
+    timeout = httpx.Timeout(60.0, connect=10.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        try:
+            async with client.stream(
+                "POST",
+                f"{LLAMA_API_URL}/v1/chat/completions",
+                json={
+                    "model": "bob",
+                    "messages": messages,
+                    "temperature": 1.0,
+                    "max_tokens": 1024,
+                    "stream": True,
+                },
+            ) as response:
+                async for line in response.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    data = line[6:]
+                    if data == "[DONE]":
+                        # Send source metadata before final [DONE]
+                        meta = json.dumps({
+                            "type": "meta",
+                            "sources": [
+                                {"title": s.get("title", ""), "url": s.get("url", ""), "score": s.get("score", 0.0)}
+                                for s in sources
+                            ],
+                            "keywords": keywords,
+                        })
+                        yield f"data: {meta}\n\n"
+                        yield "data: [DONE]\n\n"
+                        return
+                    yield f"{line}\n\n"
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
+            logger.error("llama_api stream failed: %s", exc)
+            yield f"data: {json.dumps({'type': 'error', 'content': 'Sorry, Bob is taking a nap right now.'})}\n\n"
+            yield "data: [DONE]\n\n"
+
+
+@app.post("/chat")
+async def chat_endpoint(req: ChatRequest):
+    """RAG chat with jailbreak guard, retrieval, and streaming from llama_api."""
+    # Jailbreak check
+    _, jailbreak = check(req.query)
+    if jailbreak:
+        return StreamingResponse(
+            _skip_stream("Sorry, I can't help with that."),
+            media_type="text/event-stream",
+        )
+
+    # RAG retrieval
+    retrieve_resp = await retrieve(req.query)
+    context = "\n\n".join(
+        f"[{c.title}]: {c.text}" for c in retrieve_resp.chunks
+    )
+    system_prompt = BOB_SYSTEM_TEMPLATE.replace("{context}", context)
+
+    sources_dicts = [s.model_dump() for s in retrieve_resp.sources]
+
+    return StreamingResponse(
+        _stream_from_llama(
+            system_prompt, req.query, req.history,
+            sources_dicts, retrieve_resp.keywords,
+        ),
+        media_type="text/event-stream",
+    )
+
+
+def _skip_stream(message: str):
+    """Yield a single SSE skip event."""
+    yield f"data: {json.dumps({'type': 'skip', 'content': message})}\n\n"
+    yield "data: [DONE]\n\n"
 
 
 _vectorizer_cache: tuple | None = None

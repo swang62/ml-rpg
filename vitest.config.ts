@@ -15,7 +15,6 @@ export default defineConfig({
       LANCEDB_PATH: "./.data/search",
       VITE_SITE_URL: "http://localhost:3000",
       RAG_API_URL: "http://localhost:8000",
-      LLAMA_API_URL: "http://localhost:9876",
     },
   },
 });

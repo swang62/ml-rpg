@@ -15,6 +15,8 @@ if not _lancedb_p.is_absolute():
 LANCEDB_PATH: str = str(_lancedb_p.resolve())
 LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "INFO").upper()
 IDLE_TIMEOUT: int = int(os.environ.get("IDLE_TIMEOUT", "300"))
+SESSION_SECRET: str = os.environ.get("SESSION_SECRET", "")
+LLAMA_API_URL: str = os.environ.get("LLAMA_API_URL", "http://llama-api:9876")
 
 FASTEMBED_MODEL_NAME = "BAAI/bge-small-en-v1.5"
 FASTEMBED_BATCH_SIZE = 256

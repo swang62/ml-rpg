@@ -1,13 +1,12 @@
 import { query } from "@solidjs/router";
 import {
-  getAllLessons,
-  getAllReadLessons,
-  getCategoriesByCourse,
   getCourseBySlug,
-  getLessonsByCategoryGrouped,
+  getCourseSectionReadStatus,
+  getLessonCount,
   getReadCountsByCourse,
   getReadLessonsBySection,
   getSectionIdToSlugByCourse,
+  getUserXpSum,
   isLessonRead,
 } from "~/db/querier";
 import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
@@ -21,16 +20,16 @@ export const getTotalXpQuery = query(async () => {
   if (!userId) return { count: 0, percent: 0 };
 
   const d1 = getDb();
-  const { results: totalLessons } = await getAllLessons(d1);
-  const { results: result } = await getAllReadLessons(d1, { userId });
+  const sumRow = await getUserXpSum(d1, { userId });
+  const lessonCountRow = await getLessonCount(d1);
 
-  const totalCalculatedXP =
-    result.map((r) => r.lessonorder).reduce((prev, curr) => prev + curr, 0) *
-    XP_VALUE;
+  const totalXp = Number(sumRow?.totalorder ?? 0) * XP_VALUE;
+  const readCount = sumRow?.readcount ?? 0;
+  const totalLessons = lessonCountRow?.lessoncount ?? 0;
 
   return {
-    count: totalCalculatedXP,
-    percent: result.length / totalLessons.length,
+    count: totalXp,
+    percent: totalLessons > 0 ? readCount / totalLessons : 0,
   };
 }, "total-xp");
 
@@ -124,35 +123,17 @@ export const getCourseReadCountsQuery = query(async (courseSlug: string) => {
   const course = await getCourseBySlug(d1, { slug: courseSlug });
   if (!course) return {};
 
-  const { results: allRead } = await getAllReadLessons(d1, { userId });
-  const readSet = new Set(allRead.map((r) => Number(r.lessonid)));
-
-  // Single grouped query replaces nested loops over categories -> sections -> lessons
-  const { results: categories } = await getCategoriesByCourse(d1, {
+  const { results } = await getCourseSectionReadStatus(d1, {
+    userId,
     courseId: course.id,
   });
+
+  // Single JS pass over one flat result set — no N+1
   const result: Record<string, boolean[]> = {};
-
-  for (const cat of categories) {
-    const { results: grouped } = await getLessonsByCategoryGrouped(d1, {
-      categoryId: cat.id,
-    });
-
-    // Build a section-lesson map from the grouped results
-    const sectionLessons = new Map<string, number[]>();
-    for (const row of grouped) {
-      const secSlug = row.secslug;
-      if (!sectionLessons.has(secSlug)) {
-        sectionLessons.set(secSlug, []);
-      }
-      sectionLessons.get(secSlug)?.push(Number(row.id));
-    }
-
-    const statuses: boolean[] = [];
-    for (const [, lessonIds] of sectionLessons) {
-      statuses.push(lessonIds.every((id) => readSet.has(id)));
-    }
-    result[cat.slug] = statuses;
+  for (const row of results) {
+    const statuses = result[row.categoryslug] ?? [];
+    statuses.push(row.readcount >= row.totallessons);
+    result[row.categoryslug] = statuses;
   }
 
   return result;
