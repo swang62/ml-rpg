@@ -8,8 +8,7 @@
  * This module provides the Cloudflare-side env schema for type-safe access
  * when running in a Worker context.
  *
- * Note: COURSE_DB_PATH and LANCEDB_PATH are empty strings in Worker builds
- * (filesystem paths don't apply). All persistent data comes from D1.
+ * All persistent data comes from D1.
  */
 
 import { z } from "zod";

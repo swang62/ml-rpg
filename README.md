@@ -152,18 +152,29 @@ pnpm seed
 pnpm seed:d1-staging
 ```
 
+This applies D1 migrations (including `migrations/0003_users_progress.sql` which creates the `users` and `progress` tables for auth and XP tracking) and seeds course content.
+
+### Staging environment variables
+
+Set these vars in `wrangler.jsonc` under `env.staging.vars`:
+
+| Variable          | Description                                      |
+| ----------------- | ------------------------------------------------ |
+| `RAG_API_URL`     | URL of the deployed RAG API backend              |
+| `LLAMA_API_URL`   | URL of the deployed llama.cpp server             |
+
+Set the session secret as a Wrangler secret (not in wrangler.jsonc):
+
+```bash
+echo "your-session-secret" | wrangler secret put SESSION_SECRET --env staging
+```
+
 ### Build / deploy staging
 
 ```bash
 pnpm build
 wrangler deploy --env staging
 ```
-
-Set staging secrets/vars before deploy, especially:
-
-- `SESSION_SECRET`
-- `RAG_API_URL`
-- `LLAMA_API_URL`
 
 ## License
 

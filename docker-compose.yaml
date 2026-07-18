@@ -1,33 +1,8 @@
-services:
-  ml-rpg:
-    container_name: ml-rpg
-    image: swang62/ml-rpg
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - VITE_SITE_URL=${VITE_SITE_URL}
-        - VITE_SITE_ID=${VITE_SITE_ID:-}
-    restart: unless-stopped
-    depends_on:
-      rag-api:
-        condition: service_healthy
-      llama-api:
-        condition: service_healthy
-    ports:
-      - ${PORT:-3333}:${PORT:-3333}
-    environment:
-      - LLAMA_API_URL=http://llama-api:9876
-      - PORT=${PORT:-3333}
-      - RAG_API_URL=http://rag-api:8000
-      - SESSION_SECRET=${SESSION_SECRET}
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-3333}/api/health || exit 1
-      interval: 1m
-      timeout: 10s
-      start_period: 10s
-      retries: 3
+# Docker Compose for LLM backend services (rag_api + llama_api) only.
+# The frontend is deployed as a Cloudflare Worker — see README for staging deploy flow.
+# For local development, run `pnpm dev` which starts rag_api, llama-server, and wrangler.
 
+services:
   rag-api:
     container_name: rag-api
     build:

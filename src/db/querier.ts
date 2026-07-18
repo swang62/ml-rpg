@@ -107,7 +107,7 @@ export function ensureLessonTable(
 const ensureUsersTableQuery = `-- name: EnsureUsersTable :exec
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL,
+  username TEXT NOT NULL UNIQUE,
   user_password TEXT NOT NULL,
   display_name TEXT,
   last_visited_at TEXT NOT NULL DEFAULT (datetime('now'))
