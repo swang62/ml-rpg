@@ -6,7 +6,13 @@ if (!import.meta.env.VITE_SITE_URL) {
   throw new Error("VITE_SITE_URL is required.");
 }
 
-const STATIC_PREFIXES = ["/_assets/", "/assets/", "/favicon"];
+const STATIC_PREFIXES = [
+  "/_assets/",
+  "/_build/assets/",
+  "/assets/",
+  "/favicon",
+  "/search-index",
+];
 const NO_CACHE_PREFIXES = ["/api/", "/auth/", "/_server/"];
 
 export function isStaticAsset(url: string): boolean {
@@ -22,13 +28,11 @@ export default createMiddleware({
     const url = event.request.url;
     const { pathname } = new URL(url);
 
-    if (isStaticAsset(pathname) || import.meta.env.PRERENDER) {
-      if (pathname.startsWith("/favicon")) {
-        event.response.headers.set(
-          "Cache-Control",
-          "public, max-age=604800, immutable",
-        );
-      }
+    if (isStaticAsset(pathname)) {
+      event.response.headers.set(
+        "Cache-Control",
+        "public, max-age=604800, immutable",
+      );
       return;
     }
 

@@ -16,11 +16,6 @@ export default defineConfig({
           "cache-control": "public, max-age=31536000, immutable",
         },
       },
-      "/_build/assets/**": {
-        headers: {
-          "cache-control": "public, max-age=31536000, immutable",
-        },
-      },
     },
   },
   vite: {
