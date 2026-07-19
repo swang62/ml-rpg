@@ -8,7 +8,6 @@
     "db:delete": "rm -rf .wrangler/state/v3/d1",
     "dev": "./scripts/start-dev.sh",
     "dev:watch": "./scripts/dev-watch.sh",
-    "generate": "dotenv -- tsx ./scripts/generate-db-data.ts",
     "generate:types": "rm -f ./src/db/querier.ts ./src/db/models.ts && sqlc generate",
     "lint": "biome check --write --unsafe . && pnpm typecheck && uv run basedpyright rag_api/",
     "test": "vitest run && pnpm test:python",

@@ -1,15 +1,12 @@
 import { query } from "@solidjs/router";
 import {
-  getCourseBySlug,
-  getCourseSectionReadStatus,
+  getCategoryReadCounts,
+  getCourseReadStatusBySlug,
   getLessonCount,
-  getReadCountsByCourse,
-  getReadLessonsBySection,
-  getSectionIdToSlugByCourse,
+  getLessonFromPathReadStatus,
+  getSectionReadCounts,
   getUserXpSum,
-  isLessonRead,
 } from "~/db/querier";
-import { findLessonByPath, findSectionBySlugInCourse } from "~/server/course";
 import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
 import { XP_VALUE } from "~/utils/constants";
@@ -40,17 +37,12 @@ export const getLessonReadStatusQuery = query(
     if (!userId) return false;
 
     const d1 = getDb();
-    const lesson = await findLessonByPath(
-      d1,
-      courseSlug,
-      sectionSlug,
-      lessonSlug,
-    );
-    if (!lesson) return false;
-
-    const result = await isLessonRead(d1, {
-      lessonId: lesson.id,
-      userId,
+    const result = await getLessonFromPathReadStatus(d1, {
+      userid: userId,
+      courseslug: courseSlug,
+      categoryslug: "",
+      sectionslug: sectionSlug,
+      lessonslug: lessonSlug,
     });
     return result?.isread ? Boolean(result.isread) : false;
   },
@@ -64,12 +56,10 @@ export const getSectionReadCountsQuery = query(
     if (!userId) return [];
 
     const d1 = getDb();
-    const sec = await findSectionBySlugInCourse(d1, courseSlug, sectionSlug);
-    if (!sec) return [];
-
-    const { results: rows } = await getReadLessonsBySection(d1, {
-      userId,
-      sectionId: sec.id,
+    const { results: rows } = await getSectionReadCounts(d1, {
+      userid: userId,
+      courseslug: courseSlug,
+      sectionslug: sectionSlug,
     });
     return rows.map((r) => r.slug);
   },
@@ -87,29 +77,14 @@ export const getCategoryReadCountsQuery = query(async (courseSlug: string) => {
   if (!userId) return {};
 
   const d1 = getDb();
-  const course = await getCourseBySlug(d1, { slug: courseSlug });
-  if (!course) return {};
-
-  // Single JOIN query replaces loop over categories -> sections
-  const { results: sectionSlugs } = await getSectionIdToSlugByCourse(d1, {
-    courseId: course.id,
-  });
-  const slugMap: Record<number, string> = {};
-  for (const sec of sectionSlugs) {
-    slugMap[Number(sec.id)] = sec.slug;
-  }
-
-  const { results: rows } = await getReadCountsByCourse(d1, {
-    userId,
-    courseId: course.id,
+  const { results: rows } = await getCategoryReadCounts(d1, {
+    userid: userId,
+    courseslug: courseSlug,
   });
 
   const result: Record<string, number> = {};
   for (const row of rows) {
-    const slug = slugMap[Number(row.sectionid)];
-    if (slug) {
-      result[slug] = row.readcount;
-    }
+    result[row.sectionslug] = row.readcount;
   }
   return result;
 }, "category-counts");
@@ -120,21 +95,16 @@ export const getCourseReadCountsQuery = query(async (courseSlug: string) => {
   if (!userId) return {};
 
   const d1 = getDb();
-  const course = await getCourseBySlug(d1, { slug: courseSlug });
-  if (!course) return {};
-
-  const { results } = await getCourseSectionReadStatus(d1, {
-    userId,
-    courseId: course.id,
+  const { results: rows } = await getCourseReadStatusBySlug(d1, {
+    userid: userId,
+    courseslug: courseSlug,
   });
 
-  // Single JS pass over one flat result set — no N+1
   const result: Record<string, boolean[]> = {};
-  for (const row of results) {
+  for (const row of rows) {
     const statuses = result[row.categoryslug] ?? [];
     statuses.push(row.readcount >= row.totallessons);
     result[row.categoryslug] = statuses;
   }
-
   return result;
 }, "course-counts");

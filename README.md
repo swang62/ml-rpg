@@ -1,6 +1,6 @@
 # Machine Learning (the RPG)
 
-![Homepage screenshot](public/assets/screenshot-homepage.png)
+![Homepage screenshot](public/assets/screenshot-homepage.webp)
 
 A gamified learning course platform for ML engineering, data engineering, and overall system design. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, and includes a helpful RAG-assisted local "librarian" to help along your journey.
 

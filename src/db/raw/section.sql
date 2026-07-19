@@ -27,3 +27,26 @@ SELECT section.id, section.slug
 FROM section
 INNER JOIN category ON section.category_id = category.id
 WHERE category.course_id = ?;
+
+-- name: GetSectionPageData :many
+SELECT section.title AS sectitle,
+       lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder
+FROM section
+INNER JOIN category ON section.category_id = category.id
+INNER JOIN course ON category.course_id = course.id
+INNER JOIN lesson ON lesson.section_id = section.id
+WHERE course.slug = sqlc.arg(courseSlug)
+  AND category.slug = sqlc.arg(categorySlug)
+  AND section.slug = sqlc.arg(sectionSlug)
+ORDER BY lesson.lesson_order;
+
+-- name: GetCategoryReadCounts :many
+SELECT section.slug AS sectionslug, COUNT(progress.lesson_id) AS readcount
+FROM section
+INNER JOIN category ON section.category_id = category.id
+INNER JOIN course ON category.course_id = course.id
+LEFT JOIN lesson ON lesson.section_id = section.id
+LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = sqlc.arg(userId)
+WHERE course.slug = sqlc.arg(courseSlug)
+GROUP BY section.id, section.slug
+ORDER BY section.id;

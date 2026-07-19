@@ -3,8 +3,6 @@ name: CI
 on:
   push:
     branches: ["**"]
-  pull_request:
-    branches: [main]
 
 jobs:
   secrets:
@@ -104,7 +102,7 @@ jobs:
 
   deploy-staging:
     needs: [lint, test, build]
-    if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
@@ -123,24 +121,18 @@ jobs:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Rebuild native modules
-        run: pnpm rebuild better-sqlite3
       - name: Verify Cloudflare auth
         run: |
           echo "Account ID: ${CLOUDFLARE_ACCOUNT_ID:0:8}..."
           npx wrangler d1 list 2>&1 | head -5 || echo "(d1 list failed — ok if token lacks read scope)"
       - name: Build Worker bundle
         run: pnpm build
-      - name: Seed staging D1
-        run: ./scripts/seed-staging.sh
-      - name: Verify seed files created
-        run: 'ls -lh .data/d1-seed-*.sql 2>/dev/null || echo "WARN: no seed files found"'
       - name: Deploy to staging
         run: npx wrangler deploy --env staging
 
   deploy-production:
     needs: [lint, test, build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       VITE_SITE_URL: https://ml-rpg.stevewang.dev
@@ -159,15 +151,11 @@ jobs:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Rebuild native modules
-        run: pnpm rebuild better-sqlite3
       - name: Verify Cloudflare auth
         run: |
           echo "Account ID: ${CLOUDFLARE_ACCOUNT_ID:0:8}..."
           npx wrangler d1 list 2>&1 | head -5 || echo "(d1 list failed — ok if token lacks read scope)"
       - name: Build Worker bundle
         run: pnpm build
-      - name: Seed production D1
-        run: ./scripts/seed-production.sh
       - name: Deploy to production
         run: npx wrangler deploy --env production

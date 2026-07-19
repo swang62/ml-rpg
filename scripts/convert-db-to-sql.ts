@@ -1,12 +1,6 @@
 #!/usr/bin/env tsx
 /**
  * Generates chunked D1-compatible SQL seed files from the rag_api lessons.db.
- *
- * lessons.db is version-controlled, so this works in CI without .data/scraped/.
- *
- * Usage:
- *   pnpm export:d1
- *   ./scripts/seed-staging.sh   (calls this internally before uploading)
  */
 
 import { globSync, mkdirSync, rmSync, writeFileSync } from "node:fs";

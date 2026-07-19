@@ -82,27 +82,72 @@ export function stripHtmlTags(html: string): string {
 
 /**
  * Extract search-relevant text from a lesson's HTML.
- * Builds content step by step: h1 → key takeaway cards → callout blocks.
+ * Based on legacy-shim.css: border-left boxes (definitions/callouts),
+ * text-transform:uppercase headers, strong text, and key takeaways.
+ * Strips non-alphanumeric characters for clean search indexing.
  */
 export function extractRelevantText(html: string): string {
   const parts: string[] = [];
 
+  // h1 title
   const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
   if (h1Match) parts.push(h1Match[1]);
 
-  const cardContentPattern =
-    /<span[^>]*class="[^"]*Learn_keyTakeaways[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
-  const cardMatches = [...html.matchAll(cardContentPattern)];
-  for (const match of cardMatches) {
-    if (match[1].trim()) parts.push(match[1]);
-  }
-
-  const borderPattern =
-    /<(\w+)[^>]*border-left:\s*4px[^>]*>([\s\S]*?)<\/\1>/gis;
-  const borderMatches = [...html.matchAll(borderPattern)];
-  for (const match of borderMatches) {
+  // Definition / callout boxes (border-left: 4px solid)
+  const borderBoxRegex =
+    /<(\w+)[^>]*border-left:\s*4px\s+solid[^>]*>([\s\S]*?)<\/\1>/gi;
+  for (const match of html.matchAll(borderBoxRegex)) {
     if (match[2].trim()) parts.push(match[2]);
   }
 
-  return stripHtmlTags(parts.join(" "));
+  // Section headers / labels (text-transform: uppercase, font-weight: 700)
+  const headerRegex =
+    /<(?:p|div)[^>]*text-transform:\s*upper[^>]*font-weight:\s*700[^>]*>([\s\S]*?)<\/(?:p|div)>/gi;
+  for (const match of html.matchAll(headerRegex)) {
+    if (match[1].trim()) parts.push(match[1]);
+  }
+
+  // <strong> elements
+  const strongRegex = /<strong[^>]*>([\s\S]*?)<\/strong>/gi;
+  for (const match of html.matchAll(strongRegex)) {
+    if (match[1].trim()) parts.push(match[1]);
+  }
+
+  // Key takeaways — extract the full Learn_keyTakeaways block by div depth
+  const takeawayStart = html.indexOf('class="Learn_keyTakeaways');
+  if (takeawayStart !== -1) {
+    // Find the opening <div tag start
+    let tagOpen = takeawayStart;
+    while (tagOpen > 0 && html[tagOpen] !== "<") tagOpen--;
+    let depth = 0;
+    let i = tagOpen;
+    for (; i < html.length; i++) {
+      if (html.slice(i, i + 4) === "<div") depth++;
+      if (html.slice(i, i + 6) === "</div>") {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (depth === 0) {
+      parts.push(html.slice(tagOpen, i + 6));
+    }
+  }
+
+  // First paragraph after card-content-area (intro text)
+  const cardStart = html.indexOf('class="card-content-area');
+  if (cardStart !== -1) {
+    const afterCard = html.slice(cardStart);
+    const firstP = afterCard.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+    if (firstP) parts.push(firstP[1]);
+  }
+
+  // Deduplicate
+  const seen = new Set<string>();
+  const unique = parts.filter((p) => {
+    if (seen.has(p)) return false;
+    seen.add(p);
+    return true;
+  });
+
+  return stripHtmlTags(unique.join(" ")).replace(/[^a-zA-Z0-9\s]/g, " ");
 }

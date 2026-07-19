@@ -5,12 +5,6 @@
  * then emits:
  *   1. A static MiniSearch index (public/search-index.json)
  *   2. A standalone SQLite DB (rag_api/data/lessons.db) for rag_api + D1 seeding
- *
- * D1 SQL seed files are generated separately from lessons.db by:
- *   pnpm export:d1
- *
- * Usage:
- *   pnpm generate
  */
 
 import {

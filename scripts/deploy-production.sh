@@ -1,19 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "==> Rebuilding D1 seed data + search index..."
-pnpm generate
-
 echo "==> Building Worker bundle..."
 pnpm build
-
-echo "==> Seeding production D1 (migrations + content)..."
-pnpm seed:production
 
 echo "==> Deploying Worker to production..."
 wrangler deploy --env production </dev/null
 
-echo "==> Waiting for deployment to propagate..."
 sleep 20
 
 echo "==> Smoke test..."

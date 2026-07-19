@@ -19,9 +19,7 @@ pnpm preview          # serve built app (vinxi start)
 pnpm lint             # biome check --write --unsafe . && pnpm typecheck
 pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db
-pnpm generate          # tsx ./scripts/generate-db-data.ts — rebuilds lessons.db + search-index.json from .data/scraped/
-pnpm export:d1         # tsx ./scripts/export-d1-content.ts — generates .data/d1-seed-*.sql from lessons.db
-pnpm seed:local        # ./scripts/seed-local.sh
+pnpm seed        # ./scripts/seed-local.sh
 pnpm seed:staging      # ./scripts/seed-staging.sh
 pnpm seed:production   # ./scripts/seed-production.sh
 pnpm deploy:staging    # ./scripts/deploy-staging.sh — generate + build + seed + deploy to staging
@@ -102,10 +100,10 @@ A custom `llama_api/` pipeline that generates synthetic training data via Ollama
 
 ### Environments
 
-| Env | Worker | D1 | RAG API |
-|---|---|---|---|
-| Staging | `dev-ml-rpg.stevewang.dev` | `ml-rpg-staging` | `dev-rag.stevewang.dev` |
-| Production | `ml-rpg.stevewang.dev` | `ml-rpg-production` | `rag.stevewang.dev` |
+| Env        | Worker                     | D1                  | RAG API                 |
+| ---------- | -------------------------- | ------------------- | ----------------------- |
+| Staging    | `dev-ml-rpg.stevewang.dev` | `ml-rpg-staging`    | `dev-rag.stevewang.dev` |
+| Production | `ml-rpg.stevewang.dev`     | `ml-rpg-production` | `rag.stevewang.dev`     |
 
 ### Deploy flow
 
@@ -119,10 +117,6 @@ pnpm deploy:production  # same, against production
 ### CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`): push to non-main / PR → staging. Push to main → production. Requires `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` secrets.
-
-### Seed pipeline
-
-`pnpm export:d1` reads `lessons.db` → writes chunked `.data/d1-seed-*.sql` (~5 files, ~2.5MB each). CI can seed D1 without `.data/scraped/` (gitignored). Upload loop retries 3x with 3s delay between chunks.
 
 ### Search index
 

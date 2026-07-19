@@ -19,8 +19,6 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "==> Initial build..."
-pnpm generate
-pnpm seed
 pnpm build
 
 echo "==> Starting wrangler dev on port 3333..."

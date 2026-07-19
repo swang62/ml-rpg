@@ -39,12 +39,6 @@ else
   echo "WARNING: Bob model not found at $MODEL_PATH — llama-server not started."
 fi
 
-echo "Generating  artifacts..."
-pnpm generate
-
-echo "Applying local D1 migrations and seed..."
-pnpm seed
-
 # Build the application for Cloudflare Worker output
 echo "Building application for Cloudflare Workers..."
 pnpm build

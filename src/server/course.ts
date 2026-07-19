@@ -1,17 +1,19 @@
 import { query } from "@solidjs/router";
 import {
   getAllCourses,
+  getBreadcrumbs,
   getCategoriesByCourse,
   getCategoryBySlug,
   getCategoryLessonCounts,
   getCourseBySlug,
   getLessonBySlug,
-  getLessonHtml,
+  getLessonFromPathReadStatus,
+  getLessonPageData,
   getLessonsByCategoryGrouped,
-  getLessonsBySection,
-  getSectionBySlug,
   getSectionBySlugInCourse,
+  getSectionPageData,
 } from "~/db/querier";
+import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
 import { cleanLessonHtml } from "~/utils/search-utils";
 
@@ -95,21 +97,20 @@ export const getSectionMetaQuery = query(
   async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
     "use server";
     const d1 = getDb();
-    const chain = await resolveCourseCategorySection(
-      d1,
-      courseSlug,
-      categorySlug,
-      sectionSlug,
-    );
-    if (!chain) return null;
-    const { sec } = chain;
-
-    const { results: lessons } = await getLessonsBySection(d1, {
-      sectionId: sec.id,
+    const { results: rows } = await getSectionPageData(d1, {
+      courseslug: courseSlug,
+      categoryslug: categorySlug,
+      sectionslug: sectionSlug,
     });
+    if (rows.length === 0) return null;
     return {
-      title: sec.title,
-      lessons,
+      title: rows[0].sectitle,
+      lessons: rows.map((r) => ({
+        id: r.id,
+        slug: r.slug,
+        title: r.title,
+        lessonorder: r.lessonorder,
+      })),
     };
   },
   "section-meta",
@@ -126,74 +127,33 @@ export const getBreadcrumbsQuery = query(
   async (courseSlug: string, categorySlug?: string, sectionSlug?: string) => {
     "use server";
     const d1 = getDb();
-    const crumbs: { label: string; href: string }[] = [];
 
-    const course = await getCourseBySlug(d1, { slug: courseSlug });
-    if (!course) return crumbs;
-
-    crumbs.push({ label: course.title, href: `/${courseSlug}` });
-
-    if (!categorySlug) return crumbs;
-
-    const cat = await getCategoryBySlug(d1, {
-      slug: categorySlug,
-      courseId: course.id,
+    const row = await getBreadcrumbs(d1, {
+      courseslug: courseSlug,
+      categoryslug: categorySlug ?? "",
+      sectionslug: sectionSlug ?? "",
     });
-    if (!cat) return crumbs;
+    if (!row) return [];
 
-    crumbs.push({
-      label: cat.title,
-      href: `/${courseSlug}/${categorySlug}`,
-    });
-
-    if (!sectionSlug) return crumbs;
-
-    const sec = await getSectionBySlug(d1, {
-      slug: sectionSlug,
-      categoryId: cat.id,
-    });
-    if (!sec) return crumbs;
-
-    crumbs.push({
-      label: sec.title,
-      href: `/${courseSlug}/${categorySlug}/${sectionSlug}`,
-    });
-
+    const crumbs: { label: string; href: string }[] = [
+      { label: row.coursetitle, href: `/${courseSlug}` },
+    ];
+    if (row.categorytitle && categorySlug) {
+      crumbs.push({
+        label: row.categorytitle,
+        href: `/${courseSlug}/${categorySlug}`,
+      });
+    }
+    if (row.sectiontitle && sectionSlug) {
+      crumbs.push({
+        label: row.sectiontitle,
+        href: `/${courseSlug}/${categorySlug}/${sectionSlug}`,
+      });
+    }
     return crumbs;
   },
   "breadcrumbs",
 );
-
-export async function getLessonNavQuery(
-  courseSlug: string,
-  categorySlug: string,
-  sectionSlug: string,
-  lessonSlug: string,
-) {
-  "use server";
-  const d1 = getDb();
-
-  const chain = await resolveCourseCategorySection(
-    d1,
-    courseSlug,
-    categorySlug,
-    sectionSlug,
-  );
-  if (!chain) return null;
-  const { sec } = chain;
-
-  const { results: lessons } = await getLessonsBySection(d1, {
-    sectionId: sec.id,
-  });
-  const idx = lessons.findIndex((l) => l.slug === lessonSlug);
-  if (idx === -1) return null;
-
-  return {
-    currentLesson: lessons[idx],
-    prevLesson: idx > 0 ? lessons[idx - 1] : null,
-    nextLesson: idx < lessons.length - 1 ? lessons[idx + 1] : null,
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Internal helpers (shared across other server modules)
@@ -216,38 +176,6 @@ async function resolveCategory(
   });
   if (!cat) return null;
   return cat;
-}
-
-async function resolveSection(
-  d1: D1Database,
-  categoryId: number,
-  sectionSlug: string,
-) {
-  const sec = await getSectionBySlug(d1, {
-    slug: sectionSlug,
-    categoryId,
-  });
-  if (!sec) return null;
-  return sec;
-}
-
-/** Resolve course -> category -> section chain. Returns null if any link is missing. */
-async function resolveCourseCategorySection(
-  d1: D1Database,
-  courseSlug: string,
-  categorySlug: string,
-  sectionSlug: string,
-) {
-  const course = await resolveCourse(d1, courseSlug);
-  if (!course) return null;
-
-  const cat = await resolveCategory(d1, course.id, categorySlug);
-  if (!cat) return null;
-
-  const sec = await resolveSection(d1, cat.id, sectionSlug);
-  if (!sec) return null;
-
-  return { course, cat, sec };
 }
 
 export async function findSectionBySlugInCourse(
@@ -283,22 +211,51 @@ export async function findLessonByPath(
   return lesson ?? null;
 }
 
-export async function getLessonHTMLQuery(
+/** Lesson page content (nav + HTML) for a whole section. Cached by section — navigating between lessons in the same section is instant. */
+export const getLessonPageContentQuery = query(
+  async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
+    "use server";
+    const d1 = getDb();
+
+    const { results: rows } = await getLessonPageData(d1, {
+      userid: 0, // unused — we only need nav + html
+      courseslug: courseSlug,
+      categoryslug: categorySlug,
+      sectionslug: sectionSlug,
+    });
+
+    if (rows.length === 0) return null;
+
+    return rows.map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      lessonorder: r.lessonorder,
+      html: cleanLessonHtml(r.html ?? ""),
+    }));
+  },
+  "lesson-content",
+);
+
+/** Read status only — always fresh, never cached. */
+export async function getLessonReadStatusFresh(
   courseSlug: string,
+  categorySlug: string,
   sectionSlug: string,
   lessonSlug: string,
 ) {
   "use server";
   const d1 = getDb();
+  const session = await getSession();
+  const userId = session.data.id ?? 0;
+  if (!userId) return false;
 
-  const lesson = await findLessonByPath(
-    d1,
-    courseSlug,
-    sectionSlug,
-    lessonSlug,
-  );
-  if (!lesson) return "";
-
-  const htmlRow = await getLessonHtml(d1, { id: lesson.id });
-  return cleanLessonHtml(htmlRow?.html ?? "");
+  const result = await getLessonFromPathReadStatus(d1, {
+    userid: userId,
+    courseslug: courseSlug,
+    categoryslug: categorySlug,
+    sectionslug: sectionSlug,
+    lessonslug: lessonSlug,
+  });
+  return result?.isread ? Boolean(result.isread) : false;
 }

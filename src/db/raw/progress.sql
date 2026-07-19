@@ -22,6 +22,40 @@ SELECT COALESCE(SUM(lesson.lesson_order), 0) AS totalorder, COUNT(*) AS readcoun
 -- name: GetCourseSectionReadStatus :many
 SELECT lesson.category_id AS categoryid, lesson.section_id AS sectionid, category.slug AS categoryslug, section.slug AS sectionslug, COUNT(progress.lesson_id) AS readcount, COUNT(lesson.id) AS totallessons FROM lesson INNER JOIN category ON lesson.category_id = category.id INNER JOIN section ON lesson.section_id = section.id LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = ? WHERE lesson.course_id = ? GROUP BY lesson.category_id, lesson.section_id ORDER BY lesson.category_id, lesson.section_id;
 
+-- name: GetLessonFromPathReadStatus :one
+SELECT (SELECT COUNT(*) > 0 FROM progress WHERE progress.lesson_id = lesson.id AND progress.user_id = sqlc.arg(userId)) AS isread
+FROM lesson
+INNER JOIN section ON lesson.section_id = section.id
+INNER JOIN category ON section.category_id = category.id
+INNER JOIN course ON category.course_id = course.id
+WHERE course.slug = sqlc.arg(courseSlug)
+  AND category.slug = sqlc.arg(categorySlug)
+  AND section.slug = sqlc.arg(sectionSlug)
+  AND lesson.slug = sqlc.arg(lessonSlug)
+LIMIT 1;
+
+-- name: GetSectionReadCounts :many
+SELECT lesson.slug
+FROM lesson
+INNER JOIN section ON lesson.section_id = section.id
+INNER JOIN category ON section.category_id = category.id
+INNER JOIN course ON category.course_id = course.id
+INNER JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = sqlc.arg(userId)
+WHERE course.slug = sqlc.arg(courseSlug) AND section.slug = sqlc.arg(sectionSlug);
+
+-- name: GetCourseReadStatusBySlug :many
+SELECT lesson.category_id AS categoryid, lesson.section_id AS sectionid,
+  category.slug AS categoryslug, section.slug AS sectionslug,
+  COUNT(progress.lesson_id) AS readcount, COUNT(lesson.id) AS totallessons
+FROM lesson
+INNER JOIN category ON lesson.category_id = category.id
+INNER JOIN section ON lesson.section_id = section.id
+INNER JOIN course ON lesson.course_id = course.id
+LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = sqlc.arg(userId)
+WHERE course.slug = sqlc.arg(courseSlug)
+GROUP BY lesson.category_id, lesson.section_id
+ORDER BY lesson.category_id, lesson.section_id;
+
 
 
 -- name: DeleteAllProgress :exec

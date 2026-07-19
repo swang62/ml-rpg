@@ -36,3 +36,21 @@ FROM lesson
 INNER JOIN section ON lesson.section_id = section.id
 WHERE lesson.category_id = ?
 ORDER BY section.id, lesson.lesson_order;
+
+-- name: GetLessonPageData :many
+SELECT
+  lesson.id,
+  lesson.slug,
+  lesson.title,
+  lesson.lesson_order AS lessonorder,
+  lesson.html,
+  (SELECT COUNT(*) > 0 FROM progress WHERE progress.lesson_id = lesson.id AND progress.user_id = sqlc.arg(userId)) AS isread
+FROM lesson
+INNER JOIN section ON lesson.section_id = section.id
+INNER JOIN category ON section.category_id = category.id
+INNER JOIN course ON category.course_id = course.id
+WHERE course.slug = sqlc.arg(courseSlug)
+  AND category.slug = sqlc.arg(categorySlug)
+  AND section.slug = sqlc.arg(sectionSlug)
+ORDER BY lesson.lesson_order;
+

@@ -7,7 +7,7 @@ import {
   SITE_URL,
 } from "~/utils/constants";
 
-const OG_IMAGE = `${SITE_URL}/assets/screenshot-homepage.png`;
+const OG_IMAGE = `${SITE_URL}/assets/screenshot-homepage.webp`;
 
 interface SEOProps {
   title?: string;
