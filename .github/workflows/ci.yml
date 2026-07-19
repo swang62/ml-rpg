@@ -127,8 +127,10 @@ jobs:
           npx wrangler d1 list 2>&1 | head -5 || echo "(d1 list failed — ok if token lacks read scope)"
       - name: Build Worker bundle
         run: pnpm build
-      - name: Deploy to staging
+      - name: Deploy main Worker to staging
         run: npx wrangler deploy --env staging
+      - name: Deploy cron Worker to staging
+        run: npx wrangler deploy --config cron/wrangler.jsonc --env staging
 
   deploy-production:
     needs: [lint, test, build]
@@ -157,5 +159,7 @@ jobs:
           npx wrangler d1 list 2>&1 | head -5 || echo "(d1 list failed — ok if token lacks read scope)"
       - name: Build Worker bundle
         run: pnpm build
-      - name: Deploy to production
+      - name: Deploy main Worker to production
         run: npx wrangler deploy --env production
+      - name: Deploy cron Worker to production
+        run: npx wrangler deploy --config cron/wrangler.jsonc --env production

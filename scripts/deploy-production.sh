@@ -20,8 +20,11 @@ retry() {
 echo "==> Building Worker bundle..."
 pnpm build
 
-echo "==> Deploying Worker to production..."
+echo "==> Deploying main Worker to production..."
 retry wrangler deploy --env production </dev/null
+
+echo "==> Deploying cron Worker to production..."
+retry wrangler deploy --config cron/wrangler.jsonc --env production </dev/null
 
 sleep 20
 
