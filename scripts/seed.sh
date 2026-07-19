@@ -1,7 +1,8 @@
 #!/bin/bash
 # Seed the D1 database. Usage: ./seed.sh {local|staging|production}
 # Always produces a clean state: wipes content tables, then re-inserts.
-# Never touches users/progress.
+# User progress is backed up by slug path before wiping and restored after reseeding.
+# Lessons that no longer exist between seed runs are silently dropped.
 
 set -euo pipefail
 
@@ -26,22 +27,26 @@ if [[ "$ENV" == "local" ]]; then
   npx wrangler d1 migrations apply D1_CONTENT --local
 
   echo ""
-  echo "==> Wiping data..."
-  npx wrangler d1 execute D1_CONTENT --local --file="$SCRIPT_DIR/wipe-content.sql"
+  echo "==> Backing up progress and wiping data..."
+  npx wrangler d1 execute D1_CONTENT --local --file="$SCRIPT_DIR/backup-and-wipe-content.sql"
 
   echo ""
   echo "==> Seeding..."
   for f in .data/d1-seed-*.sql; do
     npx wrangler d1 execute D1_CONTENT --local --file="$f"
   done
+
+  echo ""
+  echo "==> Restoring progress..."
+  npx wrangler d1 execute D1_CONTENT --local --file="$SCRIPT_DIR/restore-progress.sql"
 else
   echo ""
   echo "==> Applying D1 migrations to $ENV..."
   npx wrangler d1 migrations apply D1_CONTENT --remote --env "$ENV" </dev/null
 
   echo ""
-  echo "==> Wiping data..."
-  npx wrangler d1 execute D1_CONTENT --remote --env "$ENV" --file="$SCRIPT_DIR/wipe-content.sql" </dev/null
+  echo "==> Backing up progress and wiping data..."
+  npx wrangler d1 execute D1_CONTENT --remote --env "$ENV" --file="$SCRIPT_DIR/backup-and-wipe-content.sql" </dev/null
 
   echo ""
   echo "==> Seeding..."
@@ -56,6 +61,10 @@ else
     done || exit 1
     sleep 3
   done
+
+  echo ""
+  echo "==> Restoring progress..."
+  npx wrangler d1 execute D1_CONTENT --remote --env "$ENV" --file="$SCRIPT_DIR/restore-progress.sql" </dev/null
 fi
 
 echo ""
