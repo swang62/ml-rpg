@@ -14,8 +14,8 @@
       "invocation_logs": true
     },
     "traces": {
-      "enabled": true,
-      "persist": true,
+      "enabled": false,
+      "persist": false,
       "head_sampling_rate": 1
     }
   },
