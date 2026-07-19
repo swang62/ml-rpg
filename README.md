@@ -1,6 +1,6 @@
 # Machine Learning (the RPG)
 
-![Homepage screenshot](public/assets/screenshot-homepage.png)
+![Homepage screenshot](public/assets/screenshot-homepage.webp)
 
 A gamified learning course platform for ML engineering, data engineering, and overall system design. Built on SolidStart, mobile-responsive, supports full keyboard navigation on desktop, and includes a helpful RAG-assisted local "librarian" to help along your journey.
 
@@ -77,7 +77,7 @@ I created this repo to initially self-learn about ML/Data engineering and system
 
 ## Codebase
 
-I tried to avoid any external dependencies for this small project, so trading a little bit of accuracy in exchange for full privacy and offline processing is worth it IMO. All LLM models and embeddings are created locally with a backend FastAPI server. For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
+I tried to avoid any external dependencies besides Cloudflare for this small project, so trading a little bit of accuracy in exchange for full privacy and offline processing is worth it IMO. All LLM models and embeddings are created locally with a backend FastAPI server. For a full breakdown of the repo architecture, tech stack, configuration, and local development setup, check out [AGENTS.md](AGENTS.md).
 
 ## License
 

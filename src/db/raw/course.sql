@@ -12,3 +12,12 @@ INSERT INTO course (slug, title) VALUES (?, ?) RETURNING id;
 
 -- name: DeleteAllCourses :exec
 DELETE FROM course;
+
+-- name: GetBreadcrumbs :one
+SELECT course.title AS coursetitle,
+       category.title AS categorytitle,
+       section.title AS sectiontitle
+FROM course
+LEFT JOIN category ON category.course_id = course.id AND category.slug = sqlc.arg(categorySlug)
+LEFT JOIN section ON section.category_id = category.id AND section.slug = sqlc.arg(sectionSlug)
+WHERE course.slug = sqlc.arg(courseSlug);

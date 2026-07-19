@@ -1,0 +1,37 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "ml-rpg-cleanup",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["0 0 * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "D1_CONTENT",
+      "database_name": "ml-rpg-content",
+      "database_id": "local"
+    }
+  ],
+  "env": {
+    "staging": {
+      "d1_databases": [
+        {
+          "binding": "D1_CONTENT",
+          "database_name": "ml-rpg-staging",
+          "database_id": "867768aa-b815-4579-8220-acaec4c533f2"
+        }
+      ]
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "D1_CONTENT",
+          "database_name": "ml-rpg-production",
+          "database_id": "074c21ec-b18e-4d8f-97ad-a4dc0ef27af4"
+        }
+      ]
+    }
+  }
+}

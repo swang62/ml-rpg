@@ -20,6 +20,9 @@ def get_vectordb():
         return _table
 
     db = lancedb.connect(LANCEDB_PATH)
+    table_names = db.table_names()
+    if "chunks" not in table_names:
+        raise RuntimeError("LanceDB 'chunks' table not found — index has not been built yet")
     _table = db.open_table("chunks")
     return _table
 

@@ -5,16 +5,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip3 install --break-system-packages --no-cache-dir huggingface-hub hf_transfer \
     && rm -rf /var/lib/apt/lists/*
 
-COPY entrypoint.sh /app/entrypoint.sh
-COPY scripts/ /app/scripts/
-
-RUN chmod +x /app/entrypoint.sh
-
 ENV MODEL_PATH=/app/models
 ENV HF_MODEL_REPO=scubastevve/ml-rpg-bob
 ENV HF_MODEL_FILE=bob.gguf
 
 RUN mkdir -p $MODEL_PATH
+
+# App source — changes most frequently
+COPY entrypoint.sh /app/entrypoint.sh
+COPY scripts/ /app/scripts/
+
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8080
 

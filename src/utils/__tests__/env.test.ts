@@ -4,6 +4,11 @@ import { getEnv, resetEnv } from "~/utils/env";
 // Store original env to restore after tests
 const ORIGINAL_ENV = { ...process.env };
 
+const BASE_ENV = {
+  SESSION_SECRET: "a".repeat(32),
+  RAG_API_URL: "http://rag-api:8000",
+};
+
 beforeEach(() => {
   // Reset the env module cache before each test
   resetEnv();
@@ -17,26 +22,21 @@ afterEach(() => {
 
 describe("getEnv", () => {
   it("returns validated env when all required vars are set", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
     process.env.PORT = "4000";
     process.env.HOST = "127.0.0.1";
     process.env.NODE_ENV = "test";
 
     const env = getEnv();
-    expect(env.COURSE_DB_PATH).toBe("/tmp/test.db");
-    expect(env.LANCEDB_PATH).toBe("/tmp/search");
     expect(env.SESSION_SECRET).toBe("a".repeat(32));
     expect(env.PORT).toBe(4000);
     expect(env.HOST).toBe("127.0.0.1");
     expect(env.NODE_ENV).toBe("test");
+    expect(env.RAG_API_URL).toBe("http://rag-api:8000");
   });
 
   it("uses defaults for PORT and HOST when not provided", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
     delete process.env.PORT;
     delete process.env.HOST;
 
@@ -46,9 +46,7 @@ describe("getEnv", () => {
   });
 
   it("coerces PORT from string to number", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
     process.env.PORT = "8080";
 
     const env = getEnv();
@@ -56,9 +54,7 @@ describe("getEnv", () => {
   });
 
   it("defaults NODE_ENV to development when not set", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
     delete process.env.NODE_ENV;
 
     const env = getEnv();
@@ -66,66 +62,42 @@ describe("getEnv", () => {
   });
 
   it("caches the result after first successful call", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
 
     const env1 = getEnv();
     // Modify env after first call
-    process.env.COURSE_DB_PATH = "/tmp/changed.db";
+    process.env.SESSION_SECRET = "changed".repeat(6);
 
     const env2 = getEnv();
     // Should still be the original cached value
-    expect(env2.COURSE_DB_PATH).toBe("/tmp/test.db");
+    expect(env2.SESSION_SECRET).toBe("a".repeat(32));
     // Same object reference
     expect(env1).toBe(env2);
   });
 
-  it("throws when COURSE_DB_PATH is missing", () => {
-    process.env.COURSE_DB_PATH = "";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
-
-    expect(() => getEnv()).toThrow("COURSE_DB_PATH");
-  });
-
-  it("throws when LANCEDB_PATH is missing", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "";
-    process.env.SESSION_SECRET = "a".repeat(32);
-
-    expect(() => getEnv()).toThrow("LANCEDB_PATH");
-  });
-
   it("throws when SESSION_SECRET is too short", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
+    process.env = { ...process.env, ...BASE_ENV };
     process.env.SESSION_SECRET = "short";
 
     expect(() => getEnv()).toThrow("SESSION_SECRET");
   });
 
   it("throws when SESSION_SECRET is missing", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
+    process.env = { ...process.env, ...BASE_ENV };
     process.env.SESSION_SECRET = "";
 
     expect(() => getEnv()).toThrow("SESSION_SECRET");
   });
 
   it("throws when PORT is not a valid number", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
     process.env.PORT = "not-a-number";
 
     expect(() => getEnv()).toThrow();
   });
 
   it("throws when NODE_ENV is invalid", () => {
-    process.env.COURSE_DB_PATH = "/tmp/test.db";
-    process.env.LANCEDB_PATH = "/tmp/search";
-    process.env.SESSION_SECRET = "a".repeat(32);
+    process.env = { ...process.env, ...BASE_ENV };
     process.env.NODE_ENV = "staging";
 
     expect(() => getEnv()).toThrow("NODE_ENV");

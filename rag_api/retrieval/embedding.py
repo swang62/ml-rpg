@@ -6,7 +6,7 @@ from pathlib import Path
 from fastembed import TextEmbedding
 from huggingface_hub import snapshot_download
 
-from ..config import FASTEMBED_BATCH_SIZE, FASTEMBED_MODEL_NAME
+from ..config import FASTEMBED_BATCH_SIZE, FASTEMBED_MAX_LENGTH, FASTEMBED_MODEL_NAME
 
 logger = logging.getLogger("rag_api")
 
@@ -38,7 +38,7 @@ def _load_embedder() -> TextEmbedding:
     logger.info("loading fastembed model: %s", FASTEMBED_MODEL_NAME)
     embedder = TextEmbedding(
         model_name=FASTEMBED_MODEL_NAME,
-        max_length=512,
+        max_length=FASTEMBED_MAX_LENGTH,
         cache_dir=_hf_cache_dir(),
     )
     logger.info("fastembed model loaded (cache: %s)", _hf_cache_dir())

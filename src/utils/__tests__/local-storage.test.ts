@@ -13,6 +13,7 @@ vi.mock("solid-js/web", async (importOriginal) => {
 import {
   getAnonCategoryReadCounts,
   getAnonDisplayName,
+  getAnonSectionReadCounts,
   getAnonSectionReadSlugs,
   getAnonTotalXp,
   isAnonLessonRead,
@@ -99,6 +100,10 @@ describe("anonymous local storage integration", () => {
     // ── Category read counts ──────────────────────────────────────
     expect(getAnonCategoryReadCounts("ml")).toEqual({ basics: 3 });
     expect(getAnonCategoryReadCounts("de")).toEqual({ fundamentals: 1 });
+    expect(getAnonSectionReadCounts("ml", "basics")).toEqual({
+      advanced: 1,
+      intro: 2,
+    });
 
     // ── Total XP calculation ──────────────────────────────────────
     // (1 + 2 + 3 + 4) * 25 = 250
@@ -148,6 +153,18 @@ describe("anonymous local storage integration", () => {
     markAnonLessonRead("ml", "cat", "sec", "lesson:with:colons", 5);
     const slugs = getAnonSectionReadSlugs("ml", "sec");
     expect(slugs).toEqual(["lesson:with:colons"]);
+  });
+
+  it("getAnonSectionReadSlugs can scope by category", () => {
+    markAnonLessonRead("ml", "cat-a", "shared", "lesson-a", 1);
+    markAnonLessonRead("ml", "cat-b", "shared", "lesson-b", 1);
+
+    expect(getAnonSectionReadSlugs("ml", "cat-a", "shared")).toEqual([
+      "lesson-a",
+    ]);
+    expect(getAnonSectionReadSlugs("ml", "cat-b", "shared")).toEqual([
+      "lesson-b",
+    ]);
   });
 
   it("getAnonTotalXp handles non-numeric stored values gracefully", () => {

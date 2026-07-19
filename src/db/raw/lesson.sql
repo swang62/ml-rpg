@@ -11,7 +11,7 @@ SELECT lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder,
 SELECT lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder, lesson.section_id AS sectionid, lesson.category_id AS categoryid, lesson.course_id AS courseid FROM lesson;
 
 -- name: CreateLesson :one
-INSERT INTO lesson (slug, title, html, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id;
+INSERT INTO lesson (slug, title, html, lesson_highlights, lesson_order, course_id, category_id, section_id, keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id;
 
 -- name: DeleteAllLessons :exec
 DELETE FROM lesson;
@@ -36,3 +36,13 @@ FROM lesson
 INNER JOIN section ON lesson.section_id = section.id
 WHERE lesson.category_id = ?
 ORDER BY section.id, lesson.lesson_order;
+
+-- name: GetAllCourseLessonsGrouped :many
+SELECT lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder,
+       lesson.section_id AS sectionid, section.slug AS secslug,
+       section.title AS sectitle, category.slug AS categoryslug
+FROM lesson
+INNER JOIN section ON lesson.section_id = section.id
+INNER JOIN category ON lesson.category_id = category.id
+WHERE lesson.course_id = ?
+ORDER BY category.id, section.id, lesson.lesson_order;

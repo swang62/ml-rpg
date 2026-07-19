@@ -10,7 +10,6 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import AskAIMessage from "~/components/AskAIMessage";
-import { prepareChat, warmupCheck } from "~/server/rag";
 import { RAG_BOT_NAME, RAG_MAX_HISTORY, SHORTCUTS } from "~/utils/constants";
 import { setupFocusTrap } from "~/utils/focus-trap";
 import { escapeHtml, shouldHideSources } from "~/utils/search-utils";
@@ -102,40 +101,37 @@ export default function AskAI() {
 
     setInputValue("");
     setMessages((prev) => [...prev, { role: "user", content: query }]);
+    setIsLoading(true);
+    setHasStartedStreaming(false);
+    setStreamingContent(null);
+
+    const history = messages()
+      .slice(1, -1)
+      .slice(-RAG_MAX_HISTORY)
+      .map((m) => ({ role: m.role, content: m.content }));
 
     try {
-      // Phase 1: Idle check (lightweight) — decide loading text before any real work
-      const needsWarmup = await warmupCheck();
-      setLoadingText(needsWarmup ? "Warping in portal..." : "...");
-      setIsLoading(true);
-      setHasStartedStreaming(false);
-      setStreamingContent(null);
-
-      // Phase 2: RAG retrieval + validation (rate limit, sanitize, jailbreak)
-      const history = messages()
-        .slice(1, -1)
-        .slice(-RAG_MAX_HISTORY)
-        .map((m) => ({ role: m.role, content: m.content }));
-
-      const prepared = await prepareChat({ query, history });
-
-      const skipMsg = prepared.skipResponse;
-      if (skipMsg) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: skipMsg },
-        ]);
-        return;
-      }
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: prepared.messages,
-          streamToken: prepared.streamToken,
-        }),
+        body: JSON.stringify({ query, history }),
       });
+
+      if (response.status === 429 || response.status === 400) {
+        const errData = (await response.json().catch(() => ({}))) as Record<
+          string,
+          unknown
+        >;
+        const skipMsg =
+          errData.type === "skip" ? String(errData.content) : null;
+        if (skipMsg) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: skipMsg },
+          ]);
+          return;
+        }
+      }
 
       if (!response.ok) {
         throw new Error(`Chat API error: ${response.status}`);
@@ -149,7 +145,8 @@ export default function AskAI() {
       const decoder = new TextDecoder();
       let buffer = "";
       let accumulatedContent = "";
-      let streamStarted = false;
+      let sources: SourceResult[] = [];
+      let keywords: string[] = [];
       let done = false;
 
       while (!done) {
@@ -170,21 +167,29 @@ export default function AskAI() {
           }
 
           try {
-            const parsed = JSON.parse(data);
+            const parsed = JSON.parse(data) as Record<string, unknown>;
 
-            if (parsed.type === "error") {
-              accumulatedContent = parsed.content;
+            if (parsed.type === "error" || parsed.type === "skip") {
+              accumulatedContent = String(parsed.content ?? "");
               setStreamingContent(accumulatedContent);
               done = true;
               break;
             }
 
-            const delta = parsed.choices?.[0]?.delta?.content;
+            if (parsed.type === "meta") {
+              sources = (parsed.sources ?? []) as SourceResult[];
+              keywords = (parsed.keywords ?? []) as string[];
+              break;
+            }
+
+            const choices = parsed.choices as
+              | Array<{ delta?: { content?: string } }>
+              | undefined;
+            const delta = choices?.[0]?.delta?.content;
             if (delta) {
               accumulatedContent += delta;
               setStreamingContent(accumulatedContent);
-              if (!streamStarted) {
-                streamStarted = true;
+              if (!hasStartedStreaming()) {
                 setHasStartedStreaming(true);
               }
             }
@@ -194,12 +199,9 @@ export default function AskAI() {
         }
       }
 
-      const finalSources = shouldHideSources(
-        accumulatedContent,
-        prepared.sources,
-      )
+      const finalSources = shouldHideSources(accumulatedContent, sources)
         ? []
-        : prepared.sources;
+        : sources;
 
       setMessages((prev) => [
         ...prev,
@@ -207,7 +209,7 @@ export default function AskAI() {
           role: "assistant",
           content: accumulatedContent,
           sources: finalSources,
-          keywords: prepared.keywords,
+          keywords,
         },
       ]);
     } catch (err) {

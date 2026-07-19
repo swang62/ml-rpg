@@ -13,6 +13,11 @@ describe("isStaticAsset", () => {
     expect(isStaticAsset("/assets/")).toBe(true);
   });
 
+  it("matches _build/assets/ prefix", () => {
+    expect(isStaticAsset("/_build/assets/client-C28B02z-.css")).toBe(true);
+    expect(isStaticAsset("/_build/assets/")).toBe(true);
+  });
+
   it("matches favicon prefix", () => {
     expect(isStaticAsset("/favicon.ico")).toBe(true);
     expect(isStaticAsset("/favicon-32x32.png")).toBe(true);
