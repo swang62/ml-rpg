@@ -5,15 +5,13 @@ Called at startup. Rebuilds only when:
 - The replicated content DB content changed (detected via content hash, not file bytes).
 """
 
-import hashlib
 import logging
-import sqlite3
 from pathlib import Path
 
 import lancedb
 
-from ..config import CONTENT_DB_PATH, LANCEDB_PATH
-from .build_index import CHUNKS_TABLE_NAME, build_index
+from ..config import LANCEDB_PATH
+from .build_index import CHUNKS_TABLE_NAME, _compute_db_content_hash, build_index
 
 logger = logging.getLogger("rag_api")
 
@@ -26,30 +24,6 @@ def _read_stored_hash() -> str | None:
     try:
         return meta_path.read_text(encoding="utf-8").strip().split("\n")[0].strip()
     except (OSError, IndexError, ValueError):
-        return None
-
-
-def _compute_db_content_hash() -> str | None:
-    """Return a hash of lesson content (slug + html), not raw file bytes.
-    
-    SQLite file bytes change on each write due to internal timestamps,
-    even with identical data. Hashing the content itself is stable.
-    """
-    db_path = Path(CONTENT_DB_PATH)
-    if not db_path.exists():
-        return None
-    try:
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        rows = conn.execute(
-            "SELECT slug, html FROM lesson ORDER BY slug"
-        ).fetchall()
-        h = hashlib.sha256()
-        for slug, html in rows:
-            h.update(slug.encode("utf-8"))
-            h.update(html.encode("utf-8"))
-        conn.close()
-        return h.hexdigest()[:16]
-    except Exception:
         return None
 
 

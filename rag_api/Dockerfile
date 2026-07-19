@@ -17,6 +17,7 @@ ENV PYTHONPATH=/app
 ENV HF_HUB_CACHE=/root/.cache/huggingface/hub
 
 # App source — changes most frequently
+COPY README.md /app/README.md
 COPY rag_api/ /app/rag_api/
 COPY shared/ /app/shared/
 

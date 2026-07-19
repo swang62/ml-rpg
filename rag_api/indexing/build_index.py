@@ -8,7 +8,6 @@ from a replicated local SQLite DB instead of the frontend's runtime DB.
 import hashlib
 import json
 import logging
-import os
 import re
 import sqlite3
 import tempfile
@@ -149,9 +148,7 @@ def _load_lessons_from_db() -> list[dict[str, Any]]:
     cursor.execute("SELECT id, slug, title FROM course")
     courses = {row["id"]: dict(row) for row in cursor.fetchall()}
 
-    cursor.execute(
-        "SELECT id, slug, title, course_id AS courseid FROM category"
-    )
+    cursor.execute("SELECT id, slug, title, course_id AS courseid FROM category")
     categories = {row["id"]: dict(row) for row in cursor.fetchall()}
 
     cursor.execute(
@@ -182,8 +179,7 @@ def _load_lessons_from_db() -> list[dict[str, Any]]:
             continue
 
         lesson_url = (
-            f"/{course['slug']}/{category['slug']}/"
-            f"{section['slug']}/{lesson['slug']}"
+            f"/{course['slug']}/{category['slug']}/{section['slug']}/{lesson['slug']}"
         )
         chunks = _split_text(plain_text, RAG_CHUNK_SIZE, RAG_CHUNK_OVERLAP)
         if not chunks:
@@ -223,25 +219,26 @@ def _compute_content_hash(lesson_groups: list[dict]) -> str:
 
 
 def _compute_db_content_hash() -> str:
-    """Return a hash of lesson content (slug + html), not raw file bytes.
-    
-    SQLite file bytes change on each write due to internal timestamps,
-    even with identical data. Hashing the content itself is stable.
+    """Return a hash of lesson content + README.
+
+    Raises FileNotFoundError if the content DB doesn't exist.
     """
     import sqlite3
-    
+
     db_path = Path(CONTENT_DB_PATH)
     if not db_path.exists():
         raise FileNotFoundError(f"Content DB not found at {CONTENT_DB_PATH}")
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-    rows = conn.execute(
-        "SELECT slug, html FROM lesson ORDER BY slug"
-    ).fetchall()
+    rows = conn.execute("SELECT slug, html FROM lesson ORDER BY slug").fetchall()
     h = hashlib.sha256()
     for slug, html in rows:
         h.update(slug.encode("utf-8"))
         h.update(html.encode("utf-8"))
     conn.close()
+
+    if README_PATH.exists():
+        h.update(README_PATH.read_bytes())
+
     return h.hexdigest()[:16]
 
 
@@ -298,7 +295,9 @@ def build_index() -> tuple[int, str]:
         logger.info("Added README lesson group (%d chunks)", len(readme_group["texts"]))
 
     total_chunks = sum(len(g["texts"]) for g in lesson_groups)
-    logger.info("Loaded %d lesson groups, %d total chunks", len(lesson_groups), total_chunks)
+    logger.info(
+        "Loaded %d lesson groups, %d total chunks", len(lesson_groups), total_chunks
+    )
 
     # 2. Compute content hash BEFORE embedding (cheap change detector)
     db_hash = _compute_db_content_hash()
