@@ -113,7 +113,8 @@ function main() {
       (chunkIdx + 1) * MAX_LESSONS_PER_CHUNK,
     );
 
-    const lines = [...header];
+    const lines = ["PRAGMA foreign_keys = OFF;", ""];
+    if (chunkIdx === 0) lines.push(...header);
     lines.push(`-- Lessons (chunk ${chunkIdx + 1}/${totalChunks})`);
     for (const row of chunk) {
       lines.push(
@@ -121,6 +122,7 @@ function main() {
       );
     }
     lines.push("");
+    lines.push("PRAGMA foreign_keys = ON;");
 
     const file = `${SEED_PREFIX}${String(chunkIdx).padStart(2, "0")}.sql`;
     writeFileSync(file, lines.join("\n"), "utf-8");
