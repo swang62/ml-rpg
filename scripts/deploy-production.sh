@@ -1,11 +1,27 @@
 #!/bin/bash
 set -euo pipefail
 
+retry() {
+  local max_attempts=3 delay=10 attempt=1
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+    if [[ $attempt -ge $max_attempts ]]; then
+      echo "  FAILED after $max_attempts attempts: $*" >&2
+      return 1
+    fi
+    echo "  Attempt $attempt failed. Retrying in ${delay}s..." >&2
+    sleep "$delay"
+    ((attempt++))
+  done
+}
+
 echo "==> Building Worker bundle..."
 pnpm build
 
 echo "==> Deploying Worker to production..."
-wrangler deploy --env production </dev/null
+retry wrangler deploy --env production </dev/null
 
 sleep 20
 

@@ -1,10 +1,9 @@
 import { query } from "@solidjs/router";
 import {
+  getAllCourseLessonsGrouped,
   getAllReadLessons,
-  getCategoriesByCourse,
   getCourseBySlug,
   getLessonCount,
-  getLessonsByCategoryGrouped,
   getReadCountsByCourse,
   getReadLessonsBySection,
   getSectionIdToSlugByCourse,
@@ -126,28 +125,29 @@ export const getCourseReadCountsQuery = query(async (courseSlug: string) => {
   const { results: allRead } = await getAllReadLessons(d1, { userId });
   const readSet = new Set(allRead.map((row) => row.lessonid));
 
-  const { results: categories } = await getCategoriesByCourse(d1, {
+  const { results: grouped } = await getAllCourseLessonsGrouped(d1, {
     courseId: course.id,
   });
 
-  const result: Record<string, boolean[]> = {};
-  for (const cat of categories) {
-    const { results: grouped } = await getLessonsByCategoryGrouped(d1, {
-      categoryId: cat.id,
-    });
-
-    const sectionLessons = new Map<string, number[]>();
-    for (const row of grouped) {
-      const lessonIds = sectionLessons.get(row.secslug) ?? [];
-      lessonIds.push(row.id);
-      sectionLessons.set(row.secslug, lessonIds);
+  const categorySections = new Map<string, Map<string, number[]>>();
+  for (const row of grouped) {
+    let sectionLessons = categorySections.get(row.categoryslug);
+    if (!sectionLessons) {
+      sectionLessons = new Map();
+      categorySections.set(row.categoryslug, sectionLessons);
     }
+    const lessonIds = sectionLessons.get(row.secslug) ?? [];
+    lessonIds.push(row.id);
+    sectionLessons.set(row.secslug, lessonIds);
+  }
 
+  const result: Record<string, boolean[]> = {};
+  for (const [catSlug, sectionLessons] of categorySections) {
     const statuses: boolean[] = [];
     for (const lessonIds of sectionLessons.values()) {
       statuses.push(lessonIds.every((id) => readSet.has(id)));
     }
-    result[cat.slug] = statuses;
+    result[catSlug] = statuses;
   }
 
   return result;

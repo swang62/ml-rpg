@@ -819,6 +819,47 @@ export function getLessonsByCategoryGrouped(
   }
 }
 
+const getAllCourseLessonsGroupedQuery = `-- name: GetAllCourseLessonsGrouped :many
+SELECT lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder,
+       lesson.section_id AS sectionid, section.slug AS secslug,
+       section.title AS sectitle, category.slug AS categoryslug
+FROM lesson
+INNER JOIN section ON lesson.section_id = section.id
+INNER JOIN category ON lesson.category_id = category.id
+WHERE lesson.course_id = ?
+ORDER BY category.id, section.id, lesson.lesson_order`;
+
+export type GetAllCourseLessonsGroupedParams = {
+  courseId: number;
+};
+
+export type GetAllCourseLessonsGroupedRow = {
+  id: number;
+  slug: string;
+  title: string;
+  lessonorder: number;
+  sectionid: number;
+  secslug: string;
+  sectitle: string;
+  categoryslug: string;
+};
+
+export function getAllCourseLessonsGrouped(
+  d1: D1Database,
+  args: GetAllCourseLessonsGroupedParams
+): Query<D1Result<GetAllCourseLessonsGroupedRow>> {
+  const ps = d1
+    .prepare(getAllCourseLessonsGroupedQuery)
+    .bind(args.courseId);
+  return {
+    then(onFulfilled?: (value: D1Result<GetAllCourseLessonsGroupedRow>) => void, onRejected?: (reason?: any) => void) {
+      ps.all<GetAllCourseLessonsGroupedRow>()
+        .then(onFulfilled).catch(onRejected);
+    },
+    batch() { return ps; },
+  }
+}
+
 const getReadLessonsBySectionQuery = `-- name: GetReadLessonsBySection :many
 SELECT lesson.slug FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.section_id = ?`;
 
