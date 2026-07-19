@@ -14,16 +14,17 @@
 
 ```bash
 pnpm dev              # start rag_api + llama-server + wrangler dev (Worker frontend)
+pnpm dev:hmr          # dotenv -- vinxi dev (HMR on localhost:3333, no backend services)
 pnpm build            # vinxi build (Worker bundle)
 pnpm preview          # serve built app (vinxi start)
 pnpm lint             # biome check --write --unsafe . && pnpm typecheck
 pnpm test             # vitest run + pytest
 pnpm generate:types   # sqlc generate — rebuilds typed query functions from src/db
-pnpm seed        # ./scripts/seed-local.sh
-pnpm seed:staging      # ./scripts/seed-staging.sh
-pnpm seed:production   # ./scripts/seed-production.sh
-pnpm deploy:staging    # ./scripts/deploy-staging.sh — generate + build + seed + deploy to staging
-pnpm deploy:production # ./scripts/deploy-production.sh — generate + build + seed + deploy to production
+pnpm seed             # ./scripts/seed.sh local
+pnpm seed:staging     # ./scripts/seed.sh staging
+pnpm seed:production  # ./scripts/seed.sh production
+pnpm deploy:staging    # ./scripts/deploy-staging.sh — build + deploy to staging
+pnpm deploy:production # ./scripts/deploy-production.sh — build + deploy to production
 pnpm build:docker     # docker compose up --build --force-recreate -d — build rag_api + llama_api containers
 pnpm build:finetune   # full fine-tuning pipeline
 ```
