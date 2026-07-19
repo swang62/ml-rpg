@@ -23,8 +23,8 @@ pnpm generate:types   # sqlc generate — rebuilds typed query functions from sr
 pnpm seed             # ./scripts/seed.sh local
 pnpm seed:staging     # ./scripts/seed.sh staging
 pnpm seed:production  # ./scripts/seed.sh production
-pnpm deploy:staging    # ./scripts/deploy-staging.sh — build + deploy to staging
-pnpm deploy:production # ./scripts/deploy-production.sh — build + deploy to production
+pnpm deploy:staging    # ./scripts/deploy.sh staging — build + deploy to staging
+pnpm deploy:prod       # ./scripts/deploy.sh production — build + deploy to production
 pnpm build:docker     # docker compose up --build --force-recreate -d — build rag_api + llama_api containers
 pnpm build:finetune   # full fine-tuning pipeline
 ```
@@ -110,7 +110,7 @@ A custom `llama_api/` pipeline that generates synthetic training data via Ollama
 
 ```bash
 pnpm deploy:staging     # generate + build + seed + deploy
-pnpm deploy:production  # same, against production
+pnpm deploy:prod        # same, against production
 ```
 
 `generate` (creates `lessons.db` + `search-index.json`) MUST run before `build` (which inlines `search-index.json`).

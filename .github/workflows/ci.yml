@@ -125,6 +125,24 @@ jobs:
         run: |
           echo "Account ID: ${CLOUDFLARE_ACCOUNT_ID:0:8}..."
           npx wrangler d1 list 2>&1 | head -5 || echo "(d1 list failed — ok if token lacks read scope)"
+      - name: Apply D1 migrations to staging
+        run: |
+          retry() {
+            local max_attempts=3 delay=10 attempt=1
+            while true; do
+              if "$@"; then
+                return 0
+              fi
+              if [[ $attempt -ge $max_attempts ]]; then
+                echo "FAILED after $max_attempts attempts: $*" >&2
+                return 1
+              fi
+              echo "Attempt $attempt failed. Retrying in ${delay}s..." >&2
+              sleep "$delay"
+              ((attempt++))
+            done
+          }
+          retry npx wrangler d1 migrations apply D1_CONTENT --remote --env staging </dev/null
       - name: Build Worker bundle
         run: pnpm build
       - name: Deploy main Worker to staging
@@ -157,6 +175,24 @@ jobs:
         run: |
           echo "Account ID: ${CLOUDFLARE_ACCOUNT_ID:0:8}..."
           npx wrangler d1 list 2>&1 | head -5 || echo "(d1 list failed — ok if token lacks read scope)"
+      - name: Apply D1 migrations to production
+        run: |
+          retry() {
+            local max_attempts=3 delay=10 attempt=1
+            while true; do
+              if "$@"; then
+                return 0
+              fi
+              if [[ $attempt -ge $max_attempts ]]; then
+                echo "FAILED after $max_attempts attempts: $*" >&2
+                return 1
+              fi
+              echo "Attempt $attempt failed. Retrying in ${delay}s..." >&2
+              sleep "$delay"
+              ((attempt++))
+            done
+          }
+          retry npx wrangler d1 migrations apply D1_CONTENT --remote --env production </dev/null
       - name: Build Worker bundle
         run: pnpm build
       - name: Deploy main Worker to production

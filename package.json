@@ -17,8 +17,8 @@
     "seed": "./scripts/seed.sh local",
     "seed:staging": "./scripts/seed.sh staging",
     "seed:production": "./scripts/seed.sh production",
-    "deploy:staging": "./scripts/deploy-staging.sh",
-    "deploy:prod": "./scripts/deploy-production.sh",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:prod": "./scripts/deploy.sh production",
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {

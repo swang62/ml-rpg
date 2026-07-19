@@ -1,8 +1,8 @@
 #!/bin/bash
 # Seed the D1 database. Usage: ./seed.sh {local|staging|production}
-# Always produces a clean state: wipes content tables, then re-inserts.
-# User progress is backed up by slug path before wiping and restored after reseeding.
-# Lessons that no longer exist between seed runs are silently dropped.
+# Regenerates content via INSERT OR REPLACE with FK enforcement disabled.
+# Progress stays in place — stable IDs keep FK references valid across seeds.
+# Removed lessons leave orphaned rows (harmless — invisible in the UI).
 
 set -euo pipefail
 
@@ -15,7 +15,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 retry() {
-  local max_attempts=3 delay=5 attempt=1
+  local max_attempts=5 delay=3 attempt=1
   while true; do
     if "$@"; then
       return 0
@@ -30,51 +30,34 @@ retry() {
   done
 }
 
-echo "==> Generating lessons.db from raw scraped data..."
+echo "===> Generating lessons.db from raw scraped data ====>"
 npx tsx "$SCRIPT_DIR/generate-db-data.ts"
 
 echo ""
-echo "==> Converting D1 seed SQL from lessons.db..."
+echo "===> Converting seed.sql files from lessons.db ====>"
 npx tsx "$SCRIPT_DIR/convert-db-to-sql.ts"
 
 if [[ "$ENV" == "local" ]]; then
   echo ""
-  echo "==> Applying D1 migrations..."
+  echo "===> Applying D1 migrations ====>"
   npx wrangler d1 migrations apply D1_CONTENT --local
 
   echo ""
-  echo "==> Backing up progress and wiping data..."
-  npx wrangler d1 execute D1_CONTENT --local --file="$SCRIPT_DIR/backup-and-wipe-content.sql"
-
-  echo ""
-  echo "==> Seeding..."
+  echo "===> Seeding all lesson data ====>"
   for f in .data/d1-seed-*.sql; do
     npx wrangler d1 execute D1_CONTENT --local --file="$f"
   done
-
-  echo ""
-  echo "==> Restoring progress..."
-  npx wrangler d1 execute D1_CONTENT --local --file="$SCRIPT_DIR/restore-progress.sql"
 else
   echo ""
-  echo "==> Applying D1 migrations to $ENV..."
+  echo "===> Applying D1 migrations to $ENV ====>"
   retry npx wrangler d1 migrations apply D1_CONTENT --remote --env "$ENV" </dev/null
 
   echo ""
-  echo "==> Backing up progress and wiping data..."
-  retry npx wrangler d1 execute D1_CONTENT --remote --env "$ENV" --file="$SCRIPT_DIR/backup-and-wipe-content.sql" </dev/null
-
-  echo ""
-  echo "==> Seeding..."
+  echo "===> Seeding all lesson data ====>"
   for f in .data/d1-seed-*.sql; do
     echo "  Uploading $f..."
     retry npx wrangler d1 execute D1_CONTENT --remote --env "$ENV" --file="$f" </dev/null
-    sleep 3
   done
-
-  echo ""
-  echo "==> Restoring progress..."
-  retry npx wrangler d1 execute D1_CONTENT --remote --env "$ENV" --file="$SCRIPT_DIR/restore-progress.sql" </dev/null
 fi
 
 echo ""
