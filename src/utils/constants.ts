@@ -21,13 +21,6 @@ export const RAG_BOT_NAME = "Bob";
 export const RAG_MAX_HISTORY = 2;
 export const RAG_MAX_SOURCES = 3;
 
-export const RATE_LIMIT_LOGIN = { maxAttempts: 10, windowMs: 60_000 } as const;
-export const RATE_LIMIT_CHAT = { maxAttempts: 30, windowMs: 60_000 } as const;
-export const RATE_LIMIT_REGULAR = {
-  maxAttempts: 200,
-  windowMs: 60_000,
-} as const;
-
 // Global keyboard shortcuts — centralized so components stay in sync
 export const SHORTCUTS = {
   SEARCH: "f",

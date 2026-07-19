@@ -1,6 +1,5 @@
 import { createMiddleware } from "@solidjs/start/middleware";
-import { checkRateLimit } from "~/middleware/rate-limiter";
-import { RATE_LIMIT_REGULAR } from "~/utils/constants";
+import { checkRateLimitWithBinding, getClientIP } from "~/utils/rate-limit";
 
 if (!import.meta.env.VITE_SITE_URL) {
   throw new Error("VITE_SITE_URL is required.");
@@ -47,21 +46,25 @@ export default createMiddleware({
       );
     }
 
-    const ip =
-      event.clientAddress ??
-      event.request.headers.get("cf-connecting-ip") ??
-      event.request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      event.request.headers.get("x-real-ip") ??
-      "unknown";
+    const ip = getClientIP(event.request);
 
-    const result = checkRateLimit(`ratelimit:${ip}`, RATE_LIMIT_REGULAR);
-    if (!result.allowed) {
-      const retryAfter = Math.ceil(result.resetMs / 1000);
+    // Cloudflare Rate Limiting API — enforce at edge via env bindings
+    const ne = event.nativeEvent as {
+      req?: { runtime?: { cloudflare?: { env?: Record<string, unknown> } } };
+      context?: {
+        cloudflare?: { env?: Record<string, unknown> };
+        _platform?: { cloudflare?: { env?: Record<string, unknown> } };
+      };
+    };
+    const rl = (ne.context?.cloudflare?.env?.RL_GENERAL ??
+      ne.context?._platform?.cloudflare?.env?.RL_GENERAL ??
+      ne.req?.runtime?.cloudflare?.env?.RL_GENERAL) as RateLimit | undefined;
+    const { allowed } = await checkRateLimitWithBinding(rl, `ratelimit:${ip}`);
+    if (!allowed) {
       return new Response(
         JSON.stringify({
           error: "Too Many Requests",
-          message: `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
-          retryAfter,
+          message: "Rate limit exceeded. Try again later.",
         }),
         {
           status: 429,
@@ -69,25 +72,12 @@ export default createMiddleware({
           headers: {
             "Content-Type": "application/json",
             "Cache-Control": "no-store, must-revalidate",
-            "Retry-After": String(retryAfter),
-            "X-RateLimit-Limit": String(RATE_LIMIT_REGULAR.maxAttempts),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": String(
-              Math.ceil((Date.now() + result.resetMs) / 1000),
-            ),
+            "Retry-After": "60",
           },
         },
       );
     }
 
-    event.response.headers.set(
-      "X-RateLimit-Limit",
-      String(RATE_LIMIT_REGULAR.maxAttempts),
-    );
-    event.response.headers.set(
-      "X-RateLimit-Remaining",
-      String(result.remaining),
-    );
     return;
   },
 });

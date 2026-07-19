@@ -37,7 +37,7 @@
   --glow-category: rgba(52, 211, 153, 0.2);
   --glow-section: rgba(251, 191, 36, 0.2);
   --progress-track: rgba(255, 255, 255, 0.06);
-  --surface-glass: rgba(13, 15, 20, 0.8);
+  --surface-glass: rgba(13, 15, 20, 0.9);
 
   /* Hierarchy tints and glows */
   --tint-course: rgba(167, 139, 250, 0.2);

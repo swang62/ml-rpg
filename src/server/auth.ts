@@ -7,11 +7,10 @@ import {
   updateLastVisitedAt,
   upsertUser,
 } from "~/db/querier";
-import { checkRateLimit } from "~/middleware/rate-limiter";
 import { checkPassword, createHash, getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
-import { RATE_LIMIT_LOGIN } from "~/utils/constants";
 import { validatePassword, validateUsername } from "~/utils/input-validation";
+import { checkRateLimit } from "~/utils/rate-limit";
 
 export const querySession = query(async () => {
   "use server";
@@ -29,10 +28,9 @@ export const querySession = query(async () => {
 
 export const formLogin = action(async (formData: FormData) => {
   "use server";
-  const event = getRequestEvent();
-  const ip = event?.clientAddress ?? "unknown";
-  const rateResult = checkRateLimit(`ratelimit:auth:${ip}`, RATE_LIMIT_LOGIN);
-  if (!rateResult.allowed) {
+  const ip = getRequestEvent()?.clientAddress ?? "unknown";
+  const { allowed } = await checkRateLimit("RL_AUTH", `ratelimit:auth:${ip}`);
+  if (!allowed) {
     throw new Error("Too many attempts. Try again later.");
   }
 
@@ -62,10 +60,9 @@ export const formLogin = action(async (formData: FormData) => {
 
 export const formSignup = action(async (formData: FormData) => {
   "use server";
-  const event = getRequestEvent();
-  const ip = event?.clientAddress ?? "unknown";
-  const rateResult = checkRateLimit(`ratelimit:auth:${ip}`, RATE_LIMIT_LOGIN);
-  if (!rateResult.allowed) {
+  const ip = getRequestEvent()?.clientAddress ?? "unknown";
+  const { allowed } = await checkRateLimit("RL_AUTH", `ratelimit:auth:${ip}`);
+  if (!allowed) {
     throw new Error("Too many attempts. Try again later.");
   }
 

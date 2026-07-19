@@ -1,8 +1,7 @@
 import { getBackendAuthHeaders } from "~/server/backend-auth";
-import { RATE_LIMIT_CHAT } from "~/utils/constants";
 import { getEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
-import { checkRateLimit, getClientIP } from "../../middleware/rate-limiter";
+import { checkRateLimit, getClientIP } from "~/utils/rate-limit";
 
 export async function POST(event: { request: Request }) {
   let body: { query?: unknown; history?: unknown };
@@ -21,15 +20,20 @@ export async function POST(event: { request: Request }) {
     });
   }
 
-  // Rate limit by IP
+  // Rate limit by IP using Cloudflare Rate Limiting API
   const ip = getClientIP(event.request);
-  const rateResult = checkRateLimit(`rag:${ip}`, RATE_LIMIT_CHAT);
-  if (!rateResult.allowed) {
-    const msg = `You're asking too fast! Try again in ${Math.ceil(rateResult.resetMs / 1000)}s`;
-    return new Response(JSON.stringify({ type: "skip", content: msg }), {
-      status: 429,
-      headers: { "Content-Type": "application/json" },
-    });
+  const { allowed } = await checkRateLimit("RL_CHAT", `rag:${ip}`);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({
+        type: "skip",
+        content: "You're asking too fast! Try again later.",
+      }),
+      {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   // Sanitize query
