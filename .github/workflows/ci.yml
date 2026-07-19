@@ -123,7 +123,7 @@ jobs:
           path: node_modules
           key: node_modules-24-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Rebuild native modules (needed by export-d1-content)
+      - name: Rebuild native modules
         run: pnpm rebuild better-sqlite3
       - name: Verify Cloudflare auth
         run: |

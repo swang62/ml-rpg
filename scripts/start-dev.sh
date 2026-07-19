@@ -43,7 +43,7 @@ echo "Generating  artifacts..."
 pnpm generate
 
 echo "Applying local D1 migrations and seed..."
-pnpm seed:local
+pnpm seed
 
 # Build the application for Cloudflare Worker output
 echo "Building application for Cloudflare Workers..."

@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const RAG_DB_PATH = join(ROOT, "rag_api/data/lessons.db");
 const SEED_PREFIX = join(ROOT, ".data/d1-seed-");
-const MAX_LESSONS_PER_CHUNK = 330;
+const MAX_LESSONS_PER_CHUNK = 600;
 
 function escapeSql(val: unknown): string {
   if (val === null || val === undefined) return "NULL";

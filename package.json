@@ -5,6 +5,7 @@
     "build": "vinxi build",
     "build:docker": "docker compose up --build --force-recreate -d",
     "build:finetune": "just default",
+    "db:delete": "rm -rf .wrangler/state/v3/d1",
     "dev": "./scripts/start-dev.sh",
     "dev:watch": "./scripts/dev-watch.sh",
     "generate": "dotenv -- tsx ./scripts/generate-db-data.ts",
@@ -14,12 +15,11 @@
     "test:python": "uv run --group dev pytest rag_api/__tests__ llama_api/__tests__ -v",
     "prepare": "husky || true",
     "scrape": "dotenv -- tsx ./scripts/scrape-lessons.ts",
-    "seed:local": "./scripts/seed-local.sh",
+    "seed": "./scripts/seed-local.sh",
     "seed:staging": "./scripts/seed-staging.sh",
     "seed:production": "./scripts/seed-production.sh",
     "deploy:staging": "./scripts/deploy-staging.sh",
-    "deploy:production": "./scripts/deploy-production.sh",
-    "db:delete-local": "rm -rf .wrangler/state/v3/d1",
+    "deploy:prod": "./scripts/deploy-production.sh",
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {

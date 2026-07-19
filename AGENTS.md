@@ -35,22 +35,21 @@ pnpm build:finetune   # full fine-tuning pipeline
 ## Folder Structure
 
 ```
-.data/            Persistent databases
+.data/            Generated artifacts (gitignored)
 .github/          CI pipeline
 .husky/           Pre-commit hooks
-scripts/          Scripts
-public/           Static assets
-src/
+migrations/       D1 SQL migrations
+public/           Static assets + MiniSearch index
+scripts/          Build, seed, and deploy scripts
+src/              Frontend Worker source
   components/     Reusable UI components
-  middleware/     SolidStart middleware
-  db/
-    raw/          Source .sql files (schema + queries)
-    *_sql.ts      Auto-generated typed query functions
-  routes/         File-system routing (SolidStart convention)
-  server/         SSR functions organized by domain ('use server')
+  db/             SQL query definitions + generated types
+  middleware/     Request pipeline (rate limiting, headers)
+  routes/         File-system routing
+  server/         SSR functions ('use server')
   utils/          Pure helpers
-llama_api/        Bob LLM fine-tuning pipeline
-rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
+llama_api/        LLM fine-tuning pipeline + Docker
+rag_api/          Python FastAPI RAG server + Docker
 ```
 
 ## Code Style Preferences
@@ -63,7 +62,7 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 
 ## Architecture
 
-### UI ↔ Custom internal naming
+### UI ↔ Glossary
 
 | UI Label  | Internal |
 | --------- | -------- |
@@ -80,17 +79,17 @@ rag_api/          Python FastAPI server for RAG chunk retrieval + embedding
 ### Middleware
 
 - **Middleware** (`src/middleware/`) runs in the Vinxi/h3 request pipeline, BEFORE SolidStart's request context is set up. It intercepts raw requests — rate limiting, header manipulation, asset filtering. `"use server"` functions CANNOT be called from middleware `onRequest` because `getRequestEvent()` (SolidStart's async context) isn't available there.
-- **Middleware is NOT Node.js.** It runs in Vinxi's h3 context, isolated from the SSR server. You cannot import Node.js native modules (`better-sqlite3`, `node:fs`, `crypto`, etc.) or `"use server"` functions from middleware. Any module that transitively imports native modules will break. This is not Express — frameworks like SolidStart/Nitro/Vinxi handle middleware differently.
+- **Middleware is NOT Node.js.** On cloudflare workers, you cannot import Node.js native modules (`better-sqlite3`, `node:fs`, `crypto`, etc.) or `"use server"` functions from middleware. Any module that transitively imports native modules will break.
 - **Rule of thumb:** Middleware for pre-request concerns (rate limiting, static assets, headers). Server functions for business logic that touches DB, ENVs, or protected resources.
 
 ### Startup / Warmup
 
-- **Database:** D1 binding provided by Cloudflare at runtime (seeded via `pnpm seed:local`).
+- **Lesson/User Database:** D1 binding provided by Cloudflare at runtime.
 - **Vector store:** Lazy init in rag_api — builds LanceDB index from lesson content. Both are self-healing.
 
 ### Fine-tuning Pipeline
 
-A custom `llama_api/` pipeline that generates synthetic training data via Ollama, fine-tunes a Llama 3.2 3B model with LoRA using mlx-lm on Apple Silicon, fuses adapters, converts to GGUF, and serves via a llama.cpp server container.
+A custom `llama_api/` pipeline that generates synthetic training data via Ollama, fine-tunes a Llama 3.2 3B model with LoRA using mlx-lm on Apple Silicon, fuses adapters, converts to Q4 GGUF, and serves via a llama.cpp server container.
 
 ### Key features
 
@@ -98,10 +97,6 @@ A custom `llama_api/` pipeline that generates synthetic training data via Ollama
 - **Keyword Search:** MiniSearch index (title, content, category, section) built on first query in-memory.
 - **RAG (Ask Bob):** Hybrid search using LanceDB → FastAPI backend for top chunks retrieval → sent to custom fine-tuned llama3.2 model (llama.cpp), rate-limiting, input sanitizing, jailbreak detection via regex patterns.
 - **Rate limiting:** Per-IP sliding window middleware, most strict on auth, AI chat
-
-### Testing
-
-Tests in `__tests__/` co-located with source. Run with `pnpm test`. **Required for all new code logic (pure functions only, integration and E2E tests only when asked).** Cover happy path, edge cases, and invalid/malicious inputs.
 
 ## Deployment
 
@@ -115,43 +110,28 @@ Tests in `__tests__/` co-located with source. Run with `pnpm test`. **Required f
 ### Deploy flow
 
 ```bash
-pnpm deploy:staging     # generate + build + seed + deploy to staging
-pnpm deploy:production  # generate + build + seed + deploy to production
+pnpm deploy:staging     # generate + build + seed + deploy
+pnpm deploy:production  # same, against production
 ```
 
-Order matters: `generate` (creates `lessons.db` + `search-index.json`) MUST run before `build` (which inlines `search-index.json`).
+`generate` (creates `lessons.db` + `search-index.json`) MUST run before `build` (which inlines `search-index.json`).
 
 ### CI/CD
 
-GitHub Actions (`.github/workflows/ci.yml`):
-- Push to any non-main branch OR PR to main → lint + test + build + deploy staging
-- Push to main → lint + test + build + deploy production
-
-Requires GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+GitHub Actions (`.github/workflows/ci.yml`): push to non-main / PR → staging. Push to main → production. Requires `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ### Seed pipeline
 
-`pnpm generate` creates two committed artifacts: `rag_api/data/lessons.db` + `public/search-index.json`. D1 SQL seed files are generated separately from `lessons.db` via `pnpm export:d1` — this means CI can seed D1 without `.data/scraped/` (which is gitignored).
-
-Seed files are chunked (~330 lessons per file, ~2.5MB each) to avoid Cloudflare API timeouts. The seed scripts (`seed-staging.sh`, `seed-production.sh`) call `export-d1-content.ts`, then upload each chunk with retry + 3s delay.
-
-All remote wrangler commands in seed scripts use `</dev/null` to force non-interactive mode (skips confirmation prompts).
+`pnpm export:d1` reads `lessons.db` → writes chunked `.data/d1-seed-*.sql` (~5 files, ~2.5MB each). CI can seed D1 without `.data/scraped/` (gitignored). Upload loop retries 3x with 3s delay between chunks.
 
 ### Search index
 
-`public/search-index.json` is committed. At runtime, `src/server/search.ts` reads it via the `ASSETS` binding (not a self-fetch to the Worker's own URL, which fails on Workers). The `ASSETS` binding is configured in `wrangler.jsonc`:
-
-```jsonc
-"assets": {
-  "directory": ".output/public",
-  "binding": "ASSETS"
-}
-```
+Loaded via `ASSETS` binding — NOT a self-fetch to the Worker's own URL (fails on Workers).
 
 ### Build-time envs
 
-`VITE_SITE_URL` must be set during `pnpm build`. In CI this is set per-job (staging vs production URL). Locally it's in `.env`.
+`VITE_SITE_URL` required at build time. CI sets it per-job. Locally in `.env`.
 
-### wrangler auto-confirm
+### wrangler non-interactive
 
-`pnpm deploy:staging` and `pnpm deploy:production` use `</dev/null` on all remote wrangler commands to skip interactive prompts. The deploy scripts also `sleep 20` after `wrangler deploy` to let edge propagation finish before the smoke-test curl.
+All remote wrangler commands use `</dev/null` to skip prompts. Deploy scripts `sleep 20` after `wrangler deploy` for edge propagation. Schema path: `node_modules/wrangler/config-schema.json`.

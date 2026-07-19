@@ -18,7 +18,7 @@ echo "==> Applying D1 migrations to production..."
 npx wrangler d1 migrations apply D1_CONTENT --remote --env production </dev/null
 
 echo "==> Generating D1 seed SQL from lessons.db..."
-npx tsx scripts/export-d1-content.ts
+npx tsx scripts/convert-db-to-sql.ts
 
 echo ""
 echo "==> Wiping stale content data (users & progress preserved)..."
