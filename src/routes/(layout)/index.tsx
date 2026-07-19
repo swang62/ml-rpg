@@ -7,11 +7,58 @@ import ChevronRight from "lucide-solid/icons/chevron-right";
 
 import CornerDownLeft from "lucide-solid/icons/corner-down-left";
 
-import { createMemo } from "solid-js";
+import { createMemo, createSignal, onMount, Show } from "solid-js";
 import PageTitle from "~/components/PageTitle";
 import { getCoursesQuery } from "~/server/course";
 import { onCardLeave, onCardMove } from "~/utils/animation";
 import { SITE_NAME } from "~/utils/constants";
+
+function HomeParticles() {
+  const [mounted, setMounted] = createSignal(false);
+  onMount(() => setMounted(true));
+
+  const particleCount = 10;
+  const slotWidth = 100 / particleCount;
+  const particles: {
+    left: string;
+    width: string;
+    height: string;
+    speed: string;
+    delay: string;
+    color: string;
+  }[] = [];
+  for (let i = 0; i < particleCount; i++) {
+    const slotStart = i * slotWidth;
+    particles.push({
+      left: `${slotStart + Math.random() * slotWidth}%`,
+      width: "5px",
+      height: "5px",
+      speed: `${15 + Math.random() * 12}s`,
+      delay: `${Math.random() * 15}s`,
+      color: "var(--accent)",
+    });
+  }
+
+  return (
+    <Show when={mounted()}>
+      <div class="home-particles" aria-hidden="true">
+        {particles.map((p) => (
+          <div
+            class="home-particle"
+            style={{
+              left: p.left,
+              width: p.width,
+              height: p.height,
+              "--speed": p.speed,
+              "--delay": p.delay,
+              "--color": p.color,
+            }}
+          />
+        ))}
+      </div>
+    </Show>
+  );
+}
 
 export default function HomePage() {
   const coursesData = createAsync(() => getCoursesQuery());
@@ -19,6 +66,7 @@ export default function HomePage() {
 
   return (
     <main class="page-level--world">
+      <HomeParticles />
       <PageTitle />
       <a
         href="https://github.com/swang62/ml-rpg"
