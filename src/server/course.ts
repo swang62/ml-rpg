@@ -4,16 +4,15 @@ import {
   getBreadcrumbs,
   getCategoriesByCourse,
   getCategoryBySlug,
-  getCategoryLessonCounts,
   getCourseBySlug,
+  getCourseSectionLessonCounts,
   getLessonBySlug,
-  getLessonFromPathReadStatus,
-  getLessonPageData,
+  getLessonHtml,
   getLessonsByCategoryGrouped,
+  getLessonsBySection,
+  getSectionBySlug,
   getSectionBySlugInCourse,
-  getSectionPageData,
 } from "~/db/querier";
-import { getSession } from "~/server/session";
 import { getDb } from "~/server/storage";
 import { cleanLessonHtml } from "~/utils/search-utils";
 
@@ -26,19 +25,24 @@ export const getCourseMetaQuery = query(async (courseSlug: string) => {
   const { results: categories } = await getCategoriesByCourse(d1, {
     courseId: course.id,
   });
-  const { results: counts } = await getCategoryLessonCounts(d1, {
+  const { results: sectionCounts } = await getCourseSectionLessonCounts(d1, {
     courseId: course.id,
   });
-  const countMap: Record<string, number> = {};
-  for (const row of counts) {
-    countMap[row.categoryslug] = row.lessoncount;
+  const sectionsByCategory: Record<
+    string,
+    { section: string; lessonCount: number }[]
+  > = {};
+  for (const row of sectionCounts) {
+    const sections = sectionsByCategory[row.categoryslug] ?? [];
+    sections.push({ section: row.sectionslug, lessonCount: row.lessoncount });
+    sectionsByCategory[row.categoryslug] = sections;
   }
   return {
     title: course.title,
     categories: categories.map((cat) => ({
       category: cat.slug,
       title: cat.title,
-      lessonCount: countMap[cat.slug] ?? 0,
+      sections: sectionsByCategory[cat.slug] ?? [],
     })),
   };
 }, "course-meta");
@@ -97,20 +101,21 @@ export const getSectionMetaQuery = query(
   async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
     "use server";
     const d1 = getDb();
-    const { results: rows } = await getSectionPageData(d1, {
-      courseslug: courseSlug,
-      categoryslug: categorySlug,
-      sectionslug: sectionSlug,
+    const chain = await resolveCourseCategorySection(
+      d1,
+      courseSlug,
+      categorySlug,
+      sectionSlug,
+    );
+    if (!chain) return null;
+    const { sec } = chain;
+
+    const { results: lessons } = await getLessonsBySection(d1, {
+      sectionId: sec.id,
     });
-    if (rows.length === 0) return null;
     return {
-      title: rows[0].sectitle,
-      lessons: rows.map((r) => ({
-        id: r.id,
-        slug: r.slug,
-        title: r.title,
-        lessonorder: r.lessonorder,
-      })),
+      title: sec.title,
+      lessons,
     };
   },
   "section-meta",
@@ -178,6 +183,37 @@ async function resolveCategory(
   return cat;
 }
 
+async function resolveSection(
+  d1: D1Database,
+  categoryId: number,
+  sectionSlug: string,
+) {
+  const sec = await getSectionBySlug(d1, {
+    slug: sectionSlug,
+    categoryId,
+  });
+  if (!sec) return null;
+  return sec;
+}
+
+async function resolveCourseCategorySection(
+  d1: D1Database,
+  courseSlug: string,
+  categorySlug: string,
+  sectionSlug: string,
+) {
+  const course = await resolveCourse(d1, courseSlug);
+  if (!course) return null;
+
+  const cat = await resolveCategory(d1, course.id, categorySlug);
+  if (!cat) return null;
+
+  const sec = await resolveSection(d1, cat.id, sectionSlug);
+  if (!sec) return null;
+
+  return { course, cat, sec };
+}
+
 export async function findSectionBySlugInCourse(
   d1: D1Database,
   courseSlug: string,
@@ -211,34 +247,7 @@ export async function findLessonByPath(
   return lesson ?? null;
 }
 
-/** Lesson page content (nav + HTML) for a whole section. Cached by section — navigating between lessons in the same section is instant. */
-export const getLessonPageContentQuery = query(
-  async (courseSlug: string, categorySlug: string, sectionSlug: string) => {
-    "use server";
-    const d1 = getDb();
-
-    const { results: rows } = await getLessonPageData(d1, {
-      userid: 0, // unused — we only need nav + html
-      courseslug: courseSlug,
-      categoryslug: categorySlug,
-      sectionslug: sectionSlug,
-    });
-
-    if (rows.length === 0) return null;
-
-    return rows.map((r) => ({
-      id: r.id,
-      slug: r.slug,
-      title: r.title,
-      lessonorder: r.lessonorder,
-      html: cleanLessonHtml(r.html ?? ""),
-    }));
-  },
-  "lesson-content",
-);
-
-/** Read status only — always fresh, never cached. */
-export async function getLessonReadStatusFresh(
+export async function getLessonNavQuery(
   courseSlug: string,
   categorySlug: string,
   sectionSlug: string,
@@ -246,16 +255,45 @@ export async function getLessonReadStatusFresh(
 ) {
   "use server";
   const d1 = getDb();
-  const session = await getSession();
-  const userId = session.data.id ?? 0;
-  if (!userId) return false;
 
-  const result = await getLessonFromPathReadStatus(d1, {
-    userid: userId,
-    courseslug: courseSlug,
-    categoryslug: categorySlug,
-    sectionslug: sectionSlug,
-    lessonslug: lessonSlug,
+  const chain = await resolveCourseCategorySection(
+    d1,
+    courseSlug,
+    categorySlug,
+    sectionSlug,
+  );
+  if (!chain) return null;
+  const { sec } = chain;
+
+  const { results: lessons } = await getLessonsBySection(d1, {
+    sectionId: sec.id,
   });
-  return result?.isread ? Boolean(result.isread) : false;
+  const idx = lessons.findIndex((lesson) => lesson.slug === lessonSlug);
+  if (idx === -1) return null;
+
+  return {
+    currentLesson: lessons[idx],
+    prevLesson: idx > 0 ? lessons[idx - 1] : null,
+    nextLesson: idx < lessons.length - 1 ? lessons[idx + 1] : null,
+  };
+}
+
+export async function getLessonHTMLQuery(
+  courseSlug: string,
+  sectionSlug: string,
+  lessonSlug: string,
+) {
+  "use server";
+  const d1 = getDb();
+
+  const lesson = await findLessonByPath(
+    d1,
+    courseSlug,
+    sectionSlug,
+    lessonSlug,
+  );
+  if (!lesson) return "";
+
+  const htmlRow = await getLessonHtml(d1, { id: lesson.id });
+  return cleanLessonHtml(htmlRow?.html ?? "");
 }

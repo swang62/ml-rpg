@@ -9,19 +9,17 @@ import BackToQuest from "~/components/BackToQuest";
 import LessonNav from "~/components/LessonNav";
 import LessonTracker from "~/components/LessonTracker";
 import PageTitle from "~/components/PageTitle";
-import {
-  getLessonPageContentQuery,
-  getLessonReadStatusFresh,
-} from "~/server/course";
+import { getLessonHTMLQuery, getLessonNavQuery } from "~/server/course";
+import { getLessonReadStatusQuery } from "~/server/progress";
 import { EXTERNAL_URL, XP_TOAST_TIMEOUT, XP_VALUE } from "~/utils/constants";
 import { isAnonLessonRead, version } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {
-    getLessonPageContentQuery(
+    getLessonReadStatusQuery(
       params.course as string,
-      params.category as string,
       params.section as string,
+      params.lesson as string,
     );
   },
 } satisfies RouteDefinition;
@@ -32,36 +30,30 @@ export default function LessonPage() {
 
   const { signedIn } = useAuth();
 
-  // Cached by section — navigating between lessons in the same section is instant
-  const lessons = createAsync(() =>
-    getLessonPageContentQuery(
+  const nav = createAsync(() =>
+    getLessonNavQuery(
       params.course as string,
       params.category as string,
       params.section as string,
+      params.lesson as string,
     ),
   );
 
-  // Derive current lesson, prev/next, html from the full section array
-  const lessonData = createMemo(() => {
-    const all = lessons();
-    if (!all) return null;
-    const idx = all.findIndex((l) => l.slug === params.lesson);
-    if (idx === -1) return null;
-    return {
-      currentLesson: all[idx],
-      prevLesson: idx > 0 ? all[idx - 1] : null,
-      nextLesson: idx < all.length - 1 ? all[idx + 1] : null,
-      html: all[idx].html,
-    };
-  });
+  const lessonHtml = createAsync(
+    () =>
+      getLessonHTMLQuery(
+        params.course as string,
+        params.section as string,
+        params.lesson as string,
+      ),
+    { initialValue: "" },
+  );
 
-  // Fresh every navigation — lightweight boolean
-  const freshReadStatus = createAsync(
+  const serverReadStatus = createAsync(
     () =>
       signedIn()
-        ? getLessonReadStatusFresh(
+        ? getLessonReadStatusQuery(
             params.course as string,
-            params.category as string,
             params.section as string,
             params.lesson as string,
           )
@@ -70,8 +62,8 @@ export default function LessonPage() {
   );
 
   const isRead = createMemo(() => {
-    if (signedIn()) return freshReadStatus();
-    version();
+    if (signedIn()) return serverReadStatus();
+    version(); // reactively re-read localStorage on version bumps (e.g. lesson marked read)
     return isAnonLessonRead(
       params.course as string,
       params.category as string,
@@ -88,11 +80,11 @@ export default function LessonPage() {
   };
 
   const lessonURL = () =>
-    `${EXTERNAL_URL}/${params.category}/${params.section}/${lessonData()?.currentLesson?.slug}`;
+    `${EXTERNAL_URL}/${params.category}/${params.section}/${nav()?.currentLesson?.slug}`;
 
   return (
     <main class="container container-narrow page-level--lesson">
-      <PageTitle segment={lessonData()?.currentLesson?.title} />
+      <PageTitle segment={nav()?.currentLesson?.title} />
       <BackToQuest
         href={`/${params.course}/${params.category}/${params.section}`}
         isRead={isRead()}
@@ -100,8 +92,8 @@ export default function LessonPage() {
 
       <div class="lesson-card">
         <LessonNav
-          prevLesson={lessonData()?.prevLesson ?? null}
-          nextLesson={lessonData()?.nextLesson ?? null}
+          prevLesson={nav()?.prevLesson ?? null}
+          nextLesson={nav()?.nextLesson ?? null}
           course={params.course as string}
           category={params.category as string}
           section={params.section as string}
@@ -113,7 +105,7 @@ export default function LessonPage() {
           rel="noopener noreferrer"
           class={`lesson-title ${isRead() && "lesson-title--read"}`}
         >
-          <span>Objective {lessonData()?.currentLesson?.lessonorder}</span>
+          <span>Objective {nav()?.currentLesson?.lessonorder}</span>
           <span
             class="lesson-xp-badge"
             classList={{ "lesson-xp-badge--read": isRead() }}
@@ -121,26 +113,26 @@ export default function LessonPage() {
             {!isRead() && (
               <>
                 {"("}
-                {(lessonData()?.currentLesson?.lessonorder ?? 0) * XP_VALUE}
+                {(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE}
                 <span class="lesson-xp-badge__label">XP)</span>
               </>
             )}
           </span>
           <ExternalLink size={14} class="lesson-title__ext-link" />
         </a>
-        <div innerHTML={lessonData()?.html ?? ""} />
+        <div innerHTML={lessonHtml()} />
         <LessonTracker
           course={params.course}
           category={params.category}
           section={params.section}
-          lesson={lessonData()?.currentLesson?.slug}
-          lessonOrder={lessonData()?.currentLesson?.lessonorder}
+          lesson={nav()?.currentLesson?.slug}
+          lessonOrder={nav()?.currentLesson?.lessonorder}
           alreadyRead={isRead()}
           onRead={handleRead}
         />
         <LessonNav
-          prevLesson={lessonData()?.prevLesson ?? null}
-          nextLesson={lessonData()?.nextLesson ?? null}
+          prevLesson={nav()?.prevLesson ?? null}
+          nextLesson={nav()?.nextLesson ?? null}
           course={params.course as string}
           category={params.category as string}
           section={params.section as string}
@@ -148,7 +140,7 @@ export default function LessonPage() {
 
         <Show when={toastVisible()}>
           <div class="lesson-read-toast font-pixel">
-            +{(lessonData()?.currentLesson?.lessonorder ?? 0) * XP_VALUE} XP
+            +{(nav()?.currentLesson?.lessonorder ?? 0) * XP_VALUE} XP
           </div>
         </Show>
       </div>

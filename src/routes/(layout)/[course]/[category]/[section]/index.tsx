@@ -64,6 +64,7 @@ export default function SectionPage() {
       setAnonReadLessons(
         getAnonSectionReadSlugs(
           params.course as string,
+          params.category as string,
           params.section as string,
         ),
       );
@@ -94,6 +95,7 @@ export default function SectionPage() {
               } else {
                 resetAnonSection(
                   params.course as string,
+                  params.category as string,
                   params.section as string,
                 );
                 setAnonReadLessons([]);

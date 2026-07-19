@@ -94,17 +94,33 @@ export function isAnonLessonRead(
 
 export function getAnonSectionReadSlugs(
   course: string,
-  section: string,
+  categoryOrSection: string,
+  section?: string,
 ): string[] {
   const prefix = `read:${course}:`;
+  const category = section ? categoryOrSection : null;
+  const sectionSlug = section ?? categoryOrSection;
   const slugs: string[] = [];
   for (const key of keysWithPrefix(prefix)) {
     const parts = key.slice(prefix.length).split(":");
-    if (parts[1] === section) {
+    if ((!category || parts[0] === category) && parts[1] === sectionSlug) {
       slugs.push(parts.slice(2).join(":"));
     }
   }
   return slugs;
+}
+
+export function getAnonSectionReadCounts(
+  course: string,
+  category: string,
+): Record<string, number> {
+  const prefix = `read:${course}:${category}:`;
+  const result: Record<string, number> = {};
+  for (const key of keysWithPrefix(prefix)) {
+    const [section] = key.slice(prefix.length).split(":");
+    result[section] = (result[section] ?? 0) + 1;
+  }
+  return result;
 }
 
 export function getAnonCategoryReadCounts(
@@ -126,11 +142,17 @@ export function resetAnonAllProgress(): void {
   bumpVersion((v: number) => v + 1);
 }
 
-export function resetAnonSection(course: string, section: string): void {
+export function resetAnonSection(
+  course: string,
+  categoryOrSection: string,
+  section?: string,
+): void {
   const prefix = `read:${course}:`;
+  const category = section ? categoryOrSection : null;
+  const sectionSlug = section ?? categoryOrSection;
   for (const key of keysWithPrefix(prefix)) {
     const parts = key.slice(prefix.length).split(":");
-    if (parts[1] === section) {
+    if ((!category || parts[0] === category) && parts[1] === sectionSlug) {
       removeItem(key);
     }
   }

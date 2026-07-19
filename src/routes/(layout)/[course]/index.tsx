@@ -4,14 +4,14 @@ import {
   type RouteDefinition,
   useParams,
 } from "@solidjs/router";
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createMemo } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCourseMetaQuery } from "~/server/course";
 import { getCourseReadCountsQuery } from "~/server/progress";
 import { onCardLeave, onCardMove } from "~/utils/animation";
-import { getAnonCategoryReadCounts } from "~/utils/local-storage";
+import { getAnonSectionReadCounts, version } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {
@@ -29,19 +29,21 @@ export default function CourseIndexPage() {
       : Promise.resolve({} as Record<string, boolean[]>),
   );
 
-  const [anonReadCounts, setAnonReadCounts] = createSignal<
-    Record<string, number>
-  >({});
-  onMount(() => {
-    if (!signedIn()) {
-      setAnonReadCounts(getAnonCategoryReadCounts(params.course as string));
-    }
-  });
-
   const categories = createMemo(() => course()?.categories ?? []);
   const sectionReadStatus = createMemo(() =>
     signedIn() ? (serverSectionStatus() ?? {}) : {},
   );
+  const anonSectionReadCounts = createMemo(() => {
+    version();
+    const counts: Record<string, Record<string, number>> = {};
+    for (const category of categories()) {
+      counts[category.category] = getAnonSectionReadCounts(
+        params.course as string,
+        category.category,
+      );
+    }
+    return counts;
+  });
 
   return (
     <CoursePageShell
@@ -55,14 +57,19 @@ export default function CourseIndexPage() {
     >
       <section class="categories-grid">
         {categories().map((category) => {
-          const sectionStatuses = signedIn()
-            ? (sectionReadStatus()?.[category.category] ?? [])
-            : [];
-          const completed = sectionStatuses.filter(Boolean).length;
-          const max = sectionStatuses.length;
-
-          const anonRead = anonReadCounts()?.[category.category] ?? 0;
-          const totalInCategory = category.lessonCount;
+          const sectionStatuses =
+            sectionReadStatus()?.[category.category] ?? [];
+          const completed = signedIn()
+            ? sectionStatuses.filter(Boolean).length
+            : category.sections.filter(
+                (section) =>
+                  (anonSectionReadCounts()[category.category]?.[
+                    section.section
+                  ] ?? 0) >= section.lessonCount,
+              ).length;
+          const max = signedIn()
+            ? sectionStatuses.length
+            : category.sections.length;
 
           return (
             <A
@@ -76,13 +83,6 @@ export default function CourseIndexPage() {
                 <ProgressBar
                   value={completed}
                   max={max}
-                  color="--level-course"
-                />
-              )}
-              {!signedIn() && totalInCategory > 0 && (
-                <ProgressBar
-                  value={anonRead}
-                  max={totalInCategory}
                   color="--level-course"
                 />
               )}

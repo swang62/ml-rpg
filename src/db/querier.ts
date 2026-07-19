@@ -819,55 +819,6 @@ export function getLessonsByCategoryGrouped(
   }
 }
 
-const getLessonPageDataQuery = `-- name: GetLessonPageData :many
-SELECT
-  lesson.id,
-  lesson.slug,
-  lesson.title,
-  lesson.lesson_order AS lessonorder,
-  lesson.html,
-  (SELECT COUNT(*) > 0 FROM progress WHERE progress.lesson_id = lesson.id AND progress.user_id = ?1) AS isread
-FROM lesson
-INNER JOIN section ON lesson.section_id = section.id
-INNER JOIN category ON section.category_id = category.id
-INNER JOIN course ON category.course_id = course.id
-WHERE course.slug = ?2
-  AND category.slug = ?3
-  AND section.slug = ?4
-ORDER BY lesson.lesson_order`;
-
-export type GetLessonPageDataParams = {
-  userid: number;
-  courseslug: string;
-  categoryslug: string;
-  sectionslug: string;
-};
-
-export type GetLessonPageDataRow = {
-  id: number;
-  slug: string;
-  title: string;
-  lessonorder: number;
-  html: string;
-  isread: number | string;
-};
-
-export function getLessonPageData(
-  d1: D1Database,
-  args: GetLessonPageDataParams
-): Query<D1Result<GetLessonPageDataRow>> {
-  const ps = d1
-    .prepare(getLessonPageDataQuery)
-    .bind(args.userid, args.courseslug, args.categoryslug, args.sectionslug);
-  return {
-    then(onFulfilled?: (value: D1Result<GetLessonPageDataRow>) => void, onRejected?: (reason?: any) => void) {
-      ps.all<GetLessonPageDataRow>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
 const getReadLessonsBySectionQuery = `-- name: GetReadLessonsBySection :many
 SELECT lesson.slug FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ? AND lesson.section_id = ?`;
 
@@ -1023,185 +974,6 @@ export function getReadCountsByCourse(
   return {
     then(onFulfilled?: (value: D1Result<GetReadCountsByCourseRow>) => void, onRejected?: (reason?: any) => void) {
       ps.all<GetReadCountsByCourseRow>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getUserXpSumQuery = `-- name: GetUserXpSum :one
-SELECT COALESCE(SUM(lesson.lesson_order), 0) AS totalorder, COUNT(*) AS readcount FROM progress INNER JOIN lesson ON progress.lesson_id = lesson.id WHERE progress.user_id = ?`;
-
-export type GetUserXpSumParams = {
-  userId: number;
-};
-
-export type GetUserXpSumRow = {
-  totalorder: number | string | null;
-  readcount: number;
-};
-
-export function getUserXpSum(
-  d1: D1Database,
-  args: GetUserXpSumParams
-): Query<GetUserXpSumRow | null> {
-  const ps = d1
-    .prepare(getUserXpSumQuery)
-    .bind(args.userId);
-  return {
-    then(onFulfilled?: (value: GetUserXpSumRow | null) => void, onRejected?: (reason?: any) => void) {
-      ps.first<GetUserXpSumRow | null>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getCourseSectionReadStatusQuery = `-- name: GetCourseSectionReadStatus :many
-SELECT lesson.category_id AS categoryid, lesson.section_id AS sectionid, category.slug AS categoryslug, section.slug AS sectionslug, COUNT(progress.lesson_id) AS readcount, COUNT(lesson.id) AS totallessons FROM lesson INNER JOIN category ON lesson.category_id = category.id INNER JOIN section ON lesson.section_id = section.id LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = ? WHERE lesson.course_id = ? GROUP BY lesson.category_id, lesson.section_id ORDER BY lesson.category_id, lesson.section_id`;
-
-export type GetCourseSectionReadStatusParams = {
-  userId: number;
-  courseId: number;
-};
-
-export type GetCourseSectionReadStatusRow = {
-  categoryid: number;
-  sectionid: number;
-  categoryslug: string;
-  sectionslug: string;
-  readcount: number;
-  totallessons: number;
-};
-
-export function getCourseSectionReadStatus(
-  d1: D1Database,
-  args: GetCourseSectionReadStatusParams
-): Query<D1Result<GetCourseSectionReadStatusRow>> {
-  const ps = d1
-    .prepare(getCourseSectionReadStatusQuery)
-    .bind(args.userId, args.courseId);
-  return {
-    then(onFulfilled?: (value: D1Result<GetCourseSectionReadStatusRow>) => void, onRejected?: (reason?: any) => void) {
-      ps.all<GetCourseSectionReadStatusRow>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getLessonFromPathReadStatusQuery = `-- name: GetLessonFromPathReadStatus :one
-SELECT (SELECT COUNT(*) > 0 FROM progress WHERE progress.lesson_id = lesson.id AND progress.user_id = ?1) AS isread
-FROM lesson
-INNER JOIN section ON lesson.section_id = section.id
-INNER JOIN category ON section.category_id = category.id
-INNER JOIN course ON category.course_id = course.id
-WHERE course.slug = ?2
-  AND category.slug = ?3
-  AND section.slug = ?4
-  AND lesson.slug = ?5
-LIMIT 1`;
-
-export type GetLessonFromPathReadStatusParams = {
-  userid: number;
-  courseslug: string;
-  categoryslug: string;
-  sectionslug: string;
-  lessonslug: string;
-};
-
-export type GetLessonFromPathReadStatusRow = {
-  isread: number | string;
-};
-
-export function getLessonFromPathReadStatus(
-  d1: D1Database,
-  args: GetLessonFromPathReadStatusParams
-): Query<GetLessonFromPathReadStatusRow | null> {
-  const ps = d1
-    .prepare(getLessonFromPathReadStatusQuery)
-    .bind(args.userid, args.courseslug, args.categoryslug, args.sectionslug, args.lessonslug);
-  return {
-    then(onFulfilled?: (value: GetLessonFromPathReadStatusRow | null) => void, onRejected?: (reason?: any) => void) {
-      ps.first<GetLessonFromPathReadStatusRow | null>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getSectionReadCountsQuery = `-- name: GetSectionReadCounts :many
-SELECT lesson.slug
-FROM lesson
-INNER JOIN section ON lesson.section_id = section.id
-INNER JOIN category ON section.category_id = category.id
-INNER JOIN course ON category.course_id = course.id
-INNER JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = ?1
-WHERE course.slug = ?2 AND section.slug = ?3`;
-
-export type GetSectionReadCountsParams = {
-  userid: number;
-  courseslug: string;
-  sectionslug: string;
-};
-
-export type GetSectionReadCountsRow = {
-  slug: string;
-};
-
-export function getSectionReadCounts(
-  d1: D1Database,
-  args: GetSectionReadCountsParams
-): Query<D1Result<GetSectionReadCountsRow>> {
-  const ps = d1
-    .prepare(getSectionReadCountsQuery)
-    .bind(args.userid, args.courseslug, args.sectionslug);
-  return {
-    then(onFulfilled?: (value: D1Result<GetSectionReadCountsRow>) => void, onRejected?: (reason?: any) => void) {
-      ps.all<GetSectionReadCountsRow>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getCourseReadStatusBySlugQuery = `-- name: GetCourseReadStatusBySlug :many
-SELECT lesson.category_id AS categoryid, lesson.section_id AS sectionid,
-  category.slug AS categoryslug, section.slug AS sectionslug,
-  COUNT(progress.lesson_id) AS readcount, COUNT(lesson.id) AS totallessons
-FROM lesson
-INNER JOIN category ON lesson.category_id = category.id
-INNER JOIN section ON lesson.section_id = section.id
-INNER JOIN course ON lesson.course_id = course.id
-LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = ?1
-WHERE course.slug = ?2
-GROUP BY lesson.category_id, lesson.section_id
-ORDER BY lesson.category_id, lesson.section_id`;
-
-export type GetCourseReadStatusBySlugParams = {
-  userid: number;
-  courseslug: string;
-};
-
-export type GetCourseReadStatusBySlugRow = {
-  categoryid: number;
-  sectionid: number;
-  categoryslug: string;
-  sectionslug: string;
-  readcount: number;
-  totallessons: number;
-};
-
-export function getCourseReadStatusBySlug(
-  d1: D1Database,
-  args: GetCourseReadStatusBySlugParams
-): Query<D1Result<GetCourseReadStatusBySlugRow>> {
-  const ps = d1
-    .prepare(getCourseReadStatusBySlugQuery)
-    .bind(args.userid, args.courseslug);
-  return {
-    then(onFulfilled?: (value: D1Result<GetCourseReadStatusBySlugRow>) => void, onRejected?: (reason?: any) => void) {
-      ps.all<GetCourseReadStatusBySlugRow>()
         .then(onFulfilled).catch(onRejected);
     },
     batch() { return ps; },
@@ -1478,6 +1250,41 @@ export function getSectionIdToSlugByCourse(
   }
 }
 
+const getCourseSectionLessonCountsQuery = `-- name: GetCourseSectionLessonCounts :many
+SELECT category.slug AS categoryslug, section.slug AS sectionslug, COUNT(lesson.id) AS lessoncount
+FROM section
+INNER JOIN category ON section.category_id = category.id
+LEFT JOIN lesson ON lesson.section_id = section.id
+WHERE category.course_id = ?
+GROUP BY category.id, section.id
+ORDER BY category.id, section.id`;
+
+export type GetCourseSectionLessonCountsParams = {
+  courseId: number;
+};
+
+export type GetCourseSectionLessonCountsRow = {
+  categoryslug: string;
+  sectionslug: string;
+  lessoncount: number;
+};
+
+export function getCourseSectionLessonCounts(
+  d1: D1Database,
+  args: GetCourseSectionLessonCountsParams
+): Query<D1Result<GetCourseSectionLessonCountsRow>> {
+  const ps = d1
+    .prepare(getCourseSectionLessonCountsQuery)
+    .bind(args.courseId);
+  return {
+    then(onFulfilled?: (value: D1Result<GetCourseSectionLessonCountsRow>) => void, onRejected?: (reason?: any) => void) {
+      ps.all<GetCourseSectionLessonCountsRow>()
+        .then(onFulfilled).catch(onRejected);
+    },
+    batch() { return ps; },
+  }
+}
+
 const getSectionPageDataQuery = `-- name: GetSectionPageData :many
 SELECT section.title AS sectitle,
        lesson.id, lesson.slug, lesson.title, lesson.lesson_order AS lessonorder
@@ -1514,43 +1321,6 @@ export function getSectionPageData(
   return {
     then(onFulfilled?: (value: D1Result<GetSectionPageDataRow>) => void, onRejected?: (reason?: any) => void) {
       ps.all<GetSectionPageDataRow>()
-        .then(onFulfilled).catch(onRejected);
-    },
-    batch() { return ps; },
-  }
-}
-
-const getCategoryReadCountsQuery = `-- name: GetCategoryReadCounts :many
-SELECT section.slug AS sectionslug, COUNT(progress.lesson_id) AS readcount
-FROM section
-INNER JOIN category ON section.category_id = category.id
-INNER JOIN course ON category.course_id = course.id
-LEFT JOIN lesson ON lesson.section_id = section.id
-LEFT JOIN progress ON progress.lesson_id = lesson.id AND progress.user_id = ?1
-WHERE course.slug = ?2
-GROUP BY section.id, section.slug
-ORDER BY section.id`;
-
-export type GetCategoryReadCountsParams = {
-  userid: number;
-  courseslug: string;
-};
-
-export type GetCategoryReadCountsRow = {
-  sectionslug: string;
-  readcount: number;
-};
-
-export function getCategoryReadCounts(
-  d1: D1Database,
-  args: GetCategoryReadCountsParams
-): Query<D1Result<GetCategoryReadCountsRow>> {
-  const ps = d1
-    .prepare(getCategoryReadCountsQuery)
-    .bind(args.userid, args.courseslug);
-  return {
-    then(onFulfilled?: (value: D1Result<GetCategoryReadCountsRow>) => void, onRejected?: (reason?: any) => void) {
-      ps.all<GetCategoryReadCountsRow>()
         .then(onFulfilled).catch(onRejected);
     },
     batch() { return ps; },
