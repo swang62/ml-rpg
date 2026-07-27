@@ -32,7 +32,7 @@ else
 fi
 
 echo "==> Building Worker bundle..."
-pnpm build
+NODE_ENV=production pnpm build
 
 echo "==> Applying D1 migrations to $ENV..."
 retry npx wrangler d1 migrations apply D1_CONTENT --remote --env "$ENV" </dev/null

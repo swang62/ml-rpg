@@ -3,6 +3,32 @@ import { getEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
 import { checkRateLimit, getClientIP } from "~/utils/rate-limit";
 
+/** Check if the RAG backend is idle (cold) and needs warmup. */
+export async function GET() {
+  try {
+    const ragUrl = getEnv().RAG_API_URL;
+    const response = await fetch(`${ragUrl}/status`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      return new Response(JSON.stringify({ idle: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const data = (await response.json()) as {
+      idle: boolean;
+      model_loading: boolean;
+    };
+    return new Response(JSON.stringify(data), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    return new Response(JSON.stringify({ idle: true, model_loading: false }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
 export async function POST(event: { request: Request }) {
   let body: { query?: unknown; history?: unknown };
   try {
