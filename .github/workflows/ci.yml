@@ -179,9 +179,10 @@ jobs:
               return;
             }
             const pr = pulls[0];
-            const url = process.env.DEPLOY_URL;
+            let url = process.env.DEPLOY_URL;
+            if (!/^https?:\/\//.test(url)) url = `https://${url}`;
             const marker = '<!-- staging-deploy -->';
-            const body = `${marker}\nStaging deployment preview — [${url}](${url})`;
+            const body = `${marker}\nStaging deploy ready — [ml-rpg](${url})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
