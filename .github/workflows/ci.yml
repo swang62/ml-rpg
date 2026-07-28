@@ -76,6 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -104,8 +105,13 @@ jobs:
     needs: [lint, test, build]
     if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
     env:
       VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
+      NODE_ENV: production
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
@@ -146,7 +152,58 @@ jobs:
       - name: Build Worker bundle
         run: pnpm build
       - name: Deploy main Worker to staging
-        run: npx wrangler deploy --env staging
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: deploy
+          environment: staging
+      - name: Comment PR with staging URL
+        uses: actions/github-script@v9
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://dev-ml-rpg.stevewang.dev' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: branch,
+              state: 'open'
+            });
+            if (pulls.length === 0) {
+              console.log('No open PR found for branch', branch);
+              return;
+            }
+            const pr = pulls[0];
+            let url = process.env.DEPLOY_URL;
+            if (!/^https?:\/\//.test(url)) url = `https://${url}`;
+            const marker = '<!-- staging-deploy -->';
+            const body = `${marker}\nStaging deploy ready — [ml-rpg](${url})`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            const bot = comments.find(c => c.user.type === 'Bot' && c.body.includes(marker));
+            if (bot) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: bot.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: pr.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
       - name: Deploy cron Worker to staging
         run: npx wrangler deploy --config cron/wrangler.jsonc --env staging
 
@@ -156,6 +213,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_SITE_URL: https://ml-rpg.stevewang.dev
+      NODE_ENV: production
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:

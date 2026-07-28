@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -14,7 +14,7 @@
     }
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!src/db"],
+    "includes": ["**", "!!**/dist", "!!src/db", "!!**/assets"],
     "maxSize": 5242880
   },
   "formatter": {
@@ -30,7 +30,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "preset": "recommended"
     }
   },
   "vcs": {

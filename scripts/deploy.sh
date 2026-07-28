@@ -32,7 +32,7 @@ else
 fi
 
 echo "==> Building Worker bundle..."
-pnpm build
+NODE_ENV=production pnpm build
 
 echo "==> Applying D1 migrations to $ENV..."
 retry npx wrangler d1 migrations apply D1_CONTENT --remote --env "$ENV" </dev/null
@@ -47,7 +47,7 @@ sleep 20
 
 echo "==> Smoke test..."
 curl -sf -o /dev/null "$SITE_URL/" && echo "OK: Worker responds" || echo "WARN: Worker not reachable yet (DNS may need setup)"
-curl -sf -o /dev/null "$RAG_URL/health" && echo "OK: rag_api healthy" || echo "WARN: rag_api not reachable"
+curl -sf -o /dev/null "$RAG_URL/api/health" && echo "OK: rag_api healthy" || echo "WARN: rag_api not reachable"
 
 echo ""
 echo "${ENV^}: $SITE_URL"

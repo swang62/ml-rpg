@@ -3,6 +3,38 @@ import { getEnv } from "~/utils/env";
 import { sanitizeSearchQuery } from "~/utils/input-validation";
 import { checkRateLimit, getClientIP } from "~/utils/rate-limit";
 
+const STATUS_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store, must-revalidate",
+};
+
+/** Check if the RAG backend is idle (cold) and needs warmup. */
+export async function GET() {
+  try {
+    const ragUrl = getEnv().RAG_API_URL;
+    const response = await fetch(`${ragUrl}/api/status`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      return new Response(JSON.stringify({ idle: true }), {
+        headers: STATUS_HEADERS,
+      });
+    }
+    const data = (await response.json()) as {
+      idle: boolean;
+      model_loading: boolean;
+    };
+    return new Response(JSON.stringify(data), {
+      headers: STATUS_HEADERS,
+    });
+  } catch {
+    return new Response(JSON.stringify({ idle: true, model_loading: false }), {
+      headers: STATUS_HEADERS,
+    });
+  }
+}
+
 export async function POST(event: { request: Request }) {
   let body: { query?: unknown; history?: unknown };
   try {

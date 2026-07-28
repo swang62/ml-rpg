@@ -16,18 +16,18 @@ services:
       - LANCEDB_PATH=${LANCEDB_PATH:-/app/.data/search}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - SESSION_SECRET=${SESSION_SECRET}
-      - LLAMA_API_URL=http://${SERVICE_NAME_LLAMA_API}:9876
+      - LLAMA_API_URL=http://${SERVICE_NAME_LLAMA_API:-llama-api}:9876
     healthcheck:
       test:
         [
           "CMD",
           "python",
           "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
         ]
       interval: 1m
       timeout: 10s
-      start_period: 15s
+      start_period: 1m
       retries: 3
 
   llama-api:

@@ -71,7 +71,7 @@ async def _idle_unloader():
     while True:
         await asyncio.sleep(IDLE_TIMEOUT)
         idle = time.monotonic() - _last_request_time
-        if idle >= IDLE_TIMEOUT and not _unloaded:
+        if idle > IDLE_TIMEOUT and not _unloaded:
             logger.info("idle for %.0fs — unloading resources...", idle)
             unload_nlp_core()
             close_vectordb()
@@ -83,7 +83,11 @@ async def _idle_unloader():
 async def lifespan(_app: FastAPI):
     global _last_request_time
     _last_request_time = time.monotonic()
-    logger.info("LLAMA_API_URL=%s SESSION_SECRET=%s...", LLAMA_API_URL, SESSION_SECRET[:8] if SESSION_SECRET else "(empty)")
+    logger.info(
+        "LLAMA_API_URL=%s SESSION_SECRET=%s...",
+        LLAMA_API_URL,
+        SESSION_SECRET[:8] if SESSION_SECRET else "(empty)",
+    )
     preload_embedder()
 
     # Build or verify the RAG index from local content (non-blocking in executor)
@@ -115,7 +119,7 @@ with open(_BOB_TEMPLATE_PATH) as f:
 
 @app.middleware("http")
 async def track_request(request: Request, call_next):
-    if request.url.path not in ("/health", "/status"):
+    if request.url.path not in ("/api/health", "/api/status"):
         global _last_request_time, _unloaded
         _last_request_time = time.monotonic()
         _unloaded = False
@@ -125,7 +129,7 @@ async def track_request(request: Request, call_next):
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     # Health and status are public
-    if request.url.path in ("/health", "/status", "/docs", "/openapi.json"):
+    if request.url.path in ("/api/health", "/api/status", "/docs", "/openapi.json"):
         return await call_next(request)
     if SESSION_SECRET:
         auth = request.headers.get("Authorization", "")
@@ -134,14 +138,23 @@ async def auth_middleware(request: Request, call_next):
     return await call_next(request)
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health():
-    return {"status": "ok"}
+    return JSONResponse(
+        content={"status": "ok"},
+        headers={"Cache-Control": "no-store, must-revalidate"},
+    )
 
 
-@app.get("/status")
+@app.get("/api/status")
 async def service_status():
-    return {"idle": _unloaded, "model_loading": is_embedder_loading()}
+    return JSONResponse(
+        content={
+            "idle": _unloaded,
+            "model_loading": is_embedder_loading(),
+        },
+        headers={"Cache-Control": "no-store, must-revalidate"},
+    )
 
 
 @app.post("/embed", response_model=EmbedResponse)

@@ -105,6 +105,22 @@ export default function AskAI() {
     setHasStartedStreaming(false);
     setStreamingContent(null);
 
+    // Warmup check: detect idle RAG backend before streaming starts
+    try {
+      const statusRes = await fetch("/api/chat", {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (statusRes.ok) {
+        const status = (await statusRes.json()) as { idle: boolean };
+        setLoadingText(status.idle ? "Warping in portal..." : "...");
+      } else {
+        setLoadingText("...");
+      }
+    } catch {
+      setLoadingText("Warping in portal...");
+    }
+
     const history = messages()
       .slice(1, -1)
       .slice(-RAG_MAX_HISTORY)

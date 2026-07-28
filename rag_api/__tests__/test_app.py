@@ -15,13 +15,15 @@ def require_auth(monkeypatch):
 
 
 def test_health_public():
-    response = client.get("/health")
+    response = client.get("/api/health")
     assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store, must-revalidate"
 
 
 def test_status_public():
-    response = client.get("/status")
+    response = client.get("/api/status")
     assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store, must-revalidate"
 
 
 def test_no_auth_returns_403():
