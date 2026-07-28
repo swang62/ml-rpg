@@ -39,10 +39,10 @@ export default createMiddleware({
     if (isAuthOrApi(pathname)) {
       event.response.headers.set("Cache-Control", "no-store, must-revalidate");
     } else {
-      // Public course pages — cache at CDN edge for 1 hour
+      // Public course pages — cache at CDN edge for 30 days
       event.response.headers.set(
         "Cache-Control",
-        "public, max-age=0, s-maxage=3600",
+        "public, max-age=0, s-maxage=2592000",
       );
     }
 

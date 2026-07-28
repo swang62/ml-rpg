@@ -64,6 +64,7 @@ logger = logging.getLogger("rag_api")
 
 _last_request_time = 0.0
 _unloaded = False
+_last_llama_request_time = 0.0  # tracks llama.cpp server last use
 
 
 async def _idle_unloader():
@@ -141,7 +142,11 @@ async def health():
 
 @app.get("/status")
 async def service_status():
-    return {"idle": _unloaded, "model_loading": is_embedder_loading()}
+    llama_idle = time.monotonic() - _last_llama_request_time > IDLE_TIMEOUT
+    return {
+        "idle": _unloaded or llama_idle,
+        "model_loading": is_embedder_loading(),
+    }
 
 
 @app.post("/embed", response_model=EmbedResponse)
@@ -229,6 +234,8 @@ async def _stream_from_llama(
     timeout = httpx.Timeout(60.0, connect=10.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
+            global _last_llama_request_time
+            _last_llama_request_time = time.monotonic()
             async with client.stream(
                 "POST",
                 f"{LLAMA_API_URL}/v1/chat/completions",
