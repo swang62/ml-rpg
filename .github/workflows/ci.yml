@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
+      deployments: write
     env:
       VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
       NODE_ENV: production
@@ -151,11 +151,11 @@ jobs:
       - name: Build Worker bundle
         run: pnpm build
       - name: Deploy main Worker to staging
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           command: deploy
           environment: staging
       - name: Deploy cron Worker to staging
