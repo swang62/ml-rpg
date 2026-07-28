@@ -15,6 +15,7 @@ import { getAnonSectionReadCounts, version } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {
+    getCategoryMetaQuery(params.course as string, params.category as string);
     getCategoryReadCountsQuery(params.course as string);
   },
 } satisfies RouteDefinition;
@@ -34,15 +35,14 @@ export default function CategoryPage() {
       : Promise.resolve({} as Record<string, number>),
   );
 
-  const readCounts = createMemo(() =>
-    signedIn()
-      ? serverReadCounts()
-      : (version(),
-        getAnonSectionReadCounts(
-          params.course as string,
-          params.category as string,
-        )),
-  );
+  const readCounts = createMemo(() => {
+    if (signedIn()) return serverReadCounts();
+    version();
+    return getAnonSectionReadCounts(
+      params.course as string,
+      params.category as string,
+    );
+  });
 
   const sections = createMemo(() => category()?.sections ?? []);
 

@@ -1,4 +1,4 @@
-import { A, createAsync } from "@solidjs/router";
+import { A, createAsync, type RouteDefinition } from "@solidjs/router";
 import ArrowDown from "lucide-solid/icons/arrow-down";
 import ArrowLeft from "lucide-solid/icons/arrow-left";
 import ArrowRight from "lucide-solid/icons/arrow-right";
@@ -59,6 +59,10 @@ function HomeParticles() {
     </Show>
   );
 }
+
+export const route = {
+  preload: () => getCoursesQuery(),
+} satisfies RouteDefinition;
 
 export default function HomePage() {
   const coursesData = createAsync(() => getCoursesQuery());

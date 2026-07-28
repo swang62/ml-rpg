@@ -247,53 +247,55 @@ export async function findLessonByPath(
   return lesson ?? null;
 }
 
-export async function getLessonNavQuery(
-  courseSlug: string,
-  categorySlug: string,
-  sectionSlug: string,
-  lessonSlug: string,
-) {
-  "use server";
-  const d1 = getDb();
+export const getLessonNavQuery = query(
+  async (
+    courseSlug: string,
+    categorySlug: string,
+    sectionSlug: string,
+    lessonSlug: string,
+  ) => {
+    "use server";
+    const d1 = getDb();
 
-  const chain = await resolveCourseCategorySection(
-    d1,
-    courseSlug,
-    categorySlug,
-    sectionSlug,
-  );
-  if (!chain) return null;
-  const { sec } = chain;
+    const chain = await resolveCourseCategorySection(
+      d1,
+      courseSlug,
+      categorySlug,
+      sectionSlug,
+    );
+    if (!chain) return null;
+    const { sec } = chain;
 
-  const { results: lessons } = await getLessonsBySection(d1, {
-    sectionId: sec.id,
-  });
-  const idx = lessons.findIndex((lesson) => lesson.slug === lessonSlug);
-  if (idx === -1) return null;
+    const { results: lessons } = await getLessonsBySection(d1, {
+      sectionId: sec.id,
+    });
+    const idx = lessons.findIndex((lesson) => lesson.slug === lessonSlug);
+    if (idx === -1) return null;
 
-  return {
-    currentLesson: lessons[idx],
-    prevLesson: idx > 0 ? lessons[idx - 1] : null,
-    nextLesson: idx < lessons.length - 1 ? lessons[idx + 1] : null,
-  };
-}
+    return {
+      currentLesson: lessons[idx],
+      prevLesson: idx > 0 ? lessons[idx - 1] : null,
+      nextLesson: idx < lessons.length - 1 ? lessons[idx + 1] : null,
+    };
+  },
+  "lesson-nav",
+);
 
-export async function getLessonHTMLQuery(
-  courseSlug: string,
-  sectionSlug: string,
-  lessonSlug: string,
-) {
-  "use server";
-  const d1 = getDb();
+export const getLessonHTMLQuery = query(
+  async (courseSlug: string, sectionSlug: string, lessonSlug: string) => {
+    "use server";
+    const d1 = getDb();
 
-  const lesson = await findLessonByPath(
-    d1,
-    courseSlug,
-    sectionSlug,
-    lessonSlug,
-  );
-  if (!lesson) return "";
+    const lesson = await findLessonByPath(
+      d1,
+      courseSlug,
+      sectionSlug,
+      lessonSlug,
+    );
+    if (!lesson) return "";
 
-  const htmlRow = await getLessonHtml(d1, { id: lesson.id });
-  return cleanLessonHtml(htmlRow?.html ?? "");
-}
+    const htmlRow = await getLessonHtml(d1, { id: lesson.id });
+    return cleanLessonHtml(htmlRow?.html ?? "");
+  },
+  "lesson-html",
+);

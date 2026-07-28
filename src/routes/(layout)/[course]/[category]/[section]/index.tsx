@@ -22,6 +22,11 @@ import {
 
 export const route = {
   preload: ({ params }) => {
+    getSectionMetaQuery(
+      params.course as string,
+      params.category as string,
+      params.section as string,
+    );
     getSectionReadCountsQuery(
       params.course as string,
       params.section as string,

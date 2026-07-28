@@ -16,6 +16,17 @@ import { isAnonLessonRead, version } from "~/utils/local-storage";
 
 export const route = {
   preload: ({ params }) => {
+    getLessonHTMLQuery(
+      params.course as string,
+      params.section as string,
+      params.lesson as string,
+    );
+    getLessonNavQuery(
+      params.course as string,
+      params.category as string,
+      params.section as string,
+      params.lesson as string,
+    );
     getLessonReadStatusQuery(
       params.course as string,
       params.section as string,
