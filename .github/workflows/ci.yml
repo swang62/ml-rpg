@@ -108,6 +108,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
+      pull-requests: write
     env:
       VITE_SITE_URL: https://dev-ml-rpg.stevewang.dev
       NODE_ENV: production
@@ -151,6 +152,7 @@ jobs:
       - name: Build Worker bundle
         run: pnpm build
       - name: Deploy main Worker to staging
+        id: deploy
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -158,6 +160,47 @@ jobs:
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           command: deploy
           environment: staging
+      - name: Comment PR with staging URL
+        uses: actions/github-script@v7
+        if: github.event_name == 'push'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open'
+            });
+            if (pulls.length === 0) {
+              console.log('No open PR found for branch', branch);
+              return;
+            }
+            const pr = pulls[0];
+            const url = '${{ steps.deploy.outputs.deployment-url }}' || 'https://dev-ml-rpg.stevewang.dev';
+            const body = `🚀 Staging deploy complete — [ml-rpg](${url})`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            const bot = comments.find(c => c.user.type === 'Bot' && c.body.includes('ml-rpg'));
+            if (bot) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: bot.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: pr.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
       - name: Deploy cron Worker to staging
         run: npx wrangler deploy --config cron/wrangler.jsonc --env staging
 
