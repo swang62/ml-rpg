@@ -178,8 +178,33 @@ export function KeyboardNavHandler() {
       }
     };
 
+    // Global delegated handler: add loading shimmer on navigation clicks
+    // Use pointerdown (fires before click, before navigation starts) and force
+    // a synchronous style recalculation so the browser paints before navigating.
+    const navSelector =
+      "a, .card, .hero-course-card, .lesson-nav__link, .back-link, .lesson-back-link, .breadcrumbs__link, .askai-message__sources button";
+    const handleNavPointer = (e: PointerEvent) => {
+      const navEl = (e.target as HTMLElement).closest<HTMLElement>(navSelector);
+      if (!navEl || navEl.classList.contains("is-navigating")) return;
+      // Skip non-navigation <a> elements (e.g. external links)
+      if (
+        navEl.tagName === "A" &&
+        !(navEl as HTMLAnchorElement).href?.startsWith("/")
+      )
+        return;
+      navEl.classList.add("is-navigating");
+      // Force synchronous style recalculation so the browser paints the shimmer
+      // before the navigation microtask queue processes.
+      void navEl.offsetWidth;
+      // Safety timeout — prevents stuck shimmer if navigation doesn't
+      // complete (e.g. same-page nav, error, fallback).
+      setTimeout(() => navEl.classList.remove("is-navigating"), 3000);
+    };
+
+    document.addEventListener("pointerdown", handleNavPointer);
     document.addEventListener("keydown", handleKeyDown);
     onCleanup(() => {
+      document.removeEventListener("pointerdown", handleNavPointer);
       document.removeEventListener("keydown", handleKeyDown);
       observer.disconnect();
       clearTimeout(navTimeout);
