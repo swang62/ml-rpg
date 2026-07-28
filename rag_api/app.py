@@ -64,7 +64,6 @@ logger = logging.getLogger("rag_api")
 
 _last_request_time = 0.0
 _unloaded = False
-_last_llama_request_time = 0.0  # tracks llama.cpp server last use
 
 
 async def _idle_unloader():
@@ -72,7 +71,7 @@ async def _idle_unloader():
     while True:
         await asyncio.sleep(IDLE_TIMEOUT)
         idle = time.monotonic() - _last_request_time
-        if idle >= IDLE_TIMEOUT and not _unloaded:
+        if idle > IDLE_TIMEOUT and not _unloaded:
             logger.info("idle for %.0fs — unloading resources...", idle)
             unload_nlp_core()
             close_vectordb()
@@ -84,7 +83,11 @@ async def _idle_unloader():
 async def lifespan(_app: FastAPI):
     global _last_request_time
     _last_request_time = time.monotonic()
-    logger.info("LLAMA_API_URL=%s SESSION_SECRET=%s...", LLAMA_API_URL, SESSION_SECRET[:8] if SESSION_SECRET else "(empty)")
+    logger.info(
+        "LLAMA_API_URL=%s SESSION_SECRET=%s...",
+        LLAMA_API_URL,
+        SESSION_SECRET[:8] if SESSION_SECRET else "(empty)",
+    )
     preload_embedder()
 
     # Build or verify the RAG index from local content (non-blocking in executor)
@@ -142,9 +145,8 @@ async def health():
 
 @app.get("/status")
 async def service_status():
-    llama_idle = time.monotonic() - _last_llama_request_time > IDLE_TIMEOUT
     return {
-        "idle": _unloaded or llama_idle,
+        "idle": _unloaded,
         "model_loading": is_embedder_loading(),
     }
 
@@ -234,8 +236,6 @@ async def _stream_from_llama(
     timeout = httpx.Timeout(60.0, connect=10.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
-            global _last_llama_request_time
-            _last_llama_request_time = time.monotonic()
             async with client.stream(
                 "POST",
                 f"{LLAMA_API_URL}/v1/chat/completions",
