@@ -107,7 +107,10 @@ export default function AskAI() {
 
     // Warmup check: detect idle RAG backend before streaming starts
     try {
-      const statusRes = await fetch("/api/chat", { method: "GET" });
+      const statusRes = await fetch("/api/chat", {
+        method: "GET",
+        cache: "no-store",
+      });
       if (statusRes.ok) {
         const status = (await statusRes.json()) as { idle: boolean };
         setLoadingText(status.idle ? "Warping in portal..." : "...");
