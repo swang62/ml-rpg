@@ -2107,18 +2107,16 @@ main {
   from {
     box-shadow:
       var(--shadow-card-hover),
-      0 0 0 2px var(--nav-loading-ring, var(--border-glow-accent)),
-      0 0 20px var(--nav-loading-glow, var(--border-glow-accent)),
-      0 0 42px var(--nav-loading-glow, var(--border-glow-accent));
-    filter: brightness(1.12) saturate(1.08);
+      0 0 0 1px var(--nav-loading-ring, var(--border-glow-accent)),
+      0 0 14px var(--nav-loading-glow, var(--border-glow-accent));
+    filter: brightness(1.05);
   }
   to {
     box-shadow:
       var(--shadow-card-hover),
-      0 0 0 3px var(--nav-loading-ring, var(--border-glow-accent)),
-      0 0 34px var(--nav-loading-glow, var(--border-glow-accent)),
-      0 0 64px var(--nav-loading-glow, var(--border-glow-accent));
-    filter: brightness(1.28) saturate(1.18);
+      0 0 0 2px var(--nav-loading-ring, var(--border-glow-accent)),
+      0 0 30px var(--nav-loading-glow, var(--border-glow-accent));
+    filter: brightness(1.15);
   }
 }
 
