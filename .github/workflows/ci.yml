@@ -160,11 +160,6 @@ jobs:
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           command: deploy --env staging
           environment: staging
-      - name: Purge Cloudflare edge cache for staging
-        uses: jakejarvis/cloudflare-purge-action@master
-        env:
-          CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
-          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Comment PR with staging URL
         uses: actions/github-script@v9
         env:
@@ -260,10 +255,5 @@ jobs:
         run: pnpm build
       - name: Deploy main Worker to production
         run: npx wrangler deploy --env production
-      - name: Purge Cloudflare edge cache for production
-        uses: jakejarvis/cloudflare-purge-action@master
-        env:
-          CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
-          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Deploy cron Worker to production
         run: npx wrangler deploy --config cron/wrangler.jsonc --env production
