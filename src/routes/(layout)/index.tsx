@@ -1,4 +1,9 @@
-import { A, createAsync, type RouteDefinition } from "@solidjs/router";
+import {
+  A,
+  createAsync,
+  type RouteDefinition,
+  useNavigate,
+} from "@solidjs/router";
 import ArrowDown from "lucide-solid/icons/arrow-down";
 import ArrowLeft from "lucide-solid/icons/arrow-left";
 import ArrowRight from "lucide-solid/icons/arrow-right";
@@ -12,6 +17,7 @@ import PageTitle from "~/components/PageTitle";
 import { getCoursesQuery } from "~/server/course";
 import { onCardLeave, onCardMove } from "~/utils/animation";
 import { SITE_NAME } from "~/utils/constants";
+import { navigateAfterLoadingPaint } from "~/utils/loading-nav";
 
 function HomeParticles() {
   const [mounted, setMounted] = createSignal(false);
@@ -65,6 +71,8 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const [loadingHref, setLoadingHref] = createSignal("");
   const coursesData = createAsync(() => getCoursesQuery());
   const courses = createMemo(() => coursesData() ?? []);
 
@@ -89,21 +97,33 @@ export default function HomePage() {
         <section class="flex flex-wrap justify-center">
           {courses()
             .sort((a, b) => a.title.localeCompare(b.title))
-            .map((course) => (
-              <A
-                href={`/${course.slug}`}
-                class="card hero-course-card"
-                onMouseMove={onCardMove}
-                onMouseLeave={onCardLeave}
-              >
-                <div class="hero-course-card__info">
-                  <h2>{course.title}</h2>
-                </div>
-                <div class="hero-course-card__arrow">
-                  <ChevronRight size={16} />
-                </div>
-              </A>
-            ))}
+            .map((course) => {
+              const href = `/${course.slug}`;
+              return (
+                <A
+                  href={href}
+                  class="card hero-course-card"
+                  classList={{ "is-navigating": loadingHref() === href }}
+                  onClick={(event) =>
+                    navigateAfterLoadingPaint(
+                      event,
+                      href,
+                      navigate,
+                      setLoadingHref,
+                    )
+                  }
+                  onMouseMove={onCardMove}
+                  onMouseLeave={onCardLeave}
+                >
+                  <div class="hero-course-card__info">
+                    <h2>{course.title}</h2>
+                  </div>
+                  <div class="hero-course-card__arrow">
+                    <ChevronRight size={16} />
+                  </div>
+                </A>
+              );
+            })}
         </section>
       </section>
 

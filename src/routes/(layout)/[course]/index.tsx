@@ -2,15 +2,17 @@ import {
   A,
   createAsync,
   type RouteDefinition,
+  useNavigate,
   useParams,
 } from "@solidjs/router";
-import { createMemo } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 import { useAuth } from "~/components/AuthContext";
 import CoursePageShell from "~/components/CoursePageShell";
 import ProgressBar from "~/components/ProgressBar";
 import { getCourseMetaQuery } from "~/server/course";
 import { getCourseReadCountsQuery } from "~/server/progress";
 import { onCardLeave, onCardMove } from "~/utils/animation";
+import { navigateAfterLoadingPaint } from "~/utils/loading-nav";
 import { getAnonSectionReadCounts, version } from "~/utils/local-storage";
 
 export const route = {
@@ -21,8 +23,10 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function CourseIndexPage() {
+  const navigate = useNavigate();
   const params = useParams();
   const { signedIn } = useAuth();
+  const [loadingHref, setLoadingHref] = createSignal("");
   const course = createAsync(() => getCourseMetaQuery(params.course as string));
   const serverSectionStatus = createAsync(() =>
     signedIn()
@@ -72,10 +76,15 @@ export default function CourseIndexPage() {
             ? sectionStatuses.length
             : category.sections.length;
 
+          const href = `/${params.course}/${category.category}`;
           return (
             <A
-              href={`/${params.course}/${category.category}`}
+              href={href}
               class="card card--category"
+              classList={{ "is-navigating": loadingHref() === href }}
+              onClick={(event) =>
+                navigateAfterLoadingPaint(event, href, navigate, setLoadingHref)
+              }
               onMouseMove={onCardMove}
               onMouseLeave={onCardLeave}
             >

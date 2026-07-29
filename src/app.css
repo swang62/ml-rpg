@@ -2101,29 +2101,69 @@ main {
   margin: 0;
 }
 
-/* ===== Loading shimmer for navigation cards/links ===== */
+/* ===== Loading pulse for navigation cards/links ===== */
 
-@keyframes nav-shimmer {
-  0% {
-    background-position: -200% 0;
+@keyframes nav-loading-pulse {
+  from {
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 2px var(--nav-loading-ring, var(--border-glow-accent)),
+      0 0 20px var(--nav-loading-glow, var(--border-glow-accent)),
+      0 0 42px var(--nav-loading-glow, var(--border-glow-accent));
+    filter: brightness(1.12) saturate(1.08);
   }
-  100% {
-    background-position: 200% 0;
+  to {
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 3px var(--nav-loading-ring, var(--border-glow-accent)),
+      0 0 34px var(--nav-loading-glow, var(--border-glow-accent)),
+      0 0 64px var(--nav-loading-glow, var(--border-glow-accent));
+    filter: brightness(1.28) saturate(1.18);
   }
 }
 
-.is-navigating {
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, currentColor 18%, transparent) 40%,
-    color-mix(in srgb, currentColor 25%, transparent) 50%,
-    color-mix(in srgb, currentColor 18%, transparent) 60%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  background-repeat: no-repeat;
-  animation: nav-shimmer 2.5s ease-in-out infinite;
+@keyframes nav-loading-press {
+  0% {
+    transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+      rotateY(var(--tilt-x, 0deg)) scale(1);
+  }
+  45% {
+    transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+      rotateY(var(--tilt-x, 0deg)) scale(0.94);
+  }
+  100% {
+    transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+      rotateY(var(--tilt-x, 0deg)) scale(1);
+  }
+}
+
+.card.is-navigating,
+.hero-course-card.is-navigating,
+.lesson-nav__link.is-navigating {
+  border-color: var(--nav-loading-border, var(--border-hover));
+  animation:
+    nav-loading-press 0.18s ease-out both,
+    nav-loading-pulse 0.7s ease-in-out 0.18s infinite alternate;
+}
+
+.page-level--course .card.is-navigating {
+  --nav-loading-border: var(--level-course);
+  --nav-loading-ring: var(--border-glow-course);
+  --nav-loading-glow: var(--glow-course);
+}
+
+.page-level--category .card.is-navigating {
+  --nav-loading-border: var(--level-category);
+  --nav-loading-ring: var(--border-glow-category);
+  --nav-loading-glow: var(--glow-category);
+}
+
+.page-level--section .card.is-navigating,
+.page-level--lesson .card.is-navigating,
+.lesson-nav__link.is-navigating {
+  --nav-loading-border: var(--level-section);
+  --nav-loading-ring: var(--border-glow-section);
+  --nav-loading-glow: var(--glow-section);
 }
 
 /* Circle spinner keyframe (class defined above alongside width-preserving styles) */
