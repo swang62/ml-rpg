@@ -2072,6 +2072,108 @@ main {
   }
 }
 
+/* Keep button width stable when switching to spinner — hide content, overlay spinner */
+.btn-content {
+  display: contents; /* transparent to flex layout — children still get gap/alignment */
+}
+.btn-content--hidden {
+  visibility: hidden;
+}
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+/* When a button has a spinner, position it absolutely to preserve the original width */
+.btn-spinner-outer {
+  position: relative;
+}
+.btn-spinner-outer .btn-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  margin: 0;
+}
+
+/* ===== Loading pulse for navigation cards/links ===== */
+
+@keyframes nav-loading-pulse {
+  from {
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 1px var(--nav-loading-ring, var(--border-glow-accent)),
+      0 0 14px var(--nav-loading-glow, var(--border-glow-accent));
+    filter: brightness(1.05);
+  }
+  to {
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 2px var(--nav-loading-ring, var(--border-glow-accent)),
+      0 0 30px var(--nav-loading-glow, var(--border-glow-accent));
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes nav-loading-press {
+  0% {
+    transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+      rotateY(var(--tilt-x, 0deg)) scale(1);
+  }
+  45% {
+    transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+      rotateY(var(--tilt-x, 0deg)) scale(0.94);
+  }
+  100% {
+    transform: perspective(800px) rotateX(var(--tilt-y, 0deg))
+      rotateY(var(--tilt-x, 0deg)) scale(1);
+  }
+}
+
+.card.is-navigating,
+.hero-course-card.is-navigating,
+.lesson-nav__link.is-navigating {
+  border-color: var(--nav-loading-border, var(--border-hover));
+  animation:
+    nav-loading-press 0.18s ease-out both,
+    nav-loading-pulse 0.7s ease-in-out 0.18s infinite alternate;
+}
+
+.page-level--course .card.is-navigating {
+  --nav-loading-border: var(--level-course);
+  --nav-loading-ring: var(--border-glow-course);
+  --nav-loading-glow: var(--glow-course);
+}
+
+.page-level--category .card.is-navigating {
+  --nav-loading-border: var(--level-category);
+  --nav-loading-ring: var(--border-glow-category);
+  --nav-loading-glow: var(--glow-category);
+}
+
+.page-level--section .card.is-navigating,
+.page-level--lesson .card.is-navigating,
+.lesson-nav__link.is-navigating {
+  --nav-loading-border: var(--level-section);
+  --nav-loading-ring: var(--border-glow-section);
+  --nav-loading-glow: var(--glow-section);
+}
+
+/* Circle spinner keyframe (class defined above alongside width-preserving styles) */
+@keyframes btn-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes toast-popup {
   0% {
     opacity: 0;

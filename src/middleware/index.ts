@@ -45,10 +45,7 @@ export default createMiddleware({
     const { pathname } = url;
 
     if (isStaticAsset(pathname)) {
-      event.response.headers.set(
-        "Cache-Control",
-        "public, max-age=2592000, immutable",
-      );
+      event.response.headers.set("Cache-Control", "public, max-age=2592000");
       return;
     }
 

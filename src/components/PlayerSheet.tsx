@@ -119,14 +119,20 @@ export default function PlayerSheet(props: Props) {
   const loginSubmission = useSubmission(formLogin);
   const signupSubmission = useSubmission(formSignup);
   const resetAllProgress = useAction(resetAllProgressAction);
+  const logoutSubmission = useSubmission(logoutAction);
 
   const currentLevel = createMemo(() => getLevel(props.totalXp));
+  const [isResetting, setIsResetting] = createSignal(false);
 
-  const handleSave = () => {
+  createEffect(() => {
+    if (showResetConfirm()) setIsResetting(false);
+  });
+
+  const handleSave = async () => {
     const name = draftName().trim();
     if (!name) return;
     if (props.signedIn) {
-      updateName(name);
+      await updateName(name);
     } else {
       setAnonDisplayName(name);
     }
@@ -271,7 +277,7 @@ export default function PlayerSheet(props: Props) {
   const btn =
     "inline-flex items-center justify-center p-1 border-2 border-border rounded cursor-pointer bg-transparent text-muted hover:text-accent hover:border-orange-400 hover:bg-surface-hover transition-colors duration-150";
   const btnConfirm =
-    "inline-flex items-center justify-center p-1 border-2 border-level-category rounded cursor-pointer bg-transparent text-level-category hover:text-heading hover:bg-[rgba(52,211,153,0.15)] hover:border-level-category transition-colors duration-150";
+    "inline-flex items-center justify-center p-1 border-2 border-level-category rounded cursor-pointer bg-transparent text-level-category hover:text-heading hover:bg-[rgba(52,211,153,0.15)] hover:border-level-category transition-colors duration-150 btn-spinner-outer";
 
   return (
     <Show when={props.open}>
@@ -341,7 +347,17 @@ export default function PlayerSheet(props: Props) {
                       disabled={submission.pending}
                       aria-label="Save name"
                     >
-                      <Check size={13} />
+                      <span
+                        class="btn-content"
+                        classList={{
+                          "btn-content--hidden": submission.pending,
+                        }}
+                      >
+                        <Check size={13} />
+                      </span>
+                      <Show when={submission.pending}>
+                        <span class="btn-spinner" />
+                      </Show>
                     </button>
                     <button
                       type="button"
@@ -455,10 +471,21 @@ export default function PlayerSheet(props: Props) {
                     <form action={logoutAction} method="post">
                       <button
                         type="submit"
-                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/80 border-red-400/80 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150"
+                        disabled={logoutSubmission.pending}
+                        class="inline-flex hover:cursor-pointer text-nowrap items-center gap-2 px-4 py-2 border-2 rounded font-pixel text-[0.6rem] text-red-400/80 border-red-400/80 hover:text-red-400 hover:border-red-400 hover:bg-surface-hover transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed btn-spinner-outer"
                       >
-                        <LogOut size={13} />
-                        <HighlightKey text="Log Out" key={SHORTCUTS.LOGIN} />
+                        <span
+                          class="btn-content"
+                          classList={{
+                            "btn-content--hidden": logoutSubmission.pending,
+                          }}
+                        >
+                          <LogOut size={13} />
+                          <HighlightKey text="Log Out" key={SHORTCUTS.LOGIN} />
+                        </span>
+                        <Show when={logoutSubmission.pending}>
+                          <span class="btn-spinner" />
+                        </Show>
                       </button>
                     </form>
                     <ResetButton onClick={() => setShowResetConfirm(true)} />
@@ -491,6 +518,7 @@ export default function PlayerSheet(props: Props) {
                   <button
                     type="button"
                     onClick={async () => {
+                      setIsResetting(true);
                       if (props.signedIn) {
                         await resetAllProgress();
                       } else {
@@ -499,10 +527,19 @@ export default function PlayerSheet(props: Props) {
                       setShowResetConfirm(false);
                       props.onClose();
                     }}
-                    class="inline-flex items-center gap-2 px-5 py-2 border-2 border-red-500 rounded font-pixel text-[0.6rem] text-red-400 hover:bg-[rgba(239,68,68,0.15)] hover:text-red-300 transition-colors duration-150 cursor-pointer"
+                    disabled={isResetting()}
+                    class="inline-flex items-center gap-2 px-5 py-2 border-2 border-red-500 rounded font-pixel text-[0.6rem] text-red-400 hover:bg-[rgba(239,68,68,0.15)] hover:text-red-300 transition-colors duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed btn-spinner-outer"
                   >
-                    <RotateCcw size={13} />
-                    Reset
+                    <span
+                      class="btn-content"
+                      classList={{ "btn-content--hidden": isResetting() }}
+                    >
+                      <RotateCcw size={13} />
+                      Reset
+                    </span>
+                    <Show when={isResetting()}>
+                      <span class="btn-spinner" />
+                    </Show>
                   </button>
                   <button
                     type="button"
@@ -567,9 +604,19 @@ export default function PlayerSheet(props: Props) {
                     type="submit"
                     disabled={loginSubmission.pending}
                     data-umami-event="login"
-                    class="hover:cursor-pointer  w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="hover:cursor-pointer w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed btn-spinner-outer"
                   >
-                    {loginSubmission.pending ? "Logging in..." : "Login"}
+                    <span
+                      class="btn-content"
+                      classList={{
+                        "btn-content--hidden": loginSubmission.pending,
+                      }}
+                    >
+                      Login
+                    </span>
+                    <Show when={loginSubmission.pending}>
+                      <span class="btn-spinner" />
+                    </Show>
                   </button>
                   <Show when={loginSubmission.error} keyed>
                     {({ message }) => (
@@ -638,11 +685,19 @@ export default function PlayerSheet(props: Props) {
                     type="submit"
                     disabled={signupSubmission.pending}
                     data-umami-event="signup"
-                    class="hover:cursor-pointer w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="hover:cursor-pointer w-full px-4 py-2 font-pixel text-[0.65rem] text-heading bg-surface-hover border-2 border-border rounded hover:bg-accent-glow hover:border-accent transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed btn-spinner-outer"
                   >
-                    {signupSubmission.pending
-                      ? "Creating account..."
-                      : "Create account"}
+                    <span
+                      class="btn-content"
+                      classList={{
+                        "btn-content--hidden": signupSubmission.pending,
+                      }}
+                    >
+                      Create account
+                    </span>
+                    <Show when={signupSubmission.pending}>
+                      <span class="btn-spinner" />
+                    </Show>
                   </button>
                   <Show when={signupSubmission.error} keyed>
                     {({ message }) => (

@@ -3,6 +3,7 @@ import {
   createAsync,
   type RouteDefinition,
   useAction,
+  useNavigate,
   useParams,
 } from "@solidjs/router";
 import RotateCcw from "lucide-solid/icons/rotate-ccw";
@@ -14,6 +15,7 @@ import { getSectionMetaQuery } from "~/server/course";
 import { resetSectionAction } from "~/server/mutations";
 import { getSectionReadCountsQuery } from "~/server/progress";
 import { XP_VALUE } from "~/utils/constants";
+import { navigateAfterLoadingPaint } from "~/utils/loading-nav";
 import {
   getAnonSectionReadSlugs,
   resetAnonSection,
@@ -35,6 +37,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function SectionPage() {
+  const navigate = useNavigate();
   const params = useParams();
   if (!params.category || !params.section) return;
 
@@ -60,6 +63,7 @@ export default function SectionPage() {
   );
 
   const [anonReadLessons, setAnonReadLessons] = createSignal<string[]>([]);
+  const [loadingHref, setLoadingHref] = createSignal("");
   const dep = createMemo(() => version());
 
   onMount(() => dep());
@@ -116,10 +120,15 @@ export default function SectionPage() {
       <section class="lessons-list">
         {section()?.lessons.map((lesson) => {
           const isRead = readLessons().includes(lesson.slug);
+          const href = `/${params.course}/${params.category}/${params.section}/${lesson.slug}`;
           return (
             <A
-              href={`/${params.course}/${params.category}/${params.section}/${lesson.slug}`}
+              href={href}
               class={`card card--lesson${isRead ? " card--lesson--read" : ""}`}
+              classList={{ "is-navigating": loadingHref() === href }}
+              onClick={(event) =>
+                navigateAfterLoadingPaint(event, href, navigate, setLoadingHref)
+              }
             >
               <span class="lesson-order">{lesson.lessonorder}</span>
               <span class="lesson-title">{lesson.title}</span>

@@ -158,7 +158,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: deploy
+          command: deploy --env staging
           environment: staging
       - name: Comment PR with staging URL
         uses: actions/github-script@v9
